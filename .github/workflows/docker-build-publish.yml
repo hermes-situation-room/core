@@ -1,0 +1,25 @@
+name: BUILD AND PUBLISH SITUATIONROOM.CORE.FRONTEND DOCKER IMAGE
+
+on:
+  push:
+    branches: [ "master" ]
+    paths:
+      - 'src/frontend/**'
+  pull_request:
+    branches: [ "master" ]
+    paths:
+      - 'src/frontend/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build the Docker image
+        run: |
+          DATE=$(date +%Y-%m-%d)
+          docker build . \
+            --file Dockerfile \
+            --tag com.hermes.situationroom.core.frontend:${DATE}.${GITHUB_RUN_NUMBER}
