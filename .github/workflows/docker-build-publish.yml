@@ -1,0 +1,40 @@
+name: BUILD AND PUBLISH SITUATIONROOM.CORE.FRONTEND DOCKER IMAGE
+
+on:
+  push:
+    branches: [ "master" ]
+    paths:
+      - 'src/frontend/**'
+  pull_request:
+    branches: [ "master" ]
+    paths:
+      - 'src/frontend/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        run: |
+          DATE=$(date +%Y-%m-%d)
+          IMAGE_NAME=${{ secrets.DOCKERHUB_USERNAME }}/situationroom-frontend
+
+          # Build
+          docker build src/frontend \
+            --file src/frontend/Dockerfile \
+            --tag $IMAGE_NAME:${DATE}.${GITHUB_RUN_NUMBER} \
+            --tag $IMAGE_NAME:latest
+
+          # Push
+          docker push $IMAGE_NAME:${DATE}.${GITHUB_RUN_NUMBER}
+          docker push $IMAGE_NAME:latest
+

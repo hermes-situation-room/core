@@ -2,6 +2,9 @@
 
 An web based communication service for journalists and early stage activist groups created in the class ENG C183F, taken at UC Berkeley. Live at https://www.situation-room.org
 
+## 🧪 Pipelines
+[![BUILD AND PUBLISH SITUATIONROOM.CORE.FRONTEND DOCKER IMAGE](https://github.com/hermes-situation-room/core/actions/workflows/docker-build-publish.yml/badge.svg)](https://github.com/hermes-situation-room/core/actions/workflows/docker-build-publish.yml)
+
 ## Install dependencies
 (from inside `src/frontend/`)
 ```bash
