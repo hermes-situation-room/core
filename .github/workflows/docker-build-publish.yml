@@ -20,6 +20,6 @@ jobs:
       - name: Build the Docker image
         run: |
           DATE=$(date +%Y-%m-%d)
-          docker build . \
-            --file Dockerfile \
+          docker build src/frontend \
+            --file src/frontend/Dockerfile \
             --tag com.hermes.situationroom.core.frontend:${DATE}.${GITHUB_RUN_NUMBER}
