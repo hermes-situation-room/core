@@ -17,9 +17,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build the Docker image
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Docker image
         run: |
           DATE=$(date +%Y-%m-%d)
+          IMAGE_NAME=${{ secrets.DOCKERHUB_USERNAME }}/situationroom-frontend
+
+          # Build
           docker build src/frontend \
-            --file Dockerfile \
-            --tag com.hermes.situationroom.core.frontend:${DATE}.${GITHUB_RUN_NUMBER}
+            --file src/frontend/Dockerfile \
+            --tag $IMAGE_NAME:${DATE}.${GITHUB_RUN_NUMBER} \
+            --tag $IMAGE_NAME:latest
+
+          # Push
+          docker push $IMAGE_NAME:${DATE}.${GITHUB_RUN_NUMBER}
+          docker push $IMAGE_NAME:latest
+
