@@ -8,6 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\ProductAssemblyInfo.cs" Link="ProductAssemblyInfo.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="Entities\" />
     <Folder Include="Repositories\" />
   </ItemGroup>
