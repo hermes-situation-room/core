@@ -1,0 +1,38 @@
+﻿services:
+  mssql:
+    container_name: sql-server-situation
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    restart: always
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "Docker.SituationRoom.2024"
+      MSSQL_PID: "Developer"
+    ports:
+      - "1434:1433"
+    volumes:
+      - sql-server-data:/var/opt/mssql
+    networks:
+      - app-network
+  
+  hermes.situationroom.api:
+    image: ${DOCKER_REGISTRY-}hermes-situationroom-api
+    build:
+      context: .
+      dockerfile: Hermes.SituationRoom.Web/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__SituationRoomDb: "Server=mssql;Database=HERMESSiutationRoom;User=sa;Password=Docker.SituationRoom.2024;TrustServerCertificate=true;"
+    ports:
+      - "5005:8080"
+    depends_on:
+      - mssql
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  sql-server-data:
+    driver: local
