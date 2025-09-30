@@ -1,30 +1,25 @@
 <script setup lang="ts">
-import HelloWorld from './components/HelloWorld.vue'
+import { onMounted } from 'vue'
+import logoUrl from './assets/logo_situation_room.png'
+
+onMounted(() => {
+  const existing = document.querySelector<HTMLLinkElement>('link[rel="icon"]')
+  const link = existing ?? document.createElement('link')
+  link.rel = 'icon'
+  link.type = 'image/png'
+  link.href = logoUrl
+  if (!existing) document.head.appendChild(link)
+})
 </script>
 
 <template>
-  <div>
-    <a href="https://vite.dev" target="_blank">
-      <img src="/vite.svg" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://vuejs.org/" target="_blank">
-      <img src="./assets/vue.svg" class="logo vue" alt="Vue logo" />
-    </a>
-  </div>
-  <HelloWorld msg="Vite + Vue" />
+  <nav class="navbar bg-light py-3">
+    <div class="container-fluid">
+      <a class="navbar-brand d-flex align-items-center fs-2" href="#">
+        <img :src="logoUrl" alt="Situation Room logo" height="56" class="me-2" />
+        <span>Situation Room</span>
+      </a>
+    </div>
+  </nav>
+  <hr class="m-0" />
 </template>
-
-<style scoped>
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #42b883aa);
-}
-</style>
