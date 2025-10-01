@@ -21,7 +21,7 @@
       dockerfile: Hermes.SituationRoom.Web/Dockerfile
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      ConnectionStrings__SituationRoomDb: "Server=mssql;Database=HERMESSiutationRoom;User=sa;Password=Docker.SituationRoom.2024;TrustServerCertificate=true;"
+      ConnectionStrings__SituationRoomDb: "Server=mssql;User=sa;Password=Docker.SituationRoom.2024;TrustServerCertificate=true;Initial Catalog=HERMESSituationRoom;"
     ports:
       - "5005:8080"
     depends_on:

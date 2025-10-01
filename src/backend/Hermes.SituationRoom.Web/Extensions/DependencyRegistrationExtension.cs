@@ -4,6 +4,7 @@ using Api.Configurations;
 using Controllers.Base;
 using Data.Context;
 using Data.Interface;
+using Data.Migrations;
 using Profiles;
 
 public static class DependencyRegistrationExtension
@@ -15,6 +16,10 @@ public static class DependencyRegistrationExtension
 
         // Database
         services.AddTransient<ISituationContext, SituationContext>();
+
+        var connectionString = configuration.GetConnectionString("SituationRoomDb");
+        services.AddDatabaseMigrations(connectionString,
+            Path.Combine(AppContext.BaseDirectory, "Hermes.SituationRoom.Data/Migrations"));
 
         // REST Infrastructure
         services.AddScoped<IControllerInfrastructure, ControllerInfrastructure>();
