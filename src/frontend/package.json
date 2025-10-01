@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@microsoft/signalr": "^9.0.6",
     "bootstrap": "4",
     "bootstrap-vue": "^2.23.1",
     "vue": "^3.5.22"

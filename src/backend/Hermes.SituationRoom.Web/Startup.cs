@@ -37,14 +37,18 @@ public class Startup
 
         services.AddCors(options =>
         {
-            options.AddPolicy("AllowAnyOrigin",
+            options.AddPolicy("AllowFrontend",
                 builder =>
                 {
-                    builder.AllowAnyOrigin()
+                    builder.WithOrigins("http://localhost:4300")
                         .AllowAnyHeader()
-                        .AllowAnyMethod();
+                        .AllowAnyMethod()
+                        .AllowCredentials();
                 });
         });
+
+        services.AddSignalR();
+        services.AddControllers();
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -57,13 +61,14 @@ public class Startup
         app.UseSerilogRequestLogging();
         app.UseHttpsRedirection()
             .UseRouting()
-            .UseCors("AllowAnyOrigin")
+            .UseCors("AllowFrontend")
             .UseRequestLocalization()
             .UseMiddleware<ExceptionMiddleware>()
             .UseAuthorization()
             .UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapHub<ChatHub>("/chatHub").RequireCors("AllowFrontend");
             });
     }
 }
