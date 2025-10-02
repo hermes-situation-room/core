@@ -49,11 +49,7 @@ public class Startup
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     {
-        if (env.IsDevelopment() || env.IsProduction())
-        {
-            app.UseSwaggerAndSwaggerUI();
-        }
-
+        app.UseSwaggerAndSwaggerUI();
         app.UseSerilogRequestLogging();
         app.UseHttpsRedirection()
             .UseRouting()
