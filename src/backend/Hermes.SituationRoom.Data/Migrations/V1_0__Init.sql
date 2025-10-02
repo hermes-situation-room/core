@@ -6,9 +6,9 @@ CREATE TABLE dbo.[User]
     UID UNIQUEIDENTIFIER NOT NULL PRIMARY KEY,
     Password NVARCHAR(255) NOT NULL,
     -- hashed/salted password, not MAX
-    FirstName NVARCHAR(255) NOT NULL,
-    LastName NVARCHAR(255) NOT NULL,
-    EmailAddress NVARCHAR(255) NOT NULL UNIQUE
+    FirstName NVARCHAR(255) NULL,
+    LastName NVARCHAR(255) NULL,
+    EmailAddress NVARCHAR(255) NULL UNIQUE
 );
 
 -- ========================
@@ -29,9 +29,9 @@ CREATE TABLE dbo.Activist
     UserUID UNIQUEIDENTIFIER NOT NULL PRIMARY KEY
         CONSTRAINT FK_Activist_User FOREIGN KEY REFERENCES dbo.[User](UID),
     Username NVARCHAR(255) NOT NULL UNIQUE,
-    IsFirstNameVisible BIT NOT NULL,
-    IsLastNameVisible BIT NOT NULL,
-    IsEmailVisible BIT NOT NULL
+    IsFirstNameVisible BIT NOT NULL DEFAULT 0,
+    IsLastNameVisible BIT NOT NULL DEFAULT 0,
+    IsEmailVisible BIT NOT NULL DEFAULT 0
 );
 
 -- ========================
@@ -66,9 +66,9 @@ CREATE TABLE dbo.[Message]
 CREATE TABLE dbo.PrivacyLevelPersonal
 (
     UID UNIQUEIDENTIFIER NOT NULL PRIMARY KEY,
-    IsFirstNameVisible BIT NOT NULL,
-    IsLastNameVisible BIT NOT NULL,
-    IsEmailVisible BIT NOT NULL,
+    IsFirstNameVisible BIT NOT NULL DEFAULT 0,
+    IsLastNameVisible BIT NOT NULL DEFAULT 0,
+    IsEmailVisible BIT NOT NULL DEFAULT 0,
     OwnerUID UNIQUEIDENTIFIER NOT NULL
         CONSTRAINT FK_PrivacyLevelPersonal_Owner FOREIGN KEY REFERENCES dbo.[User](UID),
     ConsumerUID UNIQUEIDENTIFIER NOT NULL
