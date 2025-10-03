@@ -1,5 +1,4 @@
-﻿
-namespace Exxas.Customer.Api;
+﻿namespace Exxas.Customer.Api;
 
 using Hermes.SituationRoom.Api;
 using Serilog;
