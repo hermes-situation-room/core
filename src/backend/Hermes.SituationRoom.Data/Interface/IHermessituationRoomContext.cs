@@ -32,4 +32,8 @@ public interface IHermessituationRoomContext : ICurrentDbContext
     /// <typeparam name="T"></typeparam>
     /// <returns>A read-only collection of the tracked or local entities respectively of type T of the DbContext.</returns>
     IReadOnlyCollection<T> GetLocalEntity<T>() where T : class;
+
+    Task<int> SaveChangesAsync();
+
+    int SaveChanges();
 }
