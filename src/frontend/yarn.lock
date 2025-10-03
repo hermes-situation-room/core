@@ -361,6 +361,11 @@
     "@vue/compiler-dom" "3.5.22"
     "@vue/shared" "3.5.22"
 
+"@vue/devtools-api@^6.6.4":
+  version "6.6.4"
+  resolved "https://registry.yarnpkg.com/@vue/devtools-api/-/devtools-api-6.6.4.tgz#cbe97fe0162b365edc1dba80e173f90492535343"
+  integrity sha512-sGhTPMuXqZ1rVOk32RylztWkfXTRhuS7vgAKv0zjqk8gbsHkJ7xfFf+jbySxt7tWObEJwyKaHMikV/WGDiQm8g==
+
 "@vue/language-core@3.1.0":
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/@vue/language-core/-/language-core-3.1.0.tgz#b2cf6505402f15da1f1b88ef95593cdedf2a3237"
@@ -674,6 +679,13 @@ vue-functional-data-merge@^3.1.0:
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/vue-functional-data-merge/-/vue-functional-data-merge-3.1.0.tgz#08a7797583b7f35680587f8a1d51d729aa1dc657"
   integrity sha512-leT4kdJVQyeZNY1kmnS1xiUlQ9z1B/kdBFCILIjYYQDqZgLqCLa0UhjSSeRX6c3mUe6U5qYeM8LrEqkHJ1B4LA==
+
+vue-router@^4.5.1:
+  version "4.5.1"
+  resolved "https://registry.yarnpkg.com/vue-router/-/vue-router-4.5.1.tgz#47bffe2d3a5479d2886a9a244547a853aa0abf69"
+  integrity sha512-ogAF3P97NPm8fJsE4by9dwSYtDwXIY1nFY9T6DyQnGHd1E2Da94w9JIolpe42LJGIl0DwOHBi8TcRPlPGwbTtw==
+  dependencies:
+    "@vue/devtools-api" "^6.6.4"
 
 vue-tsc@^3.0.7:
   version "3.1.0"
