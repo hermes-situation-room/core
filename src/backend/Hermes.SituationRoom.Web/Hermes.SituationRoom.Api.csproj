@@ -38,6 +38,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Hermes.SituationRoom.Data\Hermes.SituationRoom.Data.csproj" />
+    <ProjectReference Include="..\Hermes.SituationRoom.Domain\Hermes.SituationRoom.Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>
