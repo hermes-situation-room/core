@@ -25,7 +25,7 @@ public class Startup
     public void ConfigureServices(IServiceCollection services)
     {
         var connectionString = Configuration.GetConnectionString("SituationRoomDb");
-        services.AddDbContext<SituationContext>(options =>
+        services.AddDbContext<HermessituationRoomContext>(options =>
         {
             options.UseSqlServer(connectionString);
             options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);

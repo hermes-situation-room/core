@@ -15,7 +15,7 @@ public static class DependencyRegistrationExtension
         services.AddSwagger();
 
         // Database
-        services.AddTransient<ISituationContext, SituationContext>();
+        services.AddTransient<IHermessituationRoomContext, HermessituationRoomContext>();
 
         var connectionString = configuration.GetConnectionString("SituationRoomDb");
         services.AddDatabaseMigrations(connectionString,
