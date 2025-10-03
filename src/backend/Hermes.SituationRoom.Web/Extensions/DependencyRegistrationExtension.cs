@@ -19,7 +19,7 @@ public static class DependencyRegistrationExtension
 
         var connectionString = configuration.GetConnectionString("SituationRoomDb");
         services.AddDatabaseMigrations(connectionString,
-            Path.Combine(AppContext.BaseDirectory, "Hermes.SituationRoom.Data/Migrations"));
+            Path.Combine(AppContext.BaseDirectory, "Migrations"));
 
         // REST Infrastructure
         services.AddScoped<IControllerInfrastructure, ControllerInfrastructure>();
