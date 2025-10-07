@@ -28,25 +28,19 @@ public sealed class JournalistRepository(IHermessituationRoomContext context, IU
         if (journalistUid == Guid.Empty)
             throw new ArgumentException("GUID must not be empty.", nameof(journalistUid));
 
-        var journalist = await context.Journalists
-                             .AsNoTracking()
-                             .Include(j => j.UserU)
-                             .FirstOrDefaultAsync(j => j.UserUid == journalistUid)
-                         ?? throw new KeyNotFoundException($"Journalist with UID {journalistUid} was not found.");
-
-        return MapToBo(journalist);
+        return MapToBo(await context.Journalists
+                           .AsNoTracking()
+                           .Include(j => j.UserU)
+                           .FirstOrDefaultAsync(j => j.UserUid == journalistUid)
+                       ?? throw new KeyNotFoundException($"Journalist with UID {journalistUid} was not found.")
+        );
     }
 
-    public async Task<IReadOnlyList<JournalistBo>> GetAllJournalistBosAsync()
-    {
-        var list = await context.Journalists
-            .AsNoTracking()
-            .Include(j => j.UserU)
-            .Select(j => MapToBo(j))
-            .ToListAsync();
-
-        return list;
-    }
+    public async Task<IReadOnlyList<JournalistBo>> GetAllJournalistBosAsync() => await context.Journalists
+        .AsNoTracking()
+        .Include(j => j.UserU)
+        .Select(j => MapToBo(j))
+        .ToListAsync();
 
     public async Task<JournalistBo> UpdateAsync(JournalistBo updatedJournalist)
     {
@@ -94,13 +88,13 @@ public sealed class JournalistRepository(IHermessituationRoomContext context, IU
 
     private static JournalistBo MapToBo(Journalist journalist)
     {
-        var u = journalist.UserU ?? throw new InvalidOperationException("Expected navigation UserU to be loaded.");
+        var user = journalist.UserU ?? throw new InvalidOperationException("Expected navigation UserU to be loaded.");
 
-        return new(u.Uid,
-            u.Password,
-            u.FirstName,
-            u.LastName,
-            u.EmailAddress,
+        return new(user.Uid,
+            user.Password,
+            user.FirstName,
+            user.LastName,
+            user.EmailAddress,
             journalist.Employer
         );
     }

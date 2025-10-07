@@ -35,25 +35,19 @@ public sealed class ActivistRepository(IHermessituationRoomContext context, IUse
         if (activistUid == Guid.Empty)
             throw new ArgumentException("GUID must not be empty.", nameof(activistUid));
 
-        var activist = await context.Activists
+        return MapToBo(await context.Activists
                            .AsNoTracking()
                            .Include(a => a.UserU)
                            .FirstOrDefaultAsync(a => a.UserUid == activistUid)
-                       ?? throw new KeyNotFoundException($"Activist with UID {activistUid} was not found.");
-
-        return MapToBo(activist);
+                       ?? throw new KeyNotFoundException($"Activist with UID {activistUid} was not found.")
+        );
     }
 
-    public async Task<IReadOnlyList<ActivistBo>> GetAllActivistBosAsync()
-    {
-        var items = await context.Activists
-            .AsNoTracking()
-            .Include(a => a.UserU)
-            .Select(a => MapToBo(a))
-            .ToListAsync();
-
-        return items;
-    }
+    public async Task<IReadOnlyList<ActivistBo>> GetAllActivistBosAsync() => await context.Activists
+        .AsNoTracking()
+        .Include(a => a.UserU)
+        .Select(a => MapToBo(a))
+        .ToListAsync();
 
     public async Task<ActivistBo> UpdateAsync(ActivistBo updatedActivist)
     {
@@ -103,13 +97,13 @@ public sealed class ActivistRepository(IHermessituationRoomContext context, IUse
 
     private static ActivistBo MapToBo(Activist activist)
     {
-        var u = activist.UserU ?? throw new InvalidOperationException("Expected navigation User to be loaded.");
+        var user = activist.UserU ?? throw new InvalidOperationException("Expected navigation User to be loaded.");
 
-        return new(u.Uid,
-            u.Password,
-            u.FirstName,
-            u.LastName,
-            u.EmailAddress,
+        return new(user.Uid,
+            user.Password,
+            user.FirstName,
+            user.LastName,
+            user.EmailAddress,
             activist.Username,
             activist.IsFirstNameVisible,
             activist.IsLastNameVisible,

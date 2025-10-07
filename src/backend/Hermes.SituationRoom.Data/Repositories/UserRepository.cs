@@ -34,23 +34,17 @@ public sealed class UserRepository(IHermessituationRoomContext context) : IUserR
         if (userId == Guid.Empty)
             throw new ArgumentException("GUID must not be empty.", nameof(userId));
 
-        var user = await context.Users
-                       .AsNoTracking()
-                       .FirstOrDefaultAsync(u => u.Uid == userId)
-                   ?? throw new KeyNotFoundException($"User with UID {userId} was not found.");
-
-        return MapToBo(user);
+        return MapToBo(await context.Users
+                           .AsNoTracking()
+                           .FirstOrDefaultAsync(u => u.Uid == userId)
+                       ?? throw new KeyNotFoundException($"User with UID {userId} was not found.")
+        );
     }
 
-    public async Task<IReadOnlyList<UserBo>> GetAllUserBosAsync()
-    {
-        var list = await context.Users
-            .AsNoTracking()
-            .Select(u => MapToBo(u))
-            .ToListAsync();
-
-        return list;
-    }
+    public async Task<IReadOnlyList<UserBo>> GetAllUserBosAsync() => await context.Users
+        .AsNoTracking()
+        .Select(u => MapToBo(u))
+        .ToListAsync();
 
     public async Task<UserBo> Update(UserBo updatedUser)
     {
