@@ -21,7 +21,7 @@ public class ChatRepository(IHermessituationRoomContext context) : IChatReposito
 
     public async Task<ChatBo> GetChatAsync(Guid chatId)
     {
-        var chat = await context.Chats
+return MapToChatBo(await context.Chats ...)
                                      .AsNoTracking()
                                      .FirstOrDefaultAsync(c => c.Uid == chatId)
                                      ?? throw new KeyNotFoundException($"Could not find Chat with the Id: {chatId}");
