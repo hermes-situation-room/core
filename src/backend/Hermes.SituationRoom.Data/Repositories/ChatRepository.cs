@@ -32,7 +32,7 @@ public class ChatRepository(IHermessituationRoomContext context) : IChatReposito
 
     public async Task<ChatBo> GetChatByUserPairAsync(Guid user1Id, Guid user2Id)
     {
-        var chat = await context.Chats
+        return MapToChatBo(await context.Chats ...)
                        .AsNoTracking()
                        .FirstOrDefaultAsync(c =>
                            (c.User1Uid == user1Id || c.User2Uid == user1Id)
