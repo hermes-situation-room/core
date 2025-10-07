@@ -18,7 +18,7 @@ public static class DependencyRegistrationExtension
         services.AddSwagger();
 
         // Database
-        services.AddTransient<IHermessituationRoomContext, HermessituationRoomContext>();
+        services.AddDbContext<IHermessituationRoomContext, HermessituationRoomContext>();
         
         // Data
         services.AddTransient<IUserRepository, UserRepository>();
@@ -26,6 +26,8 @@ public static class DependencyRegistrationExtension
         services.AddTransient<IJournalistRepository, JournalistRepository>();
         services.AddTransient<IPostRepository, PostRepository>();
         services.AddTransient<IPrivacyLevelPersonalRepository, PrivacyLevelPersonalRepository>();
+        services.AddScoped<IChatRepository, ChatRepository>();
+        services.AddScoped<IMessageRepository, MessageRepository>();
         
         // Domain
         services.AddTransient<IUserService, UserService>();
@@ -33,16 +35,12 @@ public static class DependencyRegistrationExtension
         services.AddTransient<IJournalistService, JournalistService>();
         services.AddTransient<IPostService, PostService>();
         services.AddTransient<IPrivacyLevelPersonalService, PrivacyLevelPersonalService>();
+        services.AddScoped<IChatService, ChatService>();
+        services.AddScoped<IMessageService, MessageService>();
         
         var connectionString = configuration.GetConnectionString("SituationRoomDb");
         services.AddDatabaseMigrations(connectionString,
             Path.Combine(AppContext.BaseDirectory, "Migrations"));
-        
-        // Data
-        services.AddScoped<IChatRepository, ChatRepository>();
-        
-        //Domain
-        services.AddScoped<IChatService, ChatService>();
 
         // REST Infrastructure
         services.AddScoped<IControllerInfrastructure, ControllerInfrastructure>();

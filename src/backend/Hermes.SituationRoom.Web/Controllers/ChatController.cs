@@ -41,7 +41,7 @@ public class ChatController(IControllerInfrastructure controllerInfrastructure, 
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_CHAT])]
     [ProducesResponseType(typeof(ChatBo), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ChatBo>> GetChatByUserPairAsync([FromQuery, Required] Guid user1Id, [FromQuery, Required] Guid user2Id)
+    public async Task<ActionResult<ChatBo>> GetChatByUserPairAsync([FromQuery][Required] Guid user1Id, [FromQuery][Required] Guid user2Id)
     {
         try
         {

@@ -34,6 +34,15 @@ public class ChatRepository(IHermessituationRoomContext context) : IChatReposito
                                )
                            ?? throw new KeyNotFoundException($"Could not find Chat with User: {user1Id} and User: {user2Id}"));
     
+    public async Task<Guid?> FindChatByUserPairAsync(Guid user1Id, Guid user2Id) => 
+        await context.Chats
+            .AsNoTracking()
+            .Where(c =>
+                (c.User1Uid == user1Id || c.User2Uid == user1Id)
+                && (c.User1Uid == user2Id || c.User2Uid == user2Id)
+            )
+            .Select(c => (Guid?)c.Uid)
+            .FirstOrDefaultAsync();
     
     public async Task<IReadOnlyList<ChatBo>> GetChatsByUserAsync(Guid userId) =>
         await context.Chats
