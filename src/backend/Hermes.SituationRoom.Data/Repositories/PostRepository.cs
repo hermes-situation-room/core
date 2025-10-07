@@ -61,8 +61,6 @@ public sealed class PostRepository(IHermessituationRoomContext context) : IPostR
         var post = await context.Posts.FirstOrDefaultAsync(u => u.Uid == updatedPost.Uid)
                    ?? throw new KeyNotFoundException($"Post with UID {updatedPost.Uid} was not found.");
 
-        post.Timestamp = updatedPost.Timestamp;
-        post.CreatorUid = updatedPost.CreatorUid;
         post.Title = updatedPost.Title;
         post.Description = updatedPost.Description;
         post.Content = updatedPost.Content;
