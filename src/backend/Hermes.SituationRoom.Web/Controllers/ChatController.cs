@@ -11,7 +11,6 @@ using Swashbuckle.AspNetCore.Annotations;
 
 [ApiController]
 [Produces(MediaTypeNames.Application.Json)]
-[ProducesResponseType(typeof(string), StatusCodes.Status500InternalServerError)]
 public class ChatController(IControllerInfrastructure controllerInfrastructure, IChatService chatService) : SituationRoomControllerBase(controllerInfrastructure)
 {
     [HttpPost("internal/chats")]
