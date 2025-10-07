@@ -25,12 +25,14 @@ public static class DependencyRegistrationExtension
         services.AddTransient<IActivistRepository, ActivistRepository>();
         services.AddTransient<IJournalistRepository, JournalistRepository>();
         services.AddTransient<IPostRepository, PostRepository>();
+        services.AddTransient<ICommentRepository, CommentRepository>();
         
         // Domain
         services.AddTransient<IUserService, UserService>();
         services.AddTransient<IActivistService, ActivistService>();
         services.AddTransient<IJournalistService, JournalistService>();
         services.AddTransient<IPostService, PostService>();
+        services.AddTransient<ICommentService, CommentService>();
         
         var connectionString = configuration.GetConnectionString("SituationRoomDb");
         services.AddDatabaseMigrations(connectionString,
