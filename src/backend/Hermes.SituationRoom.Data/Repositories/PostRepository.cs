@@ -65,6 +65,7 @@ public sealed class PostRepository(IHermessituationRoomContext context) : IPostR
         post.CreatorUid = updatedPost.CreatorUid;
         post.Title = updatedPost.Title;
         post.Description = updatedPost.Description;
+        post.Content = updatedPost.Content;
 
         await context.SaveChangesAsync();
         return MapToBo(post);
