@@ -1,11 +1,12 @@
 ﻿namespace Hermes.SituationRoom.Api.Extensions;
 
-using Api.Configurations;
+using Configurations;
 using Controllers.Base;
 using Data.Context;
 using Data.Interface;
 using Data.Migrations;
 using Data.Repositories;
+using Domain.Interface;
 using Domain.Services;
 using Profiles;
 
@@ -32,6 +33,12 @@ public static class DependencyRegistrationExtension
         var connectionString = configuration.GetConnectionString("SituationRoomDb");
         services.AddDatabaseMigrations(connectionString,
             Path.Combine(AppContext.BaseDirectory, "Migrations"));
+        
+        // Data
+        services.AddScoped<IChatRepository, ChatRepository>();
+        
+        //Domain
+        services.AddScoped<IChatService, ChatService>();
 
         // REST Infrastructure
         services.AddScoped<IControllerInfrastructure, ControllerInfrastructure>();
