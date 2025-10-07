@@ -11,7 +11,7 @@ using Swashbuckle.AspNetCore.Annotations;
 public class CommentController(IControllerInfrastructure infra, ICommentService commentService)
     : SituationRoomControllerBase(infra)
 {
-    [HttpGet("internal/comment/post/{postUid:guid}")]
+    [HttpGet("internal/post/{postUid:guid}/comment")]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL])]
     public async Task<ActionResult<CommentBo>> GetPostComments(Guid postUid) =>
         Ok(await commentService.GetPostCommentsAsync(postUid));
