@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using Hermes.SituationRoom.Data.Entities;
-using Microsoft.EntityFrameworkCore;
+﻿namespace Hermes.SituationRoom.Data.Context;
 
-namespace Hermes.SituationRoom.Data.Context;
+using Entities;
+using Microsoft.EntityFrameworkCore;
 
 public partial class HermessituationRoomContext : DbContext
 {

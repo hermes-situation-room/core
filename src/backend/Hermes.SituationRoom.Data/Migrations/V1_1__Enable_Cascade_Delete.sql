@@ -25,6 +25,12 @@ ALTER TABLE dbo.Post DROP CONSTRAINT FK_Post_User;
 IF EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'FK_Comment_Post')
 ALTER TABLE dbo.Comment DROP CONSTRAINT FK_Comment_Post;
 
+IF EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'FK_Comment_User')
+ALTER TABLE dbo.Comment DROP CONSTRAINT FK_Comment_User;
+
+IF EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'FK_Message_User')
+ALTER TABLE dbo.[Message] DROP CONSTRAINT FK_Message_User;
+
 IF EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'FK_PrivacyLevelPersonal_Owner')
 ALTER TABLE dbo.PrivacyLevelPersonal DROP CONSTRAINT FK_PrivacyLevelPersonal_Owner;
 
@@ -47,22 +53,28 @@ ALTER TABLE dbo.Activist
         FOREIGN KEY (UserUID) REFERENCES dbo.[User](UID)
 ON DELETE CASCADE;
 
--- Chat -> User (participants)
+-- Chat -> User (participants) - NO ACTION to prevent cascade cycles
 ALTER TABLE dbo.Chat
     ADD CONSTRAINT FK_Chat_User1
         FOREIGN KEY (User1UID) REFERENCES dbo.[User](UID)
-ON DELETE CASCADE;
+ON DELETE NO ACTION;
 
 ALTER TABLE dbo.Chat
     ADD CONSTRAINT FK_Chat_User2
         FOREIGN KEY (User2UID) REFERENCES dbo.[User](UID)
-ON DELETE CASCADE;
+ON DELETE NO ACTION;
 
 -- Message -> Chat (owning parent)
 ALTER TABLE dbo.[Message]
     ADD CONSTRAINT FK_Message_Chat
     FOREIGN KEY (ChatUID) REFERENCES dbo.Chat(UID)
     ON DELETE CASCADE;
+
+-- Message -> User (sender) - NO ACTION to prevent cascade cycles
+ALTER TABLE dbo.[Message]
+    ADD CONSTRAINT FK_Message_User
+    FOREIGN KEY (SenderUID) REFERENCES dbo.[User](UID)
+    ON DELETE NO ACTION;
 
 -- Post -> User (owner)
 ALTER TABLE dbo.Post
@@ -76,15 +88,21 @@ ALTER TABLE dbo.Comment
         FOREIGN KEY (PostUID) REFERENCES dbo.Post(UID)
             ON DELETE CASCADE;
 
--- PrivacyLevelPersonal -> User (both sides)
+-- Comment -> User (creator) - NO ACTION to prevent cascade cycles
+ALTER TABLE dbo.Comment
+    ADD CONSTRAINT FK_Comment_User
+        FOREIGN KEY (CreatorUID) REFERENCES dbo.[User](UID)
+            ON DELETE NO ACTION;
+
+-- PrivacyLevelPersonal -> User (both sides) - NO ACTION to prevent cascade cycles
 ALTER TABLE dbo.PrivacyLevelPersonal
     ADD CONSTRAINT FK_PrivacyLevelPersonal_Owner
         FOREIGN KEY (OwnerUID) REFERENCES dbo.[User](UID)
-ON DELETE CASCADE;
+ON DELETE NO ACTION;
 
 ALTER TABLE dbo.PrivacyLevelPersonal
     ADD CONSTRAINT FK_PrivacyLevelPersonal_Consumer
         FOREIGN KEY (ConsumerUID) REFERENCES dbo.[User](UID)
-ON DELETE CASCADE;
+ON DELETE NO ACTION;
 
 COMMIT;
