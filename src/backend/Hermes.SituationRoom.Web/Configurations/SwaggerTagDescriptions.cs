@@ -11,7 +11,8 @@ public class SwaggerTagDescriptions : IDocumentFilter
     public const string ENDPOINT_TAG_INTERNAL_ACTIVIST = "Internal Activist";
     public const string ENDPOINT_TAG_INTERNAL_CHAT = "Internal Chat";
     public const string ENDPOINT_TAG_INTERNAL_JOURNALIST = "Internal Journalist";
-    public const string ENDPOINT_TAG_INTERNAL_USER= "Internal User";
+    public const string ENDPOINT_TAG_INTERNAL_USER = "Internal User";
+    public const string ENDPOINT_TAG_INTERNAL_PRIVACY_LEVEL = "Internal Privacy Level";
 
     public void Apply(OpenApiDocument swaggerDoc, DocumentFilterContext context)
     {
@@ -24,6 +25,7 @@ public class SwaggerTagDescriptions : IDocumentFilter
             new() { Name = ENDPOINT_TAG_INTERNAL_CHAT, Description = $"Internal endpoints for internal system operations within the SituationRoom system. Scope: \"Internal\"" },
             new() { Name = ENDPOINT_TAG_INTERNAL_JOURNALIST, Description = $"Internal endpoints for internal system operations within the SituationRoom system. Scope: \"Internal\"" },
             new() { Name = ENDPOINT_TAG_INTERNAL_USER, Description = $"Internal endpoints for internal system operations within the SituationRoom system. Scope: \"Internal\"" },
+            new() { Name = ENDPOINT_TAG_INTERNAL_PRIVACY_LEVEL, Description = $"Internal endpoints for internal system operations within the SituationRoom system. Scope: \"Internal\"" },
         };
     }
 }
