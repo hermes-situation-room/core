@@ -19,39 +19,31 @@ public class ChatRepository(IHermessituationRoomContext context) : IChatReposito
         return chat.Uid;
     }
 
-    public async Task<ChatBo> GetChatAsync(Guid chatId)
-    {
-return MapToChatBo(await context.Chats ...)
-                                     .AsNoTracking()
-                                     .FirstOrDefaultAsync(c => c.Uid == chatId)
-                                     ?? throw new KeyNotFoundException($"Could not find Chat with the Id: {chatId}");
-
-        return MapToChatBo(chat);
-    }
-
-
-    public async Task<ChatBo> GetChatByUserPairAsync(Guid user1Id, Guid user2Id)
-    {
-        return MapToChatBo(await context.Chats ...)
-                       .AsNoTracking()
-                       .FirstOrDefaultAsync(c =>
-                           (c.User1Uid == user1Id || c.User2Uid == user1Id)
-                           && (c.User1Uid == user2Id || c.User2Uid == user2Id)
-                       )
-                   ?? throw new KeyNotFoundException($"Could not find Chat with User: {user1Id} and User: {user2Id}");
-
-        return MapToChatBo(chat);
-    }
-
-    public async Task<IReadOnlyList<ChatBo>> GetChatsByUserAsync(Guid userId)
-    {
-        var chats = await context.Chats
+    public async Task<ChatBo> GetChatAsync(Guid chatId) =>
+        MapToChatBo(await context.Chats
+                               .AsNoTracking()
+                               .FirstOrDefaultAsync(c => c.Uid == chatId)
+                           ?? throw new KeyNotFoundException($"Could not find Chat with the Id: {chatId}"));
+    
+    public async Task<ChatBo> GetChatByUserPairAsync(Guid user1Id, Guid user2Id) =>
+         MapToChatBo(await context.Chats
+                               .AsNoTracking()
+                               .FirstOrDefaultAsync(c =>
+                                   (c.User1Uid == user1Id || c.User2Uid == user1Id)
+                                   && (c.User1Uid == user2Id || c.User2Uid == user2Id)
+                               )
+                           ?? throw new KeyNotFoundException($"Could not find Chat with User: {user1Id} and User: {user2Id}"));
+    
+    
+    public async Task<IReadOnlyList<ChatBo>> GetChatsByUserAsync(Guid userId) =>
+        await context.Chats
             .AsNoTracking()
             .Where(c => c.User1Uid == userId || c.User2Uid == userId)
+            .Select(c => new ChatBo(c.User1Uid, c.User2Uid)
+            {
+                Uid = c.Uid
+            })
             .ToListAsync();
-
-        return chats.Select(c => MapToChatBo(c)).ToList();
-    }
 
     public async Task DeleteAsync(Guid chatId)
     {
@@ -73,10 +65,8 @@ return MapToChatBo(await context.Chats ...)
     };
     
     private static ChatBo MapToChatBo(Chat chat) =>
-        new()
+        new(chat.User1Uid, chat.User2Uid)
         {
-            Uid = chat.Uid,
-            User1Uid = chat.User1Uid,
-            User2Uid = chat.User2Uid,
+            Uid = chat.Uid
         };
 }

@@ -17,12 +17,8 @@ public class ChatController(IControllerInfrastructure controllerInfrastructure, 
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL])]
     [ProducesResponseType(typeof(ChatBo), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> AddAsync([FromBody] ChatBo newChatBo)
-    {
-        var newChatId = await chatService.AddAsync(newChatBo);
-        
-        return Ok(new { id = newChatId });
-    }
+    public async Task<IActionResult> AddAsync([FromBody] ChatBo newChatBo) =>
+        Ok(new { id = await chatService.AddAsync(newChatBo) });
     
     [HttpGet("internal/chats/{chatId:guid}")]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL])]
@@ -61,11 +57,9 @@ public class ChatController(IControllerInfrastructure controllerInfrastructure, 
     [HttpGet("internal/chats/by-user/{userId:guid}")]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL])]
     [ProducesResponseType(typeof(IReadOnlyList<ChatBo>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<IReadOnlyList<ChatBo>>> GetChatsByUserAsync([FromRoute] Guid userId)
-    {
-        var chats = await chatService.GetChatsByUserAsync(userId);
-        return Ok(chats);
-    }
+    public async Task<ActionResult<IReadOnlyList<ChatBo>>> GetChatsByUserAsync([FromRoute] Guid userId) => 
+        Ok(await chatService.GetChatsByUserAsync(userId));
+    
     
     [HttpDelete("internal/chats/{chatId:guid}")]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL])]
