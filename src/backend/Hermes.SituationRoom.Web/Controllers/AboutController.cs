@@ -1,11 +1,12 @@
 namespace Hermes.SituationRoom.Api.Controllers;
 
-using Hermes.SituationRoom.Api.Configurations;
-using Hermes.SituationRoom.Api.Controllers.Base;
+using Base;
+using Configurations;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 
-public class AboutController(IControllerInfrastructure controllerInfrastructure) : SituationRoomControllerBase(controllerInfrastructure)
+public class AboutController(IControllerInfrastructure controllerInfrastructure)
+    : SituationRoomControllerBase(controllerInfrastructure)
 {
     [HttpGet("external/about")]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_EXTERNAL])]

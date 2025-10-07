@@ -10,4 +10,6 @@ public partial class HermessituationRoomContext : IHermessituationRoomContext
     public IReadOnlyCollection<T> GetLocalEntity<T>() where T : class => Set<T>().Local.ToImmutableArray();
 
     public DbContext Context => this;
+    
+    public Task<int> SaveChangesAsync() => base.SaveChangesAsync();
 }

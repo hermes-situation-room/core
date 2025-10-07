@@ -1,7 +1,5 @@
-﻿
-namespace Exxas.Customer.Api;
+﻿namespace Hermes.SituationRoom.Api;
 
-using Hermes.SituationRoom.Api;
 using Serilog;
 
 public class Program
@@ -23,10 +21,7 @@ public class Program
         }
     }
 
-    private static IHostBuilder CreateHostBuilder(string[] args) =>
-        Host.CreateDefaultBuilder(args)
-            .ConfigureWebHostDefaults(webBuilder =>
-            {
-                webBuilder.UseStartup<Startup>();
-            }).UseSerilog();
+    private static IHostBuilder CreateHostBuilder(string[] args) => Host.CreateDefaultBuilder(args)
+        .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); })
+        .UseSerilog();
 }
