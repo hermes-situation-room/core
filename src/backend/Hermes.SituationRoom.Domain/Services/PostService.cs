@@ -5,6 +5,21 @@ using Interfaces;
 using Shared.BusinessObjects;
 using Shared.DataTransferObjects;
 
+public interface IPostService
+{
+    Task<PostBo> GetPostAsync(Guid postUid);
+    
+    Task<IReadOnlyList<PostBo>> GetUserPostsAsync(Guid userUid);
+
+    Task<IReadOnlyList<PostBo>> GetPostsAsync();
+
+    Task<Guid> CreatePostAsync(CreatePostDto createPostBo);
+
+    Task<PostBo> UpdatePostAsync(PostBo updatedPost);
+
+    Task DeletePostAsync(Guid postUid);
+}
+
 public class PostService(IPostRepository postRepository) : IPostService
 {
     public Task<PostBo> GetPostAsync(Guid postUid) => postRepository.GetPostBoAsync(postUid);
