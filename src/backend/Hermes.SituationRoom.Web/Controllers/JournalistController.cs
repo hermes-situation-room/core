@@ -27,8 +27,8 @@ public class JournalistController(IControllerInfrastructure infra, IJournalistSe
 
     [HttpPut("internal/journalist/{uid:guid}")]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL])]
-    public async Task<ActionResult<JournalistBo>> UpdateJournalist([FromBody] JournalistBo journalistBo) =>
-        Ok(await journalistService.UpdateJournalistAsync(journalistBo));
+    public async Task<ActionResult<JournalistBo>> UpdateJournalist([FromBody] JournalistBo journalistBo, Guid uid) =>
+        Ok(await journalistService.UpdateJournalistAsync(journalistBo with { Uid = uid, }));
 
     [HttpDelete("internal/journalist/{uid:guid}")]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL])]

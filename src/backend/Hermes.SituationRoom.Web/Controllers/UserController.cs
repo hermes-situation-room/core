@@ -25,8 +25,8 @@ public class UserController(IControllerInfrastructure infra, IUserService userSe
 
     [HttpPut("internal/user/{uid:guid}")]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL])]
-    public async Task<ActionResult<UserBo>> UpdateUser([FromBody] UserBo userBo) =>
-        Ok(await userService.UpdateUserAsync(userBo));
+    public async Task<ActionResult<UserBo>> UpdateUser([FromBody] UserBo userBo, Guid uid) =>
+        Ok(await userService.UpdateUserAsync(userBo with { Uid = uid, }));
 
     [HttpDelete("internal/user/{uid:guid}")]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL])]

@@ -27,8 +27,8 @@ public class ActivistController(IControllerInfrastructure infra, IActivistServic
 
     [HttpPut("internal/activist/{uid:guid}")]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL])]
-    public async Task<ActionResult<ActivistBo>> UpdateActivist([FromBody] ActivistBo activistBo) =>
-        Ok(await activistService.UpdateActivistAsync(activistBo));
+    public async Task<ActionResult<ActivistBo>> UpdateActivist([FromBody] ActivistBo activistBo, Guid uid) =>
+        Ok(await activistService.UpdateActivistAsync(activistBo with { Uid = uid, }));
 
     [HttpDelete("internal/activist/{uid:guid}")]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL])]
