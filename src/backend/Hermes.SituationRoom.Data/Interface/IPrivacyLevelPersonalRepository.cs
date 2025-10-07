@@ -12,7 +12,7 @@ public interface IPrivacyLevelPersonalRepository
 
     Task<PrivacyLevelPersonalBo> GetPrivacyLevelPersonalBoAsync(Guid ownerUid, Guid consumerUid);
 
-    Task<PrivacyLevelPersonalBo> Update(PrivacyLevelPersonalBo updatedPersonalLevelPersonal);
+    Task<PrivacyLevelPersonalBo> UpdateAsync(PrivacyLevelPersonalBo updatedPersonalLevelPersonal);
 
-    Task Delete(Guid privacyLevelPersonalUid);
+    Task DeleteAsync(Guid privacyLevelPersonalUid);
 }

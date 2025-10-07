@@ -12,11 +12,9 @@ public sealed class UserRepository(IHermessituationRoomContext context) : IUserR
     {
         ArgumentNullException.ThrowIfNull(userBo);
 
-        var uid = userBo.Uid != Guid.Empty ? userBo.Uid : Guid.NewGuid();
-
         var newUser = new User
         {
-            Uid = uid,
+            Uid = Guid.NewGuid(),
             Password = userBo.Password,
             FirstName = userBo.FirstName,
             LastName = userBo.LastName,
