@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
+import faviconUrl from '../assets/logo_situation_room_URL.png'
 import logoUrl from '../assets/logo_situation_room.png'
 import { RouterLink } from 'vue-router'
 
@@ -10,7 +11,7 @@ onMounted(() => {
   const link = existing ?? document.createElement('link')
   link.rel = 'icon'
   link.type = 'image/png'
-  link.href = logoUrl
+  link.href = faviconUrl
   if (!existing) document.head.appendChild(link)
 })
 
