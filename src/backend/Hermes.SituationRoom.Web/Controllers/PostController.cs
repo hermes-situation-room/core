@@ -31,8 +31,8 @@ public class PostController(IControllerInfrastructure infra, IPostService postSe
 
     [HttpPut("internal/post/{uid:guid}")]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL])]
-    public async Task<ActionResult<PostBo>> UpdatePost([FromBody] PostBo postBo) =>
-        Ok(await postService.UpdatePostAsync(postBo));
+    public async Task<ActionResult<PostBo>> UpdatePost([FromBody] PostBo postBo, Guid uid) =>
+        Ok(await postService.UpdatePostAsync(postBo with { Uid = uid, }));
 
     [HttpDelete("internal/post/{uid:guid}")]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL])]
