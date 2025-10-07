@@ -12,8 +12,5 @@ public class AboutController(IControllerInfrastructure controllerInfrastructure)
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_EXTERNAL])]
     [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(string), StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult> GetAsync()
-    {
-        return Ok("Hermes Situation Room Api up and running.");
-    }
+    public async Task<ActionResult> GetAsync() => Ok("Hermes Situation Room Api up and running.");
 }
