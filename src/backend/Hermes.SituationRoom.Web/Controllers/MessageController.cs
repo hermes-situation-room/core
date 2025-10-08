@@ -32,15 +32,8 @@ public class MessageController(IControllerInfrastructure controllerInfrastructur
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<MessageBo>> GetMessageAsync([FromRoute] Guid messageId)
     {
-        try
-        {
             var message = await messageService.GetMessageAsync(messageId);
             return Ok(message);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
     }
     
     [HttpGet("internal/message/get-messages-by-chat/{chatId:guid}")]
@@ -60,15 +53,8 @@ public class MessageController(IControllerInfrastructure controllerInfrastructur
         [FromRoute] Guid messageId,
         [FromBody] UpdateMessageDto updateDto)
     {
-        try
-        {
             await messageService.UpdateAsync(messageId, updateDto.Content);
             return NoContent();
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
     }
 
     [HttpDelete("internal/message/{messageId:guid}")]

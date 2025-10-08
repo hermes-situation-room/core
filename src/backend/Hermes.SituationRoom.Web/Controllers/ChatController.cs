@@ -26,15 +26,8 @@ public class ChatController(IControllerInfrastructure controllerInfrastructure, 
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ChatBo>> GetChatAsync([FromRoute] Guid chatId)
     {
-        try
-        {
-            var chat = await chatService.GetChatAsync(chatId);
-            return Ok(chat);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
+        var chat = await chatService.GetChatAsync(chatId);
+        return Ok(chat);
     }
     
     [HttpGet("internal/chats/by-user-pair")]
@@ -43,15 +36,8 @@ public class ChatController(IControllerInfrastructure controllerInfrastructure, 
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ChatBo>> GetChatByUserPairAsync([FromQuery][Required] Guid user1Id, [FromQuery][Required] Guid user2Id)
     {
-        try
-        {
-            var chat = await chatService.GetChatByUserPairAsync(user1Id, user2Id);
-            return Ok(chat);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
+        var chat = await chatService.GetChatByUserPairAsync(user1Id, user2Id);
+        return Ok(chat);
     }
     
     [HttpGet("internal/chats/by-user/{userId:guid}")]
