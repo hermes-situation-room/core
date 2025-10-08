@@ -25,6 +25,7 @@ public static class DependencyRegistrationExtension
         services.AddTransient<IActivistRepository, ActivistRepository>();
         services.AddTransient<IJournalistRepository, JournalistRepository>();
         services.AddTransient<IPostRepository, PostRepository>();
+        services.AddTransient<IPrivacyLevelPersonalRepository, PrivacyLevelPersonalRepository>();
         services.AddTransient<ICommentRepository, CommentRepository>();
         
         // Domain
@@ -32,6 +33,7 @@ public static class DependencyRegistrationExtension
         services.AddTransient<IActivistService, ActivistService>();
         services.AddTransient<IJournalistService, JournalistService>();
         services.AddTransient<IPostService, PostService>();
+        services.AddTransient<IPrivacyLevelPersonalService, PrivacyLevelPersonalService>();
         services.AddTransient<ICommentService, CommentService>();
         
         var connectionString = configuration.GetConnectionString("SituationRoomDb");
