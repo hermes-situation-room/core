@@ -10,7 +10,7 @@ public sealed class PostRepository(IHermessituationRoomContext context) : IPostR
     public async Task<Guid> AddAsync(PostBo postBo)
     {
         ArgumentNullException.ThrowIfNull(postBo);
-        
+
         var newPost = new Post
         {
             Uid = Guid.NewGuid(),

@@ -11,11 +11,9 @@ public sealed class CommentRepository(IHermessituationRoomContext context) : ICo
     {
         ArgumentNullException.ThrowIfNull(commentBo);
 
-        var uid = commentBo.Uid != Guid.Empty ? commentBo.Uid : Guid.NewGuid();
-
         var newComment = new Comment
         {
-            Uid = uid,
+            Uid = Guid.NewGuid(),
             Timestamp = commentBo.Timestamp,
             CreatorUid = commentBo.CreatorUid,
             PostUid = commentBo.PostUid,
@@ -46,7 +44,9 @@ public sealed class CommentRepository(IHermessituationRoomContext context) : ICo
 
         comment.Content = updatedComment.Content;
 
+        context.Comments.Update(comment);
         await context.SaveChangesAsync();
+
         return MapToBo(comment);
     }
 
@@ -57,7 +57,7 @@ public sealed class CommentRepository(IHermessituationRoomContext context) : ICo
 
         var comment = context.Comments.FirstOrDefault(u => u.Uid == commentId);
         if (comment is null)
-            return Task.CompletedTask;
+            throw new KeyNotFoundException($"Comment with GUID {commentId} was not found.");
 
         context.Comments.Remove(comment);
         context.SaveChanges();
