@@ -2,6 +2,7 @@ namespace Hermes.SituationRoom.Api.Controllers;
 
 using Base;
 using Configurations;
+using Domain.Interfaces;
 using Domain.Services;
 using Microsoft.AspNetCore.Mvc;
 using Shared.BusinessObjects;

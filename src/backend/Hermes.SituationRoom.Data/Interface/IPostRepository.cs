@@ -10,10 +10,14 @@ public interface IPostRepository
     Task<PostBo> GetPostBoAsync(Guid postUid);
     
     Task<IReadOnlyList<PostBo>> GetUserPostsAsync(Guid userUid);
+    
+    Task<IReadOnlyList<PostBo>> GetAllActivistPostsAsync();
+    
+    Task<IReadOnlyList<PostBo>> GetAllJournalistPostsAsync();
 
     Task<IReadOnlyList<PostBo>> GetAllPostBosAsync();
 
-    Task<PostBo> Update(PostBo updatedPost);
+    Task<PostBo> UpdateAsync(PostBo updatedPost);
 
-    Task Delete(Guid postUid);
+    Task DeleteAsync(Guid postUid);
 }

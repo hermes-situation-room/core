@@ -2,6 +2,7 @@ namespace Hermes.SituationRoom.Api.Controllers;
 
 using Base;
 using Configurations;
+using Domain.Interfaces;
 using Domain.Services;
 using Microsoft.AspNetCore.Mvc;
 using Shared.BusinessObjects;
@@ -22,6 +23,18 @@ public class PostController(IControllerInfrastructure infra, IPostService postSe
     [ProducesResponseType(typeof(IReadOnlyList<PostBo>), StatusCodes.Status200OK)]
     public async Task<ActionResult<PostBo>> GetUserPosts(Guid userUid) =>
         Ok(await postService.GetUserPostsAsync(userUid));
+    
+    [HttpGet("internal/post/activist")]
+    [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_POST])]
+    [ProducesResponseType(typeof(IReadOnlyList<PostBo>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<PostBo>> GetAllActivistPosts() =>
+        Ok(await postService.GetAllActivistPostsAsync());
+    
+    [HttpGet("internal/post/journalist")]
+    [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_POST])]
+    [ProducesResponseType(typeof(IReadOnlyList<PostBo>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<PostBo>> GetAllAJournalistPosts() =>
+        Ok(await postService.GetAllJournalistPostsAsync());
 
     [HttpGet("internal/post/")]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_POST])]

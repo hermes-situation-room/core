@@ -11,11 +11,9 @@ public sealed class PostRepository(IHermessituationRoomContext context) : IPostR
     {
         ArgumentNullException.ThrowIfNull(postBo);
 
-        var uid = postBo.Uid != Guid.Empty ? postBo.Uid : Guid.NewGuid();
-
         var newPost = new Post
         {
-            Uid = uid,
+            Uid = Guid.NewGuid(),
             Timestamp = postBo.Timestamp,
             CreatorUid = postBo.CreatorUid,
             Title = postBo.Title,
@@ -40,11 +38,25 @@ public sealed class PostRepository(IHermessituationRoomContext context) : IPostR
                        ?? throw new KeyNotFoundException($"Post with UID {postId} was not found.")
         );
     }
-    
+
     public async Task<IReadOnlyList<PostBo>> GetUserPostsAsync(Guid userUid) => await context.Posts
         .AsNoTracking()
         .Where(u => u.CreatorUid == userUid)
         .Select(u => MapToBo(u))
+        .ToListAsync();
+
+    public async Task<IReadOnlyList<PostBo>> GetAllActivistPostsAsync() => await context.Posts
+        .AsNoTracking()
+        .Where(p => context.Activists.Any(a => a.UserUid == p.CreatorUid))
+        .OrderByDescending(p => p.Timestamp)
+        .Select(p => MapToBo(p))
+        .ToListAsync();
+
+    public async Task<IReadOnlyList<PostBo>> GetAllJournalistPostsAsync() => await context.Posts
+        .AsNoTracking()
+        .Where(p => context.Journalists.Any(j => j.UserUid == p.CreatorUid))
+        .OrderByDescending(p => p.Timestamp)
+        .Select(p => MapToBo(p))
         .ToListAsync();
 
     public async Task<IReadOnlyList<PostBo>> GetAllPostBosAsync() => await context.Posts
@@ -52,7 +64,7 @@ public sealed class PostRepository(IHermessituationRoomContext context) : IPostR
         .Select(u => MapToBo(u))
         .ToListAsync();
 
-    public async Task<PostBo> Update(PostBo updatedPost)
+    public async Task<PostBo> UpdateAsync(PostBo updatedPost)
     {
         ArgumentNullException.ThrowIfNull(updatedPost);
         if (updatedPost.Uid == Guid.Empty)
@@ -67,11 +79,11 @@ public sealed class PostRepository(IHermessituationRoomContext context) : IPostR
 
         context.Posts.Update(post);
         await context.SaveChangesAsync();
-        
+
         return MapToBo(post);
     }
 
-    public Task Delete(Guid postId)
+    public Task DeleteAsync(Guid postId)
     {
         if (postId == Guid.Empty)
             throw new ArgumentException("GUID must not be empty.", nameof(postId));

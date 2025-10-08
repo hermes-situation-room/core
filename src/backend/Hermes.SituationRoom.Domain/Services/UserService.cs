@@ -2,19 +2,7 @@
 
 using Hermes.SituationRoom.Shared.BusinessObjects;
 using Hermes.SituationRoom.Data.Interface;
-
-public interface IUserService
-{
-    Task<UserBo> GetUserAsync(Guid userUid);
-
-    Task<IReadOnlyList<UserBo>> GetUsersAsync();
-
-    Task<Guid> CreateUserAsync(UserBo userBo);
-
-    Task<UserBo> UpdateUserAsync(UserBo updatedUser);
-
-    Task DeleteUserAsync(Guid userUid);
-}
+using Interfaces;
 
 public class UserService(IUserRepository userRepository) : IUserService
 {

@@ -4,9 +4,9 @@ using Shared.BusinessObjects;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Mime;
 using Base;
-using Domain.Interface;
 using System.ComponentModel.DataAnnotations;
 using Configurations;
+using Domain.Interfaces;
 using Swashbuckle.AspNetCore.Annotations;
 
 [ApiController]

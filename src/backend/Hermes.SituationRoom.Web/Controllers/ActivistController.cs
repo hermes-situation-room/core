@@ -2,7 +2,7 @@
 
 using Base;
 using Configurations;
-using Domain.Services;
+using Domain.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Shared.BusinessObjects;
 using Swashbuckle.AspNetCore.Annotations;

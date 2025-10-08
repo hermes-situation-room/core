@@ -6,7 +6,7 @@ using Data.Context;
 using Data.Interface;
 using Data.Migrations;
 using Data.Repositories;
-using Domain.Interface;
+using Domain.Interfaces;
 using Domain.Services;
 using Profiles;
 
