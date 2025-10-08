@@ -1,4 +1,4 @@
-﻿using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace Hermes.SituationRoom.Api.Configurations;
@@ -13,6 +13,7 @@ public class SwaggerTagDescriptions : IDocumentFilter
     public const string ENDPOINT_TAG_INTERNAL_POST = "Internal Post";
     public const string ENDPOINT_TAG_INTERNAL_JOURNALIST = "Internal Journalist";
     public const string ENDPOINT_TAG_INTERNAL_USER = "Internal User";
+    public const string ENDPOINT_TAG_INTERNAL_PRIVACY_LEVEL = "Internal Privacy Level";
 
     public void Apply(OpenApiDocument swaggerDoc, DocumentFilterContext context)
     {
@@ -28,6 +29,7 @@ public class SwaggerTagDescriptions : IDocumentFilter
             new() { Name = ENDPOINT_TAG_INTERNAL_POST, Description = internalScopeDescription },
             new() { Name = ENDPOINT_TAG_INTERNAL_JOURNALIST, Description = internalScopeDescription },
             new() { Name = ENDPOINT_TAG_INTERNAL_USER, Description = internalScopeDescription },
+            new() { Name = ENDPOINT_TAG_INTERNAL_PRIVACY_LEVEL, Description = internalScopeDescription },
         };
     }
 }
