@@ -61,6 +61,7 @@ public sealed class JournalistRepository(IHermessituationRoomContext context, IU
 
         journalist.Employer = updatedJournalist.Employer;
 
+        context.Journalists.Update(journalist);
         await context.SaveChangesAsync();
 
         return MapToBo(journalist);

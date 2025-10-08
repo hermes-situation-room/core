@@ -58,7 +58,9 @@ public sealed class UserRepository(IHermessituationRoomContext context) : IUserR
         user.LastName = updatedUser.LastName;
         user.EmailAddress = updatedUser.EmailAddress;
 
+        context.Users.Update(user);
         await context.SaveChangesAsync();
+        
         return MapToBo(user);
     }
 
