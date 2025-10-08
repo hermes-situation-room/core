@@ -6,7 +6,17 @@ using Interfaces;
 
 public class ChatService(IChatRepository chatRepository) : IChatService
 {
-    public Task<Guid> AddAsync(ChatBo newChatBo) => chatRepository.AddAsync(newChatBo);
+    public async Task<Guid> AddAsync(ChatBo newChatBo)
+    {
+        var chatId = await chatRepository.FindChatByUserPairAsync(newChatBo.User1Uid, newChatBo.User2Uid);
+        
+        if (chatId.HasValue)
+        {
+            return chatId.Value;
+        }
+
+        return await chatRepository.AddAsync(newChatBo);
+    }
 
     public Task<ChatBo> GetChatAsync(Guid chatId) => chatRepository.GetChatAsync(chatId);
 

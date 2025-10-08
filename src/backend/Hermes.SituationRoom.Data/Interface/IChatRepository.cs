@@ -9,6 +9,8 @@ public interface IChatRepository
     Task<ChatBo> GetChatAsync(Guid chatId);
 
     Task<ChatBo> GetChatByUserPairAsync(Guid user1Id, Guid user2Id);
+    
+    Task<Guid?> FindChatByUserPairAsync(Guid user1Id, Guid user2Id);
 
     Task<IReadOnlyList<ChatBo>> GetChatsByUserAsync(Guid userId);
     
