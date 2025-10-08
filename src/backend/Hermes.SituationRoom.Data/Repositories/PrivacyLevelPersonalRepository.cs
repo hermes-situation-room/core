@@ -53,7 +53,7 @@ public sealed class PrivacyLevelPersonalRepository(IHermessituationRoomContext c
         return list;
     }
 
-    public async Task<PrivacyLevelPersonalBo> Update(PrivacyLevelPersonalBo updatedPrivacyLevelPersonal)
+    public async Task<PrivacyLevelPersonalBo> UpdateAsync(PrivacyLevelPersonalBo updatedPrivacyLevelPersonal)
     {
         ArgumentNullException.ThrowIfNull(updatedPrivacyLevelPersonal);
         if (updatedPrivacyLevelPersonal.Uid == Guid.Empty)
@@ -72,7 +72,7 @@ public sealed class PrivacyLevelPersonalRepository(IHermessituationRoomContext c
         return MapToBo(privacyLevelPersonal);
     }
 
-    public Task Delete(Guid privacyLevelPersonalId)
+    public Task DeleteAsync(Guid privacyLevelPersonalId)
     {
         if (privacyLevelPersonalId == Guid.Empty)
             throw new ArgumentException("GUID must not be empty.", nameof(privacyLevelPersonalId));
