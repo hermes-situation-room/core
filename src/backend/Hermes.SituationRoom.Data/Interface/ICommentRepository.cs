@@ -9,7 +9,7 @@ public interface ICommentRepository
 
     Task<IReadOnlyList<CommentBo>> GetPostCommentsAsync(Guid postUid);
 
-    Task<CommentBo> Update(CommentBo updatedComment);
+    Task<CommentBo> UpdateAsync(CommentBo updatedComment);
 
-    Task Delete(Guid commentUid);
+    Task DeleteAsync(Guid commentUid);
 }

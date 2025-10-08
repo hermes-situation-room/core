@@ -1,19 +1,9 @@
 ﻿namespace Hermes.SituationRoom.Domain.Services;
 
 using Data.Interface;
+using Interfaces;
 using Shared.BusinessObjects;
 using Shared.DataTransferObjects;
-
-public interface ICommentService
-{
-    Task<IReadOnlyList<CommentBo>> GetPostCommentsAsync(Guid postUid);
-    
-    Task<Guid> CreateCommentAsync(CreateCommentDto createCommentBo);
-
-    Task<CommentBo> UpdateCommentAsync(CommentBo updatedComment);
-
-    Task DeleteCommentAsync(Guid commentUid);
-}
 
 public class CommentService(ICommentRepository commentRepository) : ICommentService
 {
@@ -23,11 +13,11 @@ public class CommentService(ICommentRepository commentRepository) : ICommentServ
     public Task<Guid> CreateCommentAsync(CreateCommentDto createCommentDto) =>
         commentRepository.AddAsync(MapToBo(createCommentDto, DateTime.Now));
 
-    public Task<CommentBo> UpdateCommentAsync(CommentBo updatedComment) => commentRepository.Update(updatedComment);
+    public Task<CommentBo> UpdateCommentAsync(CommentBo updatedComment) => commentRepository.UpdateAsync(updatedComment);
 
     public Task DeleteCommentAsync(Guid commentUid)
     {
-        commentRepository.Delete(commentUid);
+        commentRepository.DeleteAsync(commentUid);
         return Task.CompletedTask;
     }
 

@@ -30,11 +30,12 @@ public sealed class CommentRepository(IHermessituationRoomContext context) : ICo
 
     public async Task<IReadOnlyList<CommentBo>> GetPostCommentsAsync(Guid postUid) => await context.Comments
         .AsNoTracking()
-        .Where(u => u.PostUid == postUid)
-        .Select(u => MapToBo(u))
+        .Where(c => c.PostUid == postUid)
+        .OrderByDescending(c => c.Timestamp)
+        .Select(c => MapToBo(c))
         .ToListAsync();
 
-    public async Task<CommentBo> Update(CommentBo updatedComment)
+    public async Task<CommentBo> UpdateAsync(CommentBo updatedComment)
     {
         ArgumentNullException.ThrowIfNull(updatedComment);
         if (updatedComment.Uid == Guid.Empty)
@@ -49,7 +50,7 @@ public sealed class CommentRepository(IHermessituationRoomContext context) : ICo
         return MapToBo(comment);
     }
 
-    public Task Delete(Guid commentId)
+    public Task DeleteAsync(Guid commentId)
     {
         if (commentId == Guid.Empty)
             throw new ArgumentException("GUID must not be empty.", nameof(commentId));
