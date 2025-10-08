@@ -10,11 +10,11 @@ using Swashbuckle.AspNetCore.Annotations;
 public class PrivacyLevelPersonalController(IControllerInfrastructure infra, IPrivacyLevelPersonalService privacyLevelPersonalService)
     : SituationRoomControllerBase(infra)
 {
-    [HttpGet("internal/privacylevelpersonal/{ownerUid:guid}/{consumerUid:guid}")]
+    [HttpGet("internal/privacylevelpersonal")]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_PRIVACY_LEVEL])]
     [ProducesResponseType(typeof(ChatBo), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<PrivacyLevelPersonalBo>> GetPrivacyLevelPersonal(Guid ownerUid, Guid consumerUid) => 
+    public async Task<ActionResult<PrivacyLevelPersonalBo>> GetPrivacyLevelPersonal([FromQuery] Guid ownerUid, [FromQuery] Guid consumerUid) =>
         Ok(await privacyLevelPersonalService.GetPrivacyLevelPersonalAsync(ownerUid, consumerUid));
 
     [HttpPost("internal/privacylevelpersonal/")]
