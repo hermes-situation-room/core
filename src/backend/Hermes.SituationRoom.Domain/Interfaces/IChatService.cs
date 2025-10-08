@@ -1,4 +1,4 @@
-﻿namespace Hermes.SituationRoom.Domain.Interface;
+﻿namespace Hermes.SituationRoom.Domain.Interfaces;
 
 using Shared.BusinessObjects;
 

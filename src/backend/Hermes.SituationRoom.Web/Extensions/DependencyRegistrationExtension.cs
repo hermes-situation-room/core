@@ -6,7 +6,7 @@ using Data.Context;
 using Data.Interface;
 using Data.Migrations;
 using Data.Repositories;
-using Domain.Interface;
+using Domain.Interfaces;
 using Domain.Services;
 using Profiles;
 
@@ -24,11 +24,13 @@ public static class DependencyRegistrationExtension
         services.AddTransient<IUserRepository, UserRepository>();
         services.AddTransient<IActivistRepository, ActivistRepository>();
         services.AddTransient<IJournalistRepository, JournalistRepository>();
+        services.AddTransient<IPostRepository, PostRepository>();
         
         // Domain
         services.AddTransient<IUserService, UserService>();
         services.AddTransient<IActivistService, ActivistService>();
         services.AddTransient<IJournalistService, JournalistService>();
+        services.AddTransient<IPostService, PostService>();
         
         var connectionString = configuration.GetConnectionString("SituationRoomDb");
         services.AddDatabaseMigrations(connectionString,
