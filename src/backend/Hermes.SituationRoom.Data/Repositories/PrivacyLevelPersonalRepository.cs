@@ -12,11 +12,9 @@ public sealed class PrivacyLevelPersonalRepository(IHermessituationRoomContext c
     {
         ArgumentNullException.ThrowIfNull(privacyLevelPersonalBo);
 
-        var uid = privacyLevelPersonalBo.Uid != Guid.Empty ? privacyLevelPersonalBo.Uid : Guid.NewGuid();
-
         var newPrivacyLevelPersonal = new PrivacyLevelPersonal
         {
-            Uid = uid,
+            Uid = Guid.NewGuid(),
             IsFirstNameVisible = privacyLevelPersonalBo.IsFirstNameVisible,
             IsLastNameVisible = privacyLevelPersonalBo.IsLastNameVisible,
             IsEmailVisible = privacyLevelPersonalBo.IsEmailVisible,
