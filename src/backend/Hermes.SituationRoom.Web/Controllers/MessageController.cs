@@ -17,7 +17,7 @@ using Configurations;
 public class MessageController(IControllerInfrastructure controllerInfrastructure, IMessageService messageService) : SituationRoomControllerBase(controllerInfrastructure)
 {
     [HttpPost("internal/message")]
-    [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL])]
+    [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_MESSAGE])]
     [ProducesResponseType(typeof(MessageBo), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> AddMessageAsync([FromBody] NewMessageDto newMessage)
@@ -27,7 +27,7 @@ public class MessageController(IControllerInfrastructure controllerInfrastructur
     }
     
     [HttpGet("internal/message/{messageId:guid}")]
-    [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL])]
+    [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_MESSAGE])]
     [ProducesResponseType(typeof(MessageBo), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<MessageBo>> GetMessageAsync([FromRoute] Guid messageId)
@@ -44,7 +44,7 @@ public class MessageController(IControllerInfrastructure controllerInfrastructur
     }
     
     [HttpGet("internal/message/get-messages-by-chat/{chatId:guid}")]
-    [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL])]
+    [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_MESSAGE])]
     [ProducesResponseType(typeof(IReadOnlyList<MessageBo>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IReadOnlyList<MessageBo>>> GetMessagesByChatAsync([FromRoute] Guid chatId)
     {
@@ -53,7 +53,7 @@ public class MessageController(IControllerInfrastructure controllerInfrastructur
     }
     
     [HttpPut("internal/message/{messageId:guid}")]
-    [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL])]
+    [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_MESSAGE])]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateMessageAsync(
@@ -72,7 +72,7 @@ public class MessageController(IControllerInfrastructure controllerInfrastructur
     }
 
     [HttpDelete("internal/message/{messageId:guid}")]
-    [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL])]
+    [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_MESSAGE])]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> DeleteAsync([FromRoute] Guid messageId)
     {

@@ -16,15 +16,11 @@ public class MessageRepository(IHermessituationRoomContext context) : IMessageRe
         return message.Uid;
     }
 
-    public async Task<MessageBo> GetMessageAsync(Guid messageId)
-    {
-        var message = await context.Messages
-            .AsNoTracking()
-            .FirstOrDefaultAsync(m => m.Uid == messageId)
-            ?? throw new KeyNotFoundException($"Could not find Message with the Id: {messageId}");
-
-        return MapToMessageBo(message);
-    }
+    public async Task<MessageBo> GetMessageAsync(Guid messageId) =>
+        MapToMessageBo(await context.Messages
+                                            .AsNoTracking()
+                                            .FirstOrDefaultAsync(m => m.Uid == messageId)
+                                        ?? throw new KeyNotFoundException($"Could not find Message with the Id: {messageId}"));
 
     public async Task<IReadOnlyList<MessageBo>> GetMessagesByChatAsync(Guid chatId)
     {
