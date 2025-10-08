@@ -20,11 +20,11 @@ public class PrivacyLevelPersonalService(IPrivacyLevelPersonalRepository privacy
 
     public Task<Guid> CreatePrivacyLevelPersonalAsync(PrivacyLevelPersonalBo privacyLevelPersonalBo) => privacyLevelPersonalRepository.AddAsync(privacyLevelPersonalBo);
 
-    public Task<PrivacyLevelPersonalBo> UpdatePrivacyLevelPersonalAsync(PrivacyLevelPersonalBo updatedPrivacyLevelPersonal) => privacyLevelPersonalRepository.Update(updatedPrivacyLevelPersonal);
+    public Task<PrivacyLevelPersonalBo> UpdatePrivacyLevelPersonalAsync(PrivacyLevelPersonalBo updatedPrivacyLevelPersonal) => privacyLevelPersonalRepository.UpdateAsync(updatedPrivacyLevelPersonal);
 
     public Task DeletePrivacyLevelPersonalAsync(Guid privacyLevelPersonalUid)
     {
-        privacyLevelPersonalRepository.Delete(privacyLevelPersonalUid);
+        privacyLevelPersonalRepository.DeleteAsync(privacyLevelPersonalUid);
         return Task.CompletedTask;
     }
 }
