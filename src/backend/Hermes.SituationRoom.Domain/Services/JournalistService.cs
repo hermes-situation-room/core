@@ -2,19 +2,7 @@
 
 using Hermes.SituationRoom.Shared.BusinessObjects;
 using Hermes.SituationRoom.Data.Interface;
-
-public interface IJournalistService
-{
-    Task<JournalistBo> GetJournalistAsync(Guid journalistUid);
-
-    Task<IReadOnlyList<JournalistBo>> GetJournalistsAsync();
-
-    Task<Guid> CreateJournalistAsync(JournalistBo journalistBo);
-
-    Task<JournalistBo> UpdateJournalistAsync(JournalistBo updatedJournalist);
-
-    Task DeleteJournalistAsync(Guid journalistUid);
-}
+using Interfaces;
 
 public class JournalistService(IJournalistRepository journalistRepository) : IJournalistService
 {

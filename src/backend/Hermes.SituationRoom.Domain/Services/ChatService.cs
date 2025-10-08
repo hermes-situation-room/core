@@ -1,8 +1,8 @@
 ﻿namespace Hermes.SituationRoom.Domain.Services;
 
 using Shared.BusinessObjects;
-using Interface;
 using Data.Interface;
+using Interfaces;
 
 public class ChatService(IChatRepository chatRepository) : IChatService
 {
