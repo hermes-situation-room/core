@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { RouterLink } from 'vue-router'
-import type { UserType } from '../types/user'
+import {computed, ref} from 'vue'
+import {RouterLink} from 'vue-router'
+import type {UserType} from '../types/user'
 
 const selectedUserType = ref<UserType>('activist')
 const loginData = ref({
@@ -15,7 +15,7 @@ const isActivist = computed(() => selectedUserType.value === 'activist')
 
 function selectUserType(type: UserType) {
     selectedUserType.value = type
-    
+
     loginData.value = {
         username: '',
         email: '',
@@ -35,7 +35,6 @@ function handleLogin() {
 <template>
     <div class="container-fluid d-flex justify-content-center p-4">
         <div class="col-12 col-md-8 col-lg-6 col-xl-5 mx-auto">
-            <!-- Role Selector -->
             <div class="card shadow-lg mb-4">
                 <div class="card-body p-4">
                     <h2 class="text-center mb-4 font-weight-bold">Choose Your Role</h2>
@@ -72,12 +71,13 @@ function handleLogin() {
                             {{ isJournalist ? 'Journalist Login' : 'Activist Login' }}
                         </h3>
                         <p class="text-muted mt-2">
-                            {{ isJournalist ? 'Login with your email and password' : 'Login with your username and password' }}
+                            {{
+                                isJournalist ? 'Login with your email and password' : 'Login with your username and password'
+                            }}
                         </p>
                     </div>
 
                     <form @submit.prevent="handleLogin">
-                        <!-- Username for Activist -->
                         <div v-if="isActivist" class="form-group mb-3">
                             <label class="form-label font-weight-bold">Username *</label>
                             <input
@@ -89,7 +89,6 @@ function handleLogin() {
                             />
                         </div>
 
-                        <!-- Email for Journalist -->
                         <div v-if="isJournalist" class="form-group mb-3">
                             <label class="form-label font-weight-bold">Email Address *</label>
                             <input
@@ -101,7 +100,6 @@ function handleLogin() {
                             />
                         </div>
 
-                        <!-- Password -->
                         <div class="form-group mb-4">
                             <label class="form-label font-weight-bold">Password *</label>
                             <input
@@ -113,7 +111,6 @@ function handleLogin() {
                             />
                         </div>
 
-                        <!-- Submit Button -->
                         <button
                             type="submit"
                             :class="[
@@ -127,16 +124,16 @@ function handleLogin() {
 
                     <div class="text-center mt-4">
                         <p class="mb-2">
-                            Don't have an account? 
-                            <RouterLink 
-                                to="/register" 
+                            Don't have an account?
+                            <RouterLink
+                                to="/register"
                                 class="text-primary text-decoration-none font-weight-bold"
                             >
                                 Register here
                             </RouterLink>
                         </p>
-                        <RouterLink 
-                            to="/" 
+                        <RouterLink
+                            to="/"
                             class="text-muted text-decoration-none"
                         >
                             ← Back to Dashboard

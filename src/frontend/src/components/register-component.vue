@@ -55,7 +55,6 @@ function handleRegister() {
 <template>
     <div class="container-fluid d-flex justify-content-center p-4">
         <div class="col-12 col-md-8 col-lg-6 col-xl-5 mx-auto">
-            <!-- Role Selector -->
             <div class="card shadow-lg mb-4">
                 <div class="card-body p-4">
                     <h2 class="text-center mb-4 font-weight-bold">Choose Your Role</h2>
@@ -85,7 +84,6 @@ function handleRegister() {
                 </div>
             </div>
 
-            <!-- Register Form -->
             <div class="card shadow-lg">
                 <div class="card-body p-4">
                     <div class="text-center mb-4">
@@ -110,7 +108,6 @@ function handleRegister() {
                             />
                         </div>
 
-                        <!-- Password -->
                         <div class="form-group mb-3">
                             <label class="form-label font-weight-bold">Password *</label>
                             <input
@@ -122,7 +119,6 @@ function handleRegister() {
                             />
                         </div>
 
-                        <!-- Journalist specific fields -->
                         <template v-if="isJournalist">
                             <div class="form-group mb-3">
                                 <label class="form-label font-weight-bold">First Name *</label>
@@ -169,7 +165,6 @@ function handleRegister() {
                             </div>
                         </template>
 
-                        <!-- Activist specific fields -->
                         <template v-if="isActivist">
                             <div class="row mb-3">
                                 <div class="col-md-6">
@@ -206,7 +201,6 @@ function handleRegister() {
                                 />
                             </div>
 
-                            <!-- Privacy Settings -->
                             <div v-if="showPrivacySettings" class="bg-light rounded p-3 mb-4">
                                 <h5 class="font-weight-bold mb-3">Privacy Settings</h5>
                                 <div v-if="formData.firstName" class="form-check mb-2">
@@ -245,7 +239,6 @@ function handleRegister() {
                             </div>
                         </template>
 
-                        <!-- Submit Button -->
                         <button
                             type="submit"
                             :class="[
@@ -257,7 +250,6 @@ function handleRegister() {
                         </button>
                     </form>
 
-                    <!-- Links -->
                     <div class="text-center mt-4">
                         <p class="mb-2">
                             Already have an account?
