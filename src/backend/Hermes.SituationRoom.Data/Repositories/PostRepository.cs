@@ -4,6 +4,7 @@ using Entities;
 using Interface;
 using Microsoft.EntityFrameworkCore;
 using Shared.BusinessObjects;
+using Shared.EnumClasses;
 
 public sealed class PostRepository(IHermessituationRoomContext context) : IPostRepository
 {
@@ -37,6 +38,47 @@ public sealed class PostRepository(IHermessituationRoomContext context) : IPostR
                            .FirstOrDefaultAsync(u => u.Uid == postId)
                        ?? throw new KeyNotFoundException($"Post with UID {postId} was not found.")
         );
+    }
+
+    public async Task<IReadOnlyList<PostWithTagsBo>> GetPostsByTagsAsync(IReadOnlyList<Tag> tags)
+    {
+        var tagSet = tags.Distinct().Select(t => t.ToString()).ToList();
+
+        var posts = await context.Posts
+            .AsNoTracking()
+            .Where(p => p.PostTags.Any(pt => tagSet.Contains(pt.Tag)))
+            .Include(p => p.PostTags)
+            .ToListAsync();
+
+        return posts.Select(MapToBoWithTags).ToList();
+    }
+
+    public async Task<IReadOnlyList<PostWithTagsBo>> GetActivistPostsByTagsAsync(IReadOnlyList<Tag> tags)
+    {
+        var tagSet = tags.Distinct().Select(t => t.ToString()).ToList();
+
+        var posts = await context.Posts
+            .AsNoTracking()
+            .Where(p => p.PostTags.Any(pt => tagSet.Contains(pt.Tag)) &&
+                       context.Activists.Any(a => a.UserUid == p.CreatorUid))
+            .Include(p => p.PostTags)
+            .ToListAsync();
+
+        return posts.Select(MapToBoWithTags).ToList();
+    }
+
+    public async Task<IReadOnlyList<PostWithTagsBo>> GetJournalistPostsByTagsAsync(IReadOnlyList<Tag> tags)
+    {
+        var tagSet = tags.Distinct().Select(t => t.ToString()).ToList();
+
+        var posts = await context.Posts
+            .AsNoTracking()
+            .Where(p => p.PostTags.Any(pt => tagSet.Contains(pt.Tag)) &&
+                       context.Journalists.Any(j => j.UserUid == p.CreatorUid))
+            .Include(p => p.PostTags)
+            .ToListAsync();
+
+        return posts.Select(MapToBoWithTags).ToList();
     }
 
     public async Task<IReadOnlyList<PostBo>> GetUserPostsAsync(Guid userUid) => await context.Posts
@@ -83,19 +125,17 @@ public sealed class PostRepository(IHermessituationRoomContext context) : IPostR
         return MapToBo(post);
     }
 
-    public Task DeleteAsync(Guid postId)
+    public async Task DeleteAsync(Guid postId)
     {
         if (postId == Guid.Empty)
             throw new ArgumentException("GUID must not be empty.", nameof(postId));
 
         var post = context.Posts.FirstOrDefault(u => u.Uid == postId);
         if (post is null)
-            return Task.CompletedTask;
+            return;
 
         context.Posts.Remove(post);
-        context.SaveChanges();
-
-        return Task.CompletedTask;
+        await context.SaveChangesAsync();
     }
 
     private static PostBo MapToBo(Post post) => new(post.Uid,
@@ -104,5 +144,14 @@ public sealed class PostRepository(IHermessituationRoomContext context) : IPostR
         post.Description,
         post.Content,
         post.CreatorUid
+    );
+
+    private static PostWithTagsBo MapToBoWithTags(Post post) => new(post.Uid,
+        post.Timestamp,
+        post.Title,
+        post.Description,
+        post.Content,
+        post.CreatorUid,
+        post.PostTags.Select(pt => pt.Tag).Distinct().ToList()
     );
 }

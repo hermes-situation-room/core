@@ -3,7 +3,6 @@ namespace Hermes.SituationRoom.Api.Controllers;
 using Base;
 using Configurations;
 using Domain.Interfaces;
-using Domain.Services;
 using Microsoft.AspNetCore.Mvc;
 using Shared.BusinessObjects;
 using Shared.DataTransferObjects;
@@ -14,22 +13,39 @@ public class PostController(IControllerInfrastructure infra, IPostService postSe
 {
     [HttpGet("internal/post/{uid:guid}")]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_POST])]
-    [ProducesResponseType(typeof(PostBo), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PostWithTagsBo), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<PostBo>> GetPost(Guid uid) => Ok(await postService.GetPostAsync(uid));
+    public async Task<ActionResult<PostWithTagsBo>> GetPost(Guid uid) => Ok(await postService.GetPostAsync(uid));
+
+    [HttpGet("internal/post/by-tags")]
+    [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_POST])]
+    [ProducesResponseType(typeof(IReadOnlyList<PostBo>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<PostBo>> GetPostsByTags([FromQuery] string tags) =>
+        Ok(await postService.GetPostsByTagsAsync(tags));
+
+    [HttpGet("internal/post/activist/by-tags")]
+    [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_POST])]
+    [ProducesResponseType(typeof(IReadOnlyList<PostBo>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<PostBo>> GetActivistPostsByTags([FromQuery] string tags) =>
+        Ok(await postService.GetActivistPostsByTagsAsync(tags));
+
+    [HttpGet("internal/post/journalist/by-tags")]
+    [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_POST])]
+    [ProducesResponseType(typeof(IReadOnlyList<PostBo>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<PostBo>> GetJournalistPostsByTags([FromQuery] string tags) =>
+        Ok(await postService.GetJournalistPostsByTagsAsync(tags));
 
     [HttpGet("internal/post/user/{userUid:guid}")]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_POST])]
     [ProducesResponseType(typeof(IReadOnlyList<PostBo>), StatusCodes.Status200OK)]
     public async Task<ActionResult<PostBo>> GetUserPosts(Guid userUid) =>
         Ok(await postService.GetUserPostsAsync(userUid));
-    
+
     [HttpGet("internal/post/activist")]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_POST])]
     [ProducesResponseType(typeof(IReadOnlyList<PostBo>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<PostBo>> GetAllActivistPosts() =>
-        Ok(await postService.GetAllActivistPostsAsync());
-    
+    public async Task<ActionResult<PostBo>> GetAllActivistPosts() => Ok(await postService.GetAllActivistPostsAsync());
+
     [HttpGet("internal/post/journalist")]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_POST])]
     [ProducesResponseType(typeof(IReadOnlyList<PostBo>), StatusCodes.Status200OK)]
@@ -50,10 +66,10 @@ public class PostController(IControllerInfrastructure infra, IPostService postSe
 
     [HttpPut("internal/post/{uid:guid}")]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_POST])]
-    [ProducesResponseType(typeof(PostBo), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PostWithTagsBo), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<PostBo>> UpdatePost([FromBody] PostBo postBo, Guid uid) =>
+    public async Task<ActionResult<PostWithTagsBo>> UpdatePost([FromBody] PostWithTagsBo postBo, Guid uid) =>
         Ok(await postService.UpdatePostAsync(postBo with { Uid = uid, }));
 
     [HttpDelete("internal/post/{uid:guid}")]

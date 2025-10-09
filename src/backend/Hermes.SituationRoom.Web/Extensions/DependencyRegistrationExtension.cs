@@ -21,20 +21,22 @@ public static class DependencyRegistrationExtension
         services.AddDbContext<IHermessituationRoomContext, HermessituationRoomContext>();
         
         // Data
-        services.AddTransient<IUserRepository, UserRepository>();
-        services.AddTransient<IActivistRepository, ActivistRepository>();
-        services.AddTransient<IJournalistRepository, JournalistRepository>();
-        services.AddTransient<IPostRepository, PostRepository>();
-        services.AddTransient<IPrivacyLevelPersonalRepository, PrivacyLevelPersonalRepository>();
+        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IActivistRepository, ActivistRepository>();
+        services.AddScoped<IJournalistRepository, JournalistRepository>();
+        services.AddScoped<IPostRepository, PostRepository>();
+        services.AddScoped<IPrivacyLevelPersonalRepository, PrivacyLevelPersonalRepository>();
+        services.AddScoped<ITagRepository, TagRepository>();
         services.AddScoped<IChatRepository, ChatRepository>();
         services.AddScoped<IMessageRepository, MessageRepository>();
         
         // Domain
-        services.AddTransient<IUserService, UserService>();
-        services.AddTransient<IActivistService, ActivistService>();
-        services.AddTransient<IJournalistService, JournalistService>();
-        services.AddTransient<IPostService, PostService>();
-        services.AddTransient<IPrivacyLevelPersonalService, PrivacyLevelPersonalService>();
+        services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IActivistService, ActivistService>();
+        services.AddScoped<IJournalistService, JournalistService>();
+        services.AddScoped<IPostService, PostService>();
+        services.AddScoped<IPrivacyLevelPersonalService, PrivacyLevelPersonalService>();
+        services.AddScoped<ITagService, TagService>();
         services.AddScoped<IChatService, ChatService>();
         services.AddScoped<IMessageService, MessageService>();
         

@@ -20,4 +20,6 @@ public partial class Post
     public virtual ICollection<Comment> Comments { get; set; } = new List<Comment>();
 
     public virtual User CreatorU { get; set; }
+
+    public virtual ICollection<PostTag> PostTags { get; set; } = new List<PostTag>();
 }

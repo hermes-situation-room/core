@@ -4,5 +4,6 @@ public record CreatePostDto(Guid Uid,
     string Title,
     string Description,
     string Content,
-    Guid CreatorUid
+    Guid CreatorUid,
+    IReadOnlyList<string> Tags
 );
