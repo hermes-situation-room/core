@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { RouterLink } from 'vue-router'
-import type { UserType, LoginFormData } from '../types/user'
+import {computed, ref} from 'vue'
+import {RouterLink} from 'vue-router'
+import type {LoginFormData, UserType} from '../types/user'
 
 const selectedUserType = ref<UserType>('activist')
 const formData = ref<LoginFormData>({
@@ -22,8 +22,8 @@ const isActivist = computed(() => selectedUserType.value === 'activist')
 
 const showPrivacySettings = computed(() => {
     return isActivist.value && (
-        formData.value.firstName || 
-        formData.value.lastName || 
+        formData.value.firstName ||
+        formData.value.lastName ||
         formData.value.emailAddress
     )
 })
@@ -53,7 +53,7 @@ function handleRegister() {
 </script>
 
 <template>
-    <div class="container-fluid d-flex justify-content-center align-items-center min-vh-100 p-4 bg-light">
+    <div class="container-fluid d-flex justify-content-center p-4">
         <div class="col-12 col-md-8 col-lg-6 col-xl-5 mx-auto">
             <!-- Role Selector -->
             <div class="card shadow-lg mb-4">
@@ -260,16 +260,16 @@ function handleRegister() {
                     <!-- Links -->
                     <div class="text-center mt-4">
                         <p class="mb-2">
-                            Already have an account? 
-                            <RouterLink 
-                                to="/login" 
+                            Already have an account?
+                            <RouterLink
+                                to="/login"
                                 class="text-primary text-decoration-none font-weight-bold"
                             >
                                 Login here
                             </RouterLink>
                         </p>
-                        <RouterLink 
-                            to="/" 
+                        <RouterLink
+                            to="/"
                             class="text-muted text-decoration-none"
                         >
                             ← Back to Dashboard
