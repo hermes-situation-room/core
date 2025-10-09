@@ -107,9 +107,12 @@ public sealed class UserRepository(IHermessituationRoomContext context, IPrivacy
         {
             var privacyLevel = await privacyLevelPersonalRepository.GetPrivacyLevelPersonalBoAsync(userId, consumerId);
 
-            if (!privacyLevel.IsFirstNameVisible) userBo = userBo with { FirstName = null };
-            if (!privacyLevel.IsLastNameVisible) userBo = userBo with { LastName = null };
-            if (!privacyLevel.IsEmailVisible) userBo = userBo with { EmailAddress = null };
+            userBo = userBo with
+            {
+                FirstName = privacyLevel.IsFirstNameVisible ? userBo.FirstName : null,
+                LastName = privacyLevel.IsLastNameVisible ? userBo.LastName : null,
+                EmailAddress = privacyLevel.IsEmailVisible ? userBo.EmailAddress : null
+            };
         }
         else
         {
@@ -119,9 +122,12 @@ public sealed class UserRepository(IHermessituationRoomContext context, IPrivacy
 
             if (activist is not null)
             {
-                if (!activist.IsFirstNameVisible) userBo = userBo with { FirstName = null };
-                if (!activist.IsLastNameVisible) userBo = userBo with { LastName = null };
-                if (!activist.IsEmailVisible) userBo = userBo with { EmailAddress = null };
+                userBo = userBo with
+                {
+                    FirstName = activist.IsFirstNameVisible ? userBo.FirstName : null,
+                    LastName = activist.IsLastNameVisible ? userBo.LastName : null,
+                    EmailAddress = activist.IsEmailVisible ? userBo.EmailAddress : null
+                };
             }
         }
 
