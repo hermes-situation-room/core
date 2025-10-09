@@ -6,7 +6,7 @@ using Interface;
 using Microsoft.EntityFrameworkCore;
 using Shared.BusinessObjects;
 
-public sealed class UserRepository(IHermessituationRoomContext context) : IUserRepository
+public sealed class UserRepository(IHermessituationRoomContext context, IPrivacyLevelPersonalRepository privacyLevelPersonalRepository) : IUserRepository
 {
     public async Task<Guid> AddAsync(UserBo userBo)
     {
@@ -39,6 +39,21 @@ public sealed class UserRepository(IHermessituationRoomContext context) : IUserR
         );
     }
 
+    public async Task<UserBo> GetUserProfileBoAsync(Guid userId, Guid consumerId)
+    {
+        if (userId == Guid.Empty)
+            throw new ArgumentException("GUID must not be empty.", nameof(userId));
+
+        var user = await context.Users
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Uid == userId)
+            ?? throw new KeyNotFoundException($"User with UID {userId} was not found.");
+
+        await ApplyUserPrivacyLevel(user, userId, consumerId);
+
+        return MapToBo(user);
+    }
+
     public async Task<IReadOnlyList<UserBo>> GetAllUserBosAsync() => await context.Users
         .AsNoTracking()
         .Select(u => MapToBo(u))
@@ -60,7 +75,7 @@ public sealed class UserRepository(IHermessituationRoomContext context) : IUserR
 
         context.Users.Update(user);
         await context.SaveChangesAsync();
-        
+
         return MapToBo(user);
     }
 
@@ -85,4 +100,31 @@ public sealed class UserRepository(IHermessituationRoomContext context) : IUserR
         user.LastName,
         user.EmailAddress
     );
+
+    private async Task<User> ApplyUserPrivacyLevel(User user, Guid userId, Guid consumerId)
+    {
+        if (consumerId != Guid.Empty)
+        {
+            var privacyLevel = await privacyLevelPersonalRepository.GetPrivacyLevelPersonalBoAsync(userId, consumerId);
+
+            if (!privacyLevel.IsFirstNameVisible) user.FirstName = null;
+            if (!privacyLevel.IsLastNameVisible) user.LastName = null;
+            if (!privacyLevel.IsEmailVisible) user.EmailAddress = null;
+        }
+        else
+        {
+            var activist = await context.Activists
+                .AsNoTracking()
+                .FirstOrDefaultAsync(a => a.UserUid == userId);
+
+            if (activist is not null)
+            {
+                if (!activist.IsFirstNameVisible) user.FirstName = null;
+                if (!activist.IsLastNameVisible) user.LastName = null;
+                if (!activist.IsEmailVisible) user.EmailAddress = null;
+            }
+        }
+
+        return user;
+    }
 }
