@@ -3,5 +3,10 @@ import hermesNavbarComponent from './components/hermes-navbar-component.vue';
 </script>
 
 <template>
-  <hermesNavbarComponent />
+    <div id="app">
+        <hermesNavbarComponent/>
+        <main>
+            <router-view/>
+        </main>
+    </div>
 </template>
