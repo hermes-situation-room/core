@@ -10,9 +10,9 @@ public class PostService(IPostRepository postRepository) : IPostService
     public Task<PostBo> GetPostAsync(Guid postUid) => postRepository.GetPostBoAsync(postUid);
 
     public Task<IReadOnlyList<PostBo>> GetUserPostsAsync(Guid userUid) => postRepository.GetUserPostsAsync(userUid);
-    
+
     public Task<IReadOnlyList<PostBo>> GetAllActivistPostsAsync() => postRepository.GetAllActivistPostsAsync();
-    
+
     public Task<IReadOnlyList<PostBo>> GetAllJournalistPostsAsync() => postRepository.GetAllJournalistPostsAsync();
 
     public Task<IReadOnlyList<PostBo>> GetPostsAsync() => postRepository.GetAllPostBosAsync();

@@ -26,6 +26,7 @@ public static class DependencyRegistrationExtension
         services.AddTransient<IJournalistRepository, JournalistRepository>();
         services.AddTransient<IPostRepository, PostRepository>();
         services.AddTransient<IPrivacyLevelPersonalRepository, PrivacyLevelPersonalRepository>();
+        services.AddTransient<ICommentRepository, CommentRepository>();
         services.AddScoped<IChatRepository, ChatRepository>();
         services.AddScoped<IMessageRepository, MessageRepository>();
         
@@ -35,6 +36,7 @@ public static class DependencyRegistrationExtension
         services.AddTransient<IJournalistService, JournalistService>();
         services.AddTransient<IPostService, PostService>();
         services.AddTransient<IPrivacyLevelPersonalService, PrivacyLevelPersonalService>();
+        services.AddTransient<ICommentService, CommentService>();
         services.AddScoped<IChatService, ChatService>();
         services.AddScoped<IMessageService, MessageService>();
         
