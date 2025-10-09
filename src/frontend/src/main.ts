@@ -1,10 +1,10 @@
-import { createApp } from "vue";
+import {createApp} from "vue";
 import router from "./router";
 import App from "./App.vue";
 import './assets/custom-bootstrap.scss'
 import "@mdi/font/css/materialdesignicons.css";
 
-import { createVuetify } from "vuetify";
+import {createVuetify} from "vuetify";
 import * as components from "vuetify/components";
 import * as directives from "vuetify/directives";
 

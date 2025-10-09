@@ -1,12 +1,7 @@
 <script setup lang="ts">
-import hermesNavbarComponent from './components/hermes-navbar-component.vue';
+import LayoutComponent from "./layout/layout-component.vue";
 </script>
 
 <template>
-    <div id="app">
-        <hermesNavbarComponent/>
-        <main>
-            <router-view/>
-        </main>
-    </div>
+    <layout-component/>
 </template>
