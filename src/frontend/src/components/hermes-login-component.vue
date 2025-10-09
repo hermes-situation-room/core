@@ -16,7 +16,6 @@ const isActivist = computed(() => selectedUserType.value === 'activist')
 function selectUserType(type: UserType) {
     selectedUserType.value = type
     
-    // Reset form when switching types
     loginData.value = {
         username: '',
         email: '',
@@ -34,7 +33,7 @@ function handleLogin() {
 </script>
 
 <template>
-    <div class="container-fluid d-flex justify-content-center align-items-center min-vh-100 p-4 bg-light">
+    <div class="container-fluid d-flex justify-content-center p-4">
         <div class="col-12 col-md-8 col-lg-6 col-xl-5 mx-auto">
             <!-- Role Selector -->
             <div class="card shadow-lg mb-4">
@@ -66,7 +65,6 @@ function handleLogin() {
                 </div>
             </div>
 
-            <!-- Login Form -->
             <div class="card shadow-lg">
                 <div class="card-body p-4">
                     <div class="text-center mb-4">
@@ -127,7 +125,6 @@ function handleLogin() {
                         </button>
                     </form>
 
-                    <!-- Links -->
                     <div class="text-center mt-4">
                         <p class="mb-2">
                             Don't have an account? 
