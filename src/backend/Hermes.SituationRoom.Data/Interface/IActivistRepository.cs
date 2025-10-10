@@ -12,6 +12,8 @@ public interface IActivistRepository
 
     Task<ActivistBo> GetActivistBoAsync(Guid activistUid);
 
+    Task<ActivistBo> GetActivistBoByUsernameAsync(string username);
+
     Task<IReadOnlyList<ActivistBo>> GetAllActivistBosAsync();
 
     Task<ActivistBo> UpdateAsync(ActivistBo updatedActivist);

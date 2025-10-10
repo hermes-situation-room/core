@@ -39,6 +39,18 @@ public sealed class UserRepository(IHermessituationRoomContext context, IPrivacy
         );
     }
 
+    public async Task<UserBo> GetUserBoByEmailAsync(string emailAddress)
+    {
+        if(string.IsNullOrWhiteSpace(emailAddress))
+            throw new ArgumentException("Email address must not be empty.", nameof(emailAddress));
+
+        return MapToBo(await context.Users
+                           .AsNoTracking()
+                           .FirstOrDefaultAsync(u => u.EmailAddress == emailAddress)
+                       ?? throw new KeyNotFoundException($"User with email address {emailAddress} was not found.")
+        );
+    }
+
     public async Task<UserBo> GetUserProfileBoAsync(Guid userId, Guid consumerId)
     {
         if (userId == Guid.Empty)
@@ -99,6 +111,7 @@ public sealed class UserRepository(IHermessituationRoomContext context, IPrivacy
         user.LastName,
         user.EmailAddress
     );
+
 
     private async Task<UserBo> ApplyUserPrivacyLevel(UserBo userBo, Guid userId, Guid consumerId)
     {

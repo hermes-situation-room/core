@@ -43,6 +43,19 @@ public sealed class ActivistRepository(IHermessituationRoomContext context, IUse
         );
     }
 
+    public async Task<ActivistBo> GetActivistBoByUsernameAsync(string username)
+    {
+        if (string.IsNullOrWhiteSpace(username))
+            throw new ArgumentException("Username must not be empty.", nameof(username));
+
+        return MapToBo(await context.Activists
+                           .AsNoTracking()
+                           .Include(a => a.UserU)
+                           .FirstOrDefaultAsync(a => a.Username == username)
+                       ?? throw new KeyNotFoundException($"Activist with username {username} was not found.")
+        );
+    }
+
     public async Task<IReadOnlyList<ActivistBo>> GetAllActivistBosAsync() => await context.Activists
         .AsNoTracking()
         .Include(a => a.UserU)

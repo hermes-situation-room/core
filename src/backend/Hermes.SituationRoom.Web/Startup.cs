@@ -4,6 +4,7 @@ using Data.Context;
 using Hermes.SituationRoom.Api.Configurations;
 using Hermes.SituationRoom.Api.Extensions;
 using Hermes.SituationRoom.Api.Middlewares;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Domain.Hubs;
@@ -33,6 +34,11 @@ public class Startup
             options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
         });
 
+        services.AddHttpContextAccessor();
+
+        services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+            .AddCookie();
+
         services.AddControllers();
 
         services.RegisterDependencies(Configuration);
@@ -60,6 +66,7 @@ public class Startup
             .UseCors("AllowAnyOrigin")
             .UseRequestLocalization()
             .UseMiddleware<ExceptionMiddleware>()
+            .UseAuthentication()
             .UseAuthorization()
             .UseEndpoints(endpoints =>
             {
