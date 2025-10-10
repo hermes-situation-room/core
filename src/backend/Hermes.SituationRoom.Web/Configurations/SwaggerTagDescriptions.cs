@@ -9,6 +9,7 @@ public class SwaggerTagDescriptions : IDocumentFilter
     public const string ENDPOINT_TAG_INTERNAL_ACTIVIST = "Internal Activist";
     public const string ENDPOINT_TAG_INTERNAL_CHAT = "Internal Chat";
     public const string ENDPOINT_TAG_INTERNAL_POST = "Internal Post";
+    public const string ENDPOINT_TAG_INTERNAL_TAG = "Internal Tag";
     public const string ENDPOINT_TAG_INTERNAL_COMMENT = "Internal Comment";
     public const string ENDPOINT_TAG_INTERNAL_JOURNALIST = "Internal Journalist";
     public const string ENDPOINT_TAG_INTERNAL_USER = "Internal User";
@@ -25,6 +26,7 @@ public class SwaggerTagDescriptions : IDocumentFilter
             new() { Name = ENDPOINT_TAG_INTERNAL_ACTIVIST, Description = internalScopeDescription },
             new() { Name = ENDPOINT_TAG_INTERNAL_CHAT, Description = internalScopeDescription },
             new() { Name = ENDPOINT_TAG_INTERNAL_POST, Description = internalScopeDescription },
+            new() { Name = ENDPOINT_TAG_INTERNAL_TAG, Description = internalScopeDescription },
             new() { Name = ENDPOINT_TAG_INTERNAL_COMMENT, Description = internalScopeDescription },
             new() { Name = ENDPOINT_TAG_INTERNAL_JOURNALIST, Description = internalScopeDescription },
             new() { Name = ENDPOINT_TAG_INTERNAL_USER, Description = internalScopeDescription },

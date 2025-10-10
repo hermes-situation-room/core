@@ -5,19 +5,25 @@ using Shared.DataTransferObjects;
 
 public interface IPostService
 {
-    Task<PostBo> GetPostAsync(Guid postUid);
+    Task<PostWithTagsBo> GetPostAsync(Guid postUid);
     
-    Task<IReadOnlyList<PostBo>> GetUserPostsAsync(Guid userUid);
+    Task<IReadOnlyList<PostWithTagsBo>> GetPostsByTagsAsync(string tags);
     
-    Task<IReadOnlyList<PostBo>> GetAllActivistPostsAsync();
+    Task<IReadOnlyList<PostWithTagsBo>> GetActivistPostsByTagsAsync(string tags);
     
-    Task<IReadOnlyList<PostBo>> GetAllJournalistPostsAsync();
+    Task<IReadOnlyList<PostWithTagsBo>> GetJournalistPostsByTagsAsync(string tags);
+    
+    Task<IReadOnlyList<PostWithTagsBo>> GetUserPostsAsync(Guid userUid);
+    
+    Task<IReadOnlyList<PostWithTagsBo>> GetAllActivistPostsAsync();
+    
+    Task<IReadOnlyList<PostWithTagsBo>> GetAllJournalistPostsAsync();
 
-    Task<IReadOnlyList<PostBo>> GetPostsAsync();
+    Task<IReadOnlyList<PostWithTagsBo>> GetPostsAsync();
 
     Task<Guid> CreatePostAsync(CreatePostDto createPostBo);
 
-    Task<PostBo> UpdatePostAsync(PostBo updatedPost);
+    Task<PostWithTagsBo> UpdatePostAsync(PostWithTagsBo updatedPost);
 
     Task DeletePostAsync(Guid postUid);
 }

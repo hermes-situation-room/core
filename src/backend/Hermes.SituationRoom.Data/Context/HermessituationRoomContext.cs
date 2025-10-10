@@ -24,6 +24,8 @@ public partial class HermessituationRoomContext : DbContext
 
     public virtual DbSet<Post> Posts { get; set; }
 
+    public virtual DbSet<PostTag> PostTags { get; set; }
+
     public virtual DbSet<PrivacyLevelPersonal> PrivacyLevelPersonals { get; set; }
 
     public virtual DbSet<User> Users { get; set; }
@@ -32,11 +34,11 @@ public partial class HermessituationRoomContext : DbContext
     {
         modelBuilder.Entity<Activist>(entity =>
         {
-            entity.HasKey(e => e.UserUid).HasName("PK__Activist__A1F26A8AD70D02DE");
+            entity.HasKey(e => e.UserUid).HasName("PK__Activist__A1F26A8A9E5ED501");
 
             entity.ToTable("Activist");
 
-            entity.HasIndex(e => e.Username, "UQ__Activist__536C85E4CD286AAB").IsUnique();
+            entity.HasIndex(e => e.Username, "UQ__Activist__536C85E43F106628").IsUnique();
 
             entity.Property(e => e.UserUid)
                 .ValueGeneratedNever()
@@ -52,7 +54,7 @@ public partial class HermessituationRoomContext : DbContext
 
         modelBuilder.Entity<Chat>(entity =>
         {
-            entity.HasKey(e => e.Uid).HasName("PK__Chat__C5B19602FA76AD8E");
+            entity.HasKey(e => e.Uid).HasName("PK__Chat__C5B19602D14159EA");
 
             entity.ToTable("Chat");
 
@@ -79,7 +81,7 @@ public partial class HermessituationRoomContext : DbContext
 
         modelBuilder.Entity<Comment>(entity =>
         {
-            entity.HasKey(e => e.Uid).HasName("PK__Comment__C5B19602F3C127F1");
+            entity.HasKey(e => e.Uid).HasName("PK__Comment__C5B1960262AA9E18");
 
             entity.ToTable("Comment");
 
@@ -105,7 +107,7 @@ public partial class HermessituationRoomContext : DbContext
 
         modelBuilder.Entity<Journalist>(entity =>
         {
-            entity.HasKey(e => e.UserUid).HasName("PK__Journali__A1F26A8A088C3314");
+            entity.HasKey(e => e.UserUid).HasName("PK__Journali__A1F26A8A9E2A3BAC");
 
             entity.ToTable("Journalist");
 
@@ -123,7 +125,7 @@ public partial class HermessituationRoomContext : DbContext
 
         modelBuilder.Entity<Message>(entity =>
         {
-            entity.HasKey(e => e.Uid).HasName("PK__Message__C5B1960203B93F2F");
+            entity.HasKey(e => e.Uid).HasName("PK__Message__C5B19602D10251E8");
 
             entity.ToTable("Message");
 
@@ -151,7 +153,7 @@ public partial class HermessituationRoomContext : DbContext
 
         modelBuilder.Entity<Post>(entity =>
         {
-            entity.HasKey(e => e.Uid).HasName("PK__Post__C5B19602AFFE615F");
+            entity.HasKey(e => e.Uid).HasName("PK__Post__C5B19602F86A387F");
 
             entity.ToTable("Post");
 
@@ -173,9 +175,25 @@ public partial class HermessituationRoomContext : DbContext
                 .HasConstraintName("FK_Post_User");
         });
 
+        modelBuilder.Entity<PostTag>(entity =>
+        {
+            entity.HasKey(e => new { e.PostUid, e.Tag });
+
+            entity.ToTable("PostTag");
+
+            entity.HasIndex(e => e.Tag, "IX_PostTag_Tag");
+
+            entity.Property(e => e.PostUid).HasColumnName("PostUID");
+            entity.Property(e => e.Tag).HasMaxLength(64);
+
+            entity.HasOne(d => d.PostU).WithMany(p => p.PostTags)
+                .HasForeignKey(d => d.PostUid)
+                .HasConstraintName("FK_PostTag_Post");
+        });
+
         modelBuilder.Entity<PrivacyLevelPersonal>(entity =>
         {
-            entity.HasKey(e => e.Uid).HasName("PK__PrivacyL__C5B1960290C96643");
+            entity.HasKey(e => e.Uid).HasName("PK__PrivacyL__C5B19602F67FC51C");
 
             entity.ToTable("PrivacyLevelPersonal");
 
@@ -202,11 +220,11 @@ public partial class HermessituationRoomContext : DbContext
 
         modelBuilder.Entity<User>(entity =>
         {
-            entity.HasKey(e => e.Uid).HasName("PK__User__C5B196020A1AA566");
+            entity.HasKey(e => e.Uid).HasName("PK__User__C5B19602802AD4A2");
 
             entity.ToTable("User");
 
-            entity.HasIndex(e => e.EmailAddress, "UQ__User__49A147400D07B204").IsUnique();
+            entity.HasIndex(e => e.EmailAddress, "UQ__User__49A14740BD997AEE").IsUnique();
 
             entity.Property(e => e.Uid)
                 .ValueGeneratedNever()
