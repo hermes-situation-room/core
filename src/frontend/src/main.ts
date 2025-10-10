@@ -1,9 +1,10 @@
-import { createApp } from "vue";
+import {createApp} from "vue";
 import router from "./router";
 import App from "./App.vue";
+import './assets/custom-bootstrap.scss'
 import "@mdi/font/css/materialdesignicons.css";
 
-import { createVuetify } from "vuetify";
+import {createVuetify} from "vuetify";
 import * as components from "vuetify/components";
 import * as directives from "vuetify/directives";
 
@@ -14,7 +15,6 @@ import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
 import "@fontsource/roboto/900.css";
 
-/* optional italic styles */
 import "@fontsource/roboto/100-italic.css";
 import "@fontsource/roboto/300-italic.css";
 import "@fontsource/roboto/400-italic.css";
