@@ -18,9 +18,9 @@ public class MessageRepository(IHermessituationRoomContext context) : IMessageRe
 
     public async Task<MessageBo> GetMessageAsync(Guid messageId) =>
         MapToMessageBo(await context.Messages
-                                            .AsNoTracking()
-                                            .FirstOrDefaultAsync(m => m.Uid == messageId)
-                                        ?? throw new KeyNotFoundException($"Could not find Message with the Id: {messageId}"));
+                           .AsNoTracking()
+                           .FirstOrDefaultAsync(m => m.Uid == messageId)
+                       ?? throw new KeyNotFoundException($"Could not find Message with the Id: {messageId}"));
 
     public async Task<IReadOnlyList<MessageBo>> GetMessagesByChatAsync(Guid chatId)
     {
@@ -33,7 +33,7 @@ public class MessageRepository(IHermessituationRoomContext context) : IMessageRe
         return messages.Select(MapToMessageBo).ToList();
     }
 
-    public async Task UpdateAsync(Guid messageId, string newContent)
+    public async Task<MessageBo> UpdateAsync(Guid messageId, string newContent)
     {
         var messageToUpdate = await context.Messages
             .FirstOrDefaultAsync(m => m.Uid == messageId)
@@ -42,6 +42,7 @@ public class MessageRepository(IHermessituationRoomContext context) : IMessageRe
         messageToUpdate.Content = newContent;
         context.Messages.Update(messageToUpdate);
         await context.SaveChangesAsync();
+        return MapToMessageBo(messageToUpdate);
     }
     
     public async Task DeleteAsync(Guid messageId)

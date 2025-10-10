@@ -6,6 +6,7 @@ using Hermes.SituationRoom.Api.Extensions;
 using Hermes.SituationRoom.Api.Middlewares;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
+using Domain.Hubs;
 
 public class Startup
 {
@@ -35,6 +36,8 @@ public class Startup
 
         services.RegisterDependencies(Configuration);
 
+        services.AddSignalR();
+        
         services.AddCors(options =>
         {
             options.AddPolicy("AllowAnyOrigin",
@@ -60,6 +63,7 @@ public class Startup
             .UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapHub<ChatHub>("/chatHub");
             });
     }
 }
