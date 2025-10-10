@@ -10,7 +10,7 @@ public interface IMessageRepository
 
     Task<IReadOnlyList<MessageBo>> GetMessagesByChatAsync(Guid chatId);
 
-    Task UpdateAsync(Guid messageId, string newContent);
+    Task<MessageBo> UpdateAsync(Guid messageId, string newContent);
     
     Task DeleteAsync(Guid messageId);
 }
