@@ -62,7 +62,6 @@ const isTagSelected = (tag: string) => {
 
 watch(() => props.show, (newVal) => {
     if (!newVal) {
-        // Reset form when modal closes
         formData.value = {
             title: '',
             description: '',
@@ -78,7 +77,6 @@ const handleClose = () => {
 };
 
 const handleSubmit = async () => {
-    // Validate form
     if (!formData.value.title.trim()) {
         error.value = 'Title is required';
         return;

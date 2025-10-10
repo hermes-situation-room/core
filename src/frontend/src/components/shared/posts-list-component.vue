@@ -4,13 +4,19 @@ import {useRouter} from 'vue-router';
 import {services} from '../../services/api';
 import type {PostBo, PostFilter} from '../../types/post';
 
+type SortOption = 'newest' | 'oldest' | 'title-asc' | 'title-desc';
+
 interface Props {
     postType: 'activist' | 'journalist';
     searchQuery?: string;
+    filterTags?: string[];
+    sortBy?: SortOption;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-    searchQuery: ''
+    searchQuery: '',
+    filterTags: () => [],
+    sortBy: 'newest'
 });
 
 const router = useRouter();
@@ -31,6 +37,21 @@ const filteredPosts = computed(() => {
         );
     }
 
+    switch (props.sortBy) {
+        case 'newest':
+            filtered.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+            break;
+        case 'oldest':
+            filtered.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+            break;
+        case 'title-asc':
+            filtered.sort((a, b) => a.title.localeCompare(b.title));
+            break;
+        case 'title-desc':
+            filtered.sort((a, b) => b.title.localeCompare(a.title));
+            break;
+    }
+
     return filtered;
 });
 
@@ -39,7 +60,7 @@ const loadPosts = async () => {
     try {
         const filter: PostFilter = {
             category: props.postType,
-            tags: props.searchQuery ? [props.searchQuery] : undefined
+            tags: props.filterTags && props.filterTags.length > 0 ? props.filterTags : undefined
         };
 
         const result = await services.posts.getPostsWithFilter(filter);
@@ -75,7 +96,7 @@ onMounted(() => {
     loadPosts();
 });
 
-watch(() => props.searchQuery, () => {
+watch([() => props.searchQuery, () => props.filterTags, () => props.sortBy], () => {
     loadPosts();
 }, {immediate: true});
 </script>
