@@ -1,32 +1,32 @@
 <script setup lang="ts">
-    import {onMounted, ref, watch} from 'vue'
-    import faviconUrl from '../assets/logo_situation_room_URL.png'
-    import logoUrl from '../assets/logo_situation_room.png'
-    import {RouterLink, useRoute} from 'vue-router'
+import { onMounted, ref, watch } from 'vue'
+import faviconUrl from '../assets/logo_situation_room_URL.png'
+import logoUrl from '../assets/logo_situation_room.png'
+import { RouterLink, useRoute } from 'vue-router'
 
-    const route = useRoute()
-    const pageTitle = ref('Posts')
+const route = useRoute()
+const pageTitle = ref('Posts')
 
-    watch(() => route.name, (newRouteName) => {
-        pageTitle.value = newRouteName as string || 'Posts'
-    }, {immediate: true})
+watch(() => route.name, (newRouteName) => {
+    pageTitle.value = newRouteName as string || 'Posts'
+}, { immediate: true })
 
-    onMounted(() => {
-        const existing = document.querySelector<HTMLLinkElement>('link[rel="icon"]')
-        const link = existing ?? document.createElement('link')
-        link.rel = 'icon'
-        link.type = 'image/png'
-        link.href = faviconUrl
-        if (!existing) document.head.appendChild(link)
-    })
+onMounted(() => {
+    const existing = document.querySelector<HTMLLinkElement>('link[rel="icon"]')
+    const link = existing ?? document.createElement('link')
+    link.rel = 'icon'
+    link.type = 'image/png'
+    link.href = faviconUrl
+    if (!existing) document.head.appendChild(link)
+})
 
-    function scaleUp(e: MouseEvent) {
-        (e.currentTarget as HTMLElement).style.transform = 'scale(1.15)'
-    }
+function scaleUp(e: MouseEvent) {
+    (e.currentTarget as HTMLElement).style.transform = 'scale(1.15)'
+}
 
-    function scaleDown(e: MouseEvent) {
-        (e.currentTarget as HTMLElement).style.transform = 'scale(1)'
-    }
+function scaleDown(e: MouseEvent) {
+    (e.currentTarget as HTMLElement).style.transform = 'scale(1)'
+}
 </script>
 
 <template>
@@ -82,6 +82,6 @@
                 </div>
             </div>
         </nav>
-        <hr style="border: none; height: 1px; background-color: #000; margin: 0;"/>
+        <hr style="border: none; height: 1px; background-color: #000; margin: 0;" />
     </div>
 </template>

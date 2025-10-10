@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import {computed, ref} from 'vue'
-import {RouterLink} from 'vue-router'
-import type {UserType} from '../types/user'
+import { computed, ref } from 'vue'
+import { RouterLink } from 'vue-router'
+import type { UserType } from '../types/user'
 
 const selectedUserType = ref<UserType>('activist')
 const loginData = ref({

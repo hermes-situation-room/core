@@ -1,12 +1,12 @@
-﻿<script setup lang="ts">
-    import NavbarComponent from "./navbar-component.vue";
+<script setup lang="ts">
+import NavbarComponent from "./navbar-component.vue";
 </script>
 
 <template>
     <div id="app">
-        <navbarComponent/>
+        <navbarComponent />
         <main>
-            <router-view/>
+            <router-view />
         </main>
     </div>
 </template>

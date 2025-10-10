@@ -5,15 +5,24 @@ using Hermes.SituationRoom.Data.Interface;
 using Interfaces;
 using Shared.BusinessObjects;
 using Shared.DataTransferObjects;
+using Hubs;
+using Microsoft.AspNetCore.SignalR;
 
-public class MessageService(IMessageRepository messageRepository) : IMessageService
+public class MessageService(IMessageRepository messageRepository, IHubContext<ChatHub> chatHub) : IMessageService
 {
-    public Task<Guid> AddAsync(NewMessageDto newMessageDto) =>
-        messageRepository.AddAsync(
-            new (newMessageDto.Content,
-                newMessageDto.SenderUid,
-                newMessageDto.ChatUid,
-                DateTime.Now));
+    public async Task<Guid> AddAsync(NewMessageDto newMessageDto)
+    {
+        var messageBo = new MessageBo(newMessageDto.Content,
+            newMessageDto.SenderUid,
+            newMessageDto.ChatUid,
+            DateTime.Now
+        );
+        var newMessageGuid = await messageRepository.AddAsync(messageBo);
+        
+        await chatHub.Clients.Group(newMessageDto.ChatUid.ToString()).SendAsync("ReceiveMessage", messageBo);
+
+        return newMessageGuid;
+    }
 
     public Task<MessageBo> GetMessageAsync(Guid messageId) => 
         messageRepository.GetMessageAsync(messageId);
@@ -21,9 +30,18 @@ public class MessageService(IMessageRepository messageRepository) : IMessageServ
     public Task<IReadOnlyList<MessageBo>> GetMessagesByChatAsync(Guid chatId) => 
         messageRepository.GetMessagesByChatAsync(chatId);
 
-    public Task UpdateAsync(Guid messageId, string newContent) => 
-        messageRepository.UpdateAsync(messageId, newContent);
+    public async Task UpdateAsync(Guid messageId, string newContent)
+    {
+        var messageBo = await messageRepository.UpdateAsync(messageId, newContent);
+        await chatHub.Clients.Group(messageBo.ChatUid.ToString()).SendAsync("UpdateMessage", messageBo);
+    }
 
-    public Task DeleteAsync(Guid messageId) => 
-        messageRepository.DeleteAsync(messageId);
+    public async Task DeleteAsync(Guid messageId)
+    {
+        var message = await messageRepository.GetMessageAsync(messageId);
+    
+        await messageRepository.DeleteAsync(messageId);
+        
+        await chatHub.Clients.Group(message.ChatUid.ToString()).SendAsync("DeleteMessage", messageId);
+    }
 }
