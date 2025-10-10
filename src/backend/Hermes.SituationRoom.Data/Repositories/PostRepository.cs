@@ -112,14 +112,13 @@ public sealed class PostRepository(IHermessituationRoomContext context) : IPostR
         if (updatedPost.Uid == Guid.Empty)
             throw new ArgumentException("UID required.", nameof(updatedPost));
 
-        var post = await context.Posts.FirstOrDefaultAsync(u => u.Uid == updatedPost.Uid)
+        var post = await context.Posts.AsTracking().FirstOrDefaultAsync(u => u.Uid == updatedPost.Uid)
                    ?? throw new KeyNotFoundException($"Post with UID {updatedPost.Uid} was not found.");
 
         post.Title = updatedPost.Title;
         post.Description = updatedPost.Description;
         post.Content = updatedPost.Content;
 
-        context.Posts.Update(post);
         await context.SaveChangesAsync();
 
         return MapToBo(post);

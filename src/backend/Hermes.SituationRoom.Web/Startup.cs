@@ -7,6 +7,7 @@ using Hermes.SituationRoom.Api.Middlewares;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Domain.Hubs;
+using Data.Interface;
 
 public class Startup
 {
@@ -26,7 +27,7 @@ public class Startup
     public void ConfigureServices(IServiceCollection services)
     {
         var connectionString = Configuration.GetConnectionString("SituationRoomDb");
-        services.AddDbContext<HermessituationRoomContext>(options =>
+        services.AddDbContext<IHermessituationRoomContext, HermessituationRoomContext>(options =>
         {
             options.UseSqlServer(connectionString);
             options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);

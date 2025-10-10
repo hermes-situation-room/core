@@ -11,7 +11,7 @@ public class CommentService(ICommentRepository commentRepository) : ICommentServ
         commentRepository.GetPostCommentsAsync(postUid);
     
     public Task<Guid> CreateCommentAsync(CreateCommentDto createCommentDto) =>
-        commentRepository.AddAsync(MapToBo(createCommentDto, DateTime.Now));
+        commentRepository.AddAsync(MapToBo(createCommentDto, DateTime.UtcNow));
 
     public Task<CommentBo> UpdateCommentAsync(CommentBo updatedComment) => commentRepository.UpdateAsync(updatedComment);
 

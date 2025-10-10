@@ -15,7 +15,7 @@ public class MessageService(IMessageRepository messageRepository, IHubContext<Ch
         var messageBo = new MessageBo(newMessageDto.Content,
             newMessageDto.SenderUid,
             newMessageDto.ChatUid,
-            DateTime.Now
+            DateTime.UtcNow
         );
         var newMessageGuid = await messageRepository.AddAsync(messageBo);
         
