@@ -4,7 +4,7 @@ using Data.Interface;
 using Interfaces;
 using Shared.BusinessObjects;
 using Shared.DataTransferObjects;
-using Shared.EnumClasses;
+using Shared.Enums;
 
 public class TagService(ITagRepository repository) : ITagService
 {

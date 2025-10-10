@@ -4,7 +4,7 @@ using Entities;
 using Interface;
 using Microsoft.EntityFrameworkCore;
 using Shared.BusinessObjects;
-using Shared.EnumClasses;
+using Shared.Enums;
 
 public sealed class TagRepository(IHermessituationRoomContext context) : ITagRepository
 {

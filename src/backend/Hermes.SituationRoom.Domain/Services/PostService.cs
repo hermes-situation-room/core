@@ -5,7 +5,7 @@ using Data.Interface;
 using Interfaces;
 using Shared.BusinessObjects;
 using Shared.DataTransferObjects;
-using Shared.EnumClasses;
+using Shared.Enums;
 
 public class PostService(IPostRepository postRepository, ITagService tagService) : IPostService
 {

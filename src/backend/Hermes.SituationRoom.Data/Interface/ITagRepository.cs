@@ -2,7 +2,7 @@
 
 using Entities;
 using Shared.BusinessObjects;
-using Shared.EnumClasses;
+using Shared.Enums;
 
 public interface ITagRepository
 {

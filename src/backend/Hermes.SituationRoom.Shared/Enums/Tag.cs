@@ -1,4 +1,4 @@
-﻿namespace Hermes.SituationRoom.Shared.EnumClasses;
+﻿namespace Hermes.SituationRoom.Shared.Enums;
 
 public enum Tag
 {

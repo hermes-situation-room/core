@@ -2,7 +2,7 @@
 namespace Hermes.SituationRoom.Data.Interface;
 
 using Shared.BusinessObjects;
-using Shared.EnumClasses;
+using Shared.Enums;
 
 public interface IPostRepository
 {
