@@ -1,5 +1,5 @@
 ﻿-- ========================
--- PosTag Tabel
+-- PosTag Table
 -- ========================
 CREATE TABLE dbo.PostTag
 (
