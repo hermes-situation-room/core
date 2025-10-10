@@ -49,6 +49,7 @@ public sealed class JournalistRepository(IHermessituationRoomContext context, IU
             throw new ArgumentException("UID required.", nameof(updatedJournalist));
 
         var journalist = await context.Journalists
+                             .AsTracking()
                              .Include(j => j.UserU)
                              .FirstOrDefaultAsync(j => j.UserUid == updatedJournalist.Uid)
                          ?? throw new KeyNotFoundException($"Journalist with UID {updatedJournalist.Uid} was not found."
@@ -61,7 +62,6 @@ public sealed class JournalistRepository(IHermessituationRoomContext context, IU
 
         journalist.Employer = updatedJournalist.Employer;
 
-        context.Journalists.Update(journalist);
         await context.SaveChangesAsync();
 
         return MapToBo(journalist);

@@ -57,14 +57,15 @@ public sealed class PrivacyLevelPersonalRepository(IHermessituationRoomContext c
         if (updatedPrivacyLevelPersonal.Uid == Guid.Empty)
             throw new ArgumentException("UID required.", nameof(updatedPrivacyLevelPersonal));
 
-        var privacyLevelPersonal = await context.PrivacyLevelPersonals.FirstOrDefaultAsync(u => u.Uid == updatedPrivacyLevelPersonal.Uid)
-                   ?? throw new KeyNotFoundException($"PrivacyLevelPersonal with UID {updatedPrivacyLevelPersonal.Uid} was not found.");
+        var privacyLevelPersonal = await context.PrivacyLevelPersonals
+                                       .AsTracking()
+                                       .FirstOrDefaultAsync(u => u.Uid == updatedPrivacyLevelPersonal.Uid) 
+                                       ?? throw new KeyNotFoundException($"PrivacyLevelPersonal with UID {updatedPrivacyLevelPersonal.Uid} was not found.");
 
         privacyLevelPersonal.IsFirstNameVisible = updatedPrivacyLevelPersonal.IsFirstNameVisible;
         privacyLevelPersonal.IsLastNameVisible = updatedPrivacyLevelPersonal.IsLastNameVisible;
         privacyLevelPersonal.IsEmailVisible = updatedPrivacyLevelPersonal.IsEmailVisible;
 
-        context.PrivacyLevelPersonals.Update(privacyLevelPersonal);
         await context.SaveChangesAsync();
 
         return MapToBo(privacyLevelPersonal);
