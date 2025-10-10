@@ -62,11 +62,6 @@ const viewPost = (postId: string) => {
     });
 };
 
-const createPost = async () => {
-    // TODO: Implement create post functionality
-    console.log('Create post clicked');
-};
-
 const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-GB', {
@@ -115,15 +110,6 @@ watch(() => props.searchQuery, () => {
                             </span>
                         </div>
                         <small class="text-muted">{{ formatDate(post.timestamp) }}</small>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-lg-4 col-md-6 col-sm-12">
-                <div class="card h-100 border-2 border-dashed border-secondary d-flex align-items-center justify-content-center text-center" style="min-height: 200px; cursor: pointer;" @click="createPost">
-                    <div class="card-body">
-                        <h5 class="card-title">Create New Post</h5>
-                        <p class="card-text text-muted">Share your thoughts and ideas with the community</p>
                     </div>
                 </div>
             </div>

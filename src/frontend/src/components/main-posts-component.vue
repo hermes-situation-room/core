@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import {computed, onMounted, onUnmounted, ref} from 'vue';
 import {useRoute, useRouter} from 'vue-router';
+import CreatePostModal from './create-post-modal.vue';
 
 const router = useRouter();
 const route = useRoute();
 
 const searchQuery = ref('');
 const isScrolled = ref(false);
+const showCreateModal = ref(false);
+const refreshKey = ref(0);
 
 const currentTab = computed(() => {
     const path = route.path;
@@ -33,6 +36,19 @@ const handleSearch = () => {
 
 const handleScroll = () => {
     isScrolled.value = window.scrollY > 50;
+};
+
+const openCreateModal = () => {
+    showCreateModal.value = true;
+};
+
+const closeCreateModal = () => {
+    showCreateModal.value = false;
+};
+
+const handlePostCreated = () => {
+    // Refresh the posts list by incrementing the key
+    refreshKey.value++;
 };
 
 onMounted(() => {
@@ -88,6 +104,13 @@ onUnmounted(() => {
                     </div>
 
                     <div class="col-auto ms-auto">
+                        <button 
+                            class="btn btn-primary me-2"
+                            @click="openCreateModal"
+                        >
+                            <i class="fas fa-plus me-1"></i>
+                            Create Post
+                        </button>
                         <button class="btn btn-outline-secondary">
                             Sort
                         </button>
@@ -97,8 +120,15 @@ onUnmounted(() => {
         </div>
 
         <div class="container py-4">
-            <router-view :search-query="searchQuery"/>
+            <router-view :key="refreshKey" :search-query="searchQuery"/>
         </div>
+
+        <CreatePostModal 
+            :show="showCreateModal"
+            :post-type="currentTab"
+            @close="closeCreateModal"
+            @post-created="handlePostCreated"
+        />
     </div>
 </template>
 

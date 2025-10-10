@@ -1,5 +1,5 @@
-﻿import type { BaseResultBo } from "../models/bo/base-result-bo";
-import type { PostBo, CreatePostRequest, UpdatePostRequest, PostFilter } from "../../types/post";
+﻿import type {BaseResultBo} from "../models/bo/base-result-bo";
+import type {CreatePostRequest, PostBo, PostFilter, UpdatePostRequest} from "../../types/post";
 import ApiBaseClient from "./base/api-base-client";
 
 export default function postsApi(apiBaseClient: ApiBaseClient) {
@@ -24,7 +24,8 @@ export default function postsApi(apiBaseClient: ApiBaseClient) {
         async getActivistPostsByTags(tags: string[]): Promise<BaseResultBo<PostBo[]>> {
             const params: Record<string, string> = {};
             if (tags.length > 0) {
-                params.tags = tags.join(',');
+                // Convert tags to uppercase and join with comma
+                params.tags = tags.map(tag => tag.toUpperCase()).join(',');
             }
             return await apiBaseClient.get<PostBo[]>('services/api/internal/post/activist/by-tags', params);
         },
@@ -35,7 +36,8 @@ export default function postsApi(apiBaseClient: ApiBaseClient) {
         async getJournalistPostsByTags(tags: string[]): Promise<BaseResultBo<PostBo[]>> {
             const params: Record<string, string> = {};
             if (tags.length > 0) {
-                params.tags = tags.join(',');
+                // Convert tags to uppercase and join with comma
+                params.tags = tags.map(tag => tag.toUpperCase()).join(',');
             }
             return await apiBaseClient.get<PostBo[]>('services/api/internal/post/journalist/by-tags', params);
         },
@@ -58,6 +60,7 @@ export default function postsApi(apiBaseClient: ApiBaseClient) {
          * Create a new post
          */
         async createPost(postData: CreatePostRequest): Promise<BaseResultBo<string>> {
+            console.log(postData)
             return await apiBaseClient.post<CreatePostRequest>('services/api/internal/post', postData);
         },
 
@@ -80,13 +83,12 @@ export default function postsApi(apiBaseClient: ApiBaseClient) {
 
                 const data = await response.json();
 
-                const resObj: BaseResultBo<PostBo> = {
+                return {
                     data: data as PostBo,
                     responseCode: response.status,
                     responseMessage: response.statusText,
                     isSuccess: response.ok,
                 };
-                return resObj;
             } catch (e) {
                 return {
                     data: undefined,
