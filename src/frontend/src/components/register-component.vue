@@ -96,7 +96,6 @@ function handleRegister() {
                     </div>
 
                     <form @submit.prevent="handleRegister">
-                        <!-- Username -->
                         <div class="form-group mb-3">
                             <label class="form-label font-weight-bold">Username *</label>
                             <input
