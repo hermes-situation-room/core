@@ -1,7 +1,7 @@
 import type { BaseResultBo } from "../../models/bo/base-result-bo";
 
 export default class ApiBaseClient {
-    apiBaseUrl: string = "http://localhost:5005/";
+    apiBaseUrl: string = import.meta.env.VITE_APP_BACKEND;
 
     /**
      * GET functionality which handels errors, no try-catch needed for the caller
