@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import {computed, ref} from 'vue'
-import {RouterLink} from 'vue-router'
-import type {LoginFormData, UserType} from '../types/user'
+import { computed, ref } from 'vue'
+import { RouterLink } from 'vue-router'
+import type { LoginFormData, UserType } from '../types/user'
 
 const selectedUserType = ref<UserType>('activist')
 const formData = ref<LoginFormData>({
@@ -60,24 +60,16 @@ function handleRegister() {
                     <h2 class="text-center mb-4 font-weight-bold">Choose Your Role</h2>
 
                     <div class="btn-group w-100" role="group">
-                        <button
-                            @click="selectUserType('journalist')"
-                            type="button"
-                            :class="[
-                                'btn btn-outline-primary',
-                                isJournalist ? 'active' : ''
-                            ]"
-                        >
+                        <button @click="selectUserType('journalist')" type="button" :class="[
+                            'btn btn-outline-primary',
+                            isJournalist ? 'active' : ''
+                        ]">
                             Journalist
                         </button>
-                        <button
-                            @click="selectUserType('activist')"
-                            type="button"
-                            :class="[
-                                'btn btn-outline-success',
-                                isActivist ? 'active' : ''
-                            ]"
-                        >
+                        <button @click="selectUserType('activist')" type="button" :class="[
+                            'btn btn-outline-success',
+                            isActivist ? 'active' : ''
+                        ]">
                             Activist
                         </button>
                     </div>
@@ -98,69 +90,39 @@ function handleRegister() {
                     <form @submit.prevent="handleRegister">
                         <div class="form-group mb-3">
                             <label class="form-label font-weight-bold">Username *</label>
-                            <input
-                                v-model="formData.userName"
-                                type="text"
-                                required
-                                class="form-control form-control-lg"
-                                placeholder="Choose a username"
-                            />
+                            <input v-model="formData.userName" type="text" required class="form-control form-control-lg"
+                                placeholder="Choose a username" />
                         </div>
 
                         <div class="form-group mb-3">
                             <label class="form-label font-weight-bold">Password *</label>
-                            <input
-                                v-model="formData.password"
-                                type="password"
-                                required
-                                class="form-control form-control-lg"
-                                placeholder="Choose a password"
-                            />
+                            <input v-model="formData.password" type="password" required
+                                class="form-control form-control-lg" placeholder="Choose a password" />
                         </div>
 
                         <template v-if="isJournalist">
                             <div class="form-group mb-3">
                                 <label class="form-label font-weight-bold">First Name *</label>
-                                <input
-                                    v-model="formData.firstName"
-                                    type="text"
-                                    required
-                                    class="form-control form-control-lg"
-                                    placeholder="Enter your first name"
-                                />
+                                <input v-model="formData.firstName" type="text" required
+                                    class="form-control form-control-lg" placeholder="Enter your first name" />
                             </div>
 
                             <div class="form-group mb-3">
                                 <label class="form-label font-weight-bold">Last Name *</label>
-                                <input
-                                    v-model="formData.lastName"
-                                    type="text"
-                                    required
-                                    class="form-control form-control-lg"
-                                    placeholder="Enter your last name"
-                                />
+                                <input v-model="formData.lastName" type="text" required
+                                    class="form-control form-control-lg" placeholder="Enter your last name" />
                             </div>
 
                             <div class="form-group mb-3">
                                 <label class="form-label font-weight-bold">Email Address *</label>
-                                <input
-                                    v-model="formData.emailAddress"
-                                    type="email"
-                                    required
-                                    class="form-control form-control-lg"
-                                    placeholder="Enter your email"
-                                />
+                                <input v-model="formData.emailAddress" type="email" required
+                                    class="form-control form-control-lg" placeholder="Enter your email" />
                             </div>
 
                             <div class="form-group mb-4">
                                 <label class="form-label font-weight-bold">Employer *</label>
-                                <input
-                                    v-model="formData.employer"
-                                    type="text"
-                                    required
-                                    class="form-control form-control-lg"
-                                    placeholder="Enter your employer"
-                                />
+                                <input v-model="formData.employer" type="text" required
+                                    class="form-control form-control-lg" placeholder="Enter your employer" />
                             </div>
                         </template>
 
@@ -169,68 +131,44 @@ function handleRegister() {
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label class="form-label font-weight-bold">First Name</label>
-                                        <input
-                                            v-model="formData.firstName"
-                                            type="text"
-                                            class="form-control form-control-lg"
-                                            placeholder="Optional"
-                                        />
+                                        <input v-model="formData.firstName" type="text"
+                                            class="form-control form-control-lg" placeholder="Optional" />
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label class="form-label font-weight-bold">Last Name</label>
-                                        <input
-                                            v-model="formData.lastName"
-                                            type="text"
-                                            class="form-control form-control-lg"
-                                            placeholder="Optional"
-                                        />
+                                        <input v-model="formData.lastName" type="text"
+                                            class="form-control form-control-lg" placeholder="Optional" />
                                     </div>
                                 </div>
                             </div>
 
                             <div class="form-group mb-4">
                                 <label class="form-label font-weight-bold">Email Address</label>
-                                <input
-                                    v-model="formData.emailAddress"
-                                    type="email"
-                                    class="form-control form-control-lg"
-                                    placeholder="Optional"
-                                />
+                                <input v-model="formData.emailAddress" type="email" class="form-control form-control-lg"
+                                    placeholder="Optional" />
                             </div>
 
                             <div v-if="showPrivacySettings" class="bg-light rounded p-3 mb-4">
                                 <h5 class="font-weight-bold mb-3">Privacy Settings</h5>
                                 <div v-if="formData.firstName" class="form-check mb-2">
-                                    <input
-                                        v-model="formData.isFirstNameVisible"
-                                        type="checkbox"
-                                        class="form-check-input"
-                                        id="firstNameVisible"
-                                    />
+                                    <input v-model="formData.isFirstNameVisible" type="checkbox"
+                                        class="form-check-input" id="firstNameVisible" />
                                     <label class="form-check-label" for="firstNameVisible">
                                         Make first name visible
                                     </label>
                                 </div>
                                 <div v-if="formData.lastName" class="form-check mb-2">
-                                    <input
-                                        v-model="formData.isLastNameVisible"
-                                        type="checkbox"
-                                        class="form-check-input"
-                                        id="lastNameVisible"
-                                    />
+                                    <input v-model="formData.isLastNameVisible" type="checkbox" class="form-check-input"
+                                        id="lastNameVisible" />
                                     <label class="form-check-label" for="lastNameVisible">
                                         Make last name visible
                                     </label>
                                 </div>
                                 <div v-if="formData.emailAddress" class="form-check mb-3">
-                                    <input
-                                        v-model="formData.isEmailVisible"
-                                        type="checkbox"
-                                        class="form-check-input"
-                                        id="emailVisible"
-                                    />
+                                    <input v-model="formData.isEmailVisible" type="checkbox" class="form-check-input"
+                                        id="emailVisible" />
                                     <label class="form-check-label" for="emailVisible">
                                         Make email visible
                                     </label>
@@ -238,13 +176,10 @@ function handleRegister() {
                             </div>
                         </template>
 
-                        <button
-                            type="submit"
-                            :class="[
-                                'btn btn-lg btn-block font-weight-bold',
-                                isJournalist ? 'btn-primary' : 'btn-success'
-                            ]"
-                        >
+                        <button type="submit" :class="[
+                            'btn btn-lg btn-block font-weight-bold',
+                            isJournalist ? 'btn-primary' : 'btn-success'
+                        ]">
                             {{ isJournalist ? 'Register as Journalist' : 'Register as Activist' }}
                         </button>
                     </form>
@@ -252,17 +187,11 @@ function handleRegister() {
                     <div class="text-center mt-4">
                         <p class="mb-2">
                             Already have an account?
-                            <RouterLink
-                                to="/login"
-                                class="text-primary text-decoration-none font-weight-bold"
-                            >
+                            <RouterLink to="/login" class="text-primary text-decoration-none font-weight-bold">
                                 Login here
                             </RouterLink>
                         </p>
-                        <RouterLink
-                            to="/"
-                            class="text-muted text-decoration-none"
-                        >
+                        <RouterLink to="/" class="text-muted text-decoration-none">
                             ← Back to Dashboard
                         </RouterLink>
                     </div>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import {computed, ref} from 'vue'
-import {RouterLink} from 'vue-router'
-import type {UserType} from '../types/user'
+import { computed, ref } from 'vue'
+import { RouterLink } from 'vue-router'
+import type { UserType } from '../types/user'
 
 const selectedUserType = ref<UserType>('activist')
 const loginData = ref({
@@ -40,24 +40,16 @@ function handleLogin() {
                     <h2 class="text-center mb-4 font-weight-bold">Choose Your Role</h2>
 
                     <div class="btn-group w-100" role="group">
-                        <button
-                            @click="selectUserType('journalist')"
-                            type="button"
-                            :class="[
-                                'btn btn-outline-primary',
-                                isJournalist ? 'active' : ''
-                            ]"
-                        >
+                        <button @click="selectUserType('journalist')" type="button" :class="[
+                            'btn btn-outline-primary',
+                            isJournalist ? 'active' : ''
+                        ]">
                             Journalist
                         </button>
-                        <button
-                            @click="selectUserType('activist')"
-                            type="button"
-                            :class="[
-                                'btn btn-outline-success',
-                                isActivist ? 'active' : ''
-                            ]"
-                        >
+                        <button @click="selectUserType('activist')" type="button" :class="[
+                            'btn btn-outline-success',
+                            isActivist ? 'active' : ''
+                        ]">
                             Activist
                         </button>
                     </div>
@@ -72,7 +64,9 @@ function handleLogin() {
                         </h3>
                         <p class="text-muted mt-2">
                             {{
-                                isJournalist ? 'Login with your email and password' : 'Login with your username and password'
+                                isJournalist
+                                    ? 'Login with your email and password'
+                                    : 'Login with your username and password'
                             }}
                         </p>
                     </div>
@@ -80,44 +74,26 @@ function handleLogin() {
                     <form @submit.prevent="handleLogin">
                         <div v-if="isActivist" class="form-group mb-3">
                             <label class="form-label font-weight-bold">Username *</label>
-                            <input
-                                v-model="loginData.username"
-                                type="text"
-                                required
-                                class="form-control form-control-lg"
-                                placeholder="Enter your username"
-                            />
+                            <input v-model="loginData.username" type="text" required
+                                class="form-control form-control-lg" placeholder="Enter your username" />
                         </div>
 
                         <div v-if="isJournalist" class="form-group mb-3">
                             <label class="form-label font-weight-bold">Email Address *</label>
-                            <input
-                                v-model="loginData.email"
-                                type="email"
-                                required
-                                class="form-control form-control-lg"
-                                placeholder="Enter your email address"
-                            />
+                            <input v-model="loginData.email" type="email" required class="form-control form-control-lg"
+                                placeholder="Enter your email address" />
                         </div>
 
                         <div class="form-group mb-4">
                             <label class="form-label font-weight-bold">Password *</label>
-                            <input
-                                v-model="loginData.password"
-                                type="password"
-                                required
-                                class="form-control form-control-lg"
-                                placeholder="Enter your password"
-                            />
+                            <input v-model="loginData.password" type="password" required
+                                class="form-control form-control-lg" placeholder="Enter your password" />
                         </div>
 
-                        <button
-                            type="submit"
-                            :class="[
-                                'btn btn-lg btn-block font-weight-bold',
-                                isJournalist ? 'btn-primary' : 'btn-success'
-                            ]"
-                        >
+                        <button type="submit" :class="[
+                            'btn btn-lg btn-block font-weight-bold',
+                            isJournalist ? 'btn-primary' : 'btn-success'
+                        ]">
                             {{ isJournalist ? 'Login as Journalist' : 'Login as Activist' }}
                         </button>
                     </form>
@@ -125,17 +101,11 @@ function handleLogin() {
                     <div class="text-center mt-4">
                         <p class="mb-2">
                             Don't have an account?
-                            <RouterLink
-                                to="/register"
-                                class="text-primary text-decoration-none font-weight-bold"
-                            >
+                            <RouterLink to="/register" class="text-primary text-decoration-none font-weight-bold">
                                 Register here
                             </RouterLink>
                         </p>
-                        <RouterLink
-                            to="/"
-                            class="text-muted text-decoration-none"
-                        >
+                        <RouterLink to="/" class="text-muted text-decoration-none">
                             ← Back to Dashboard
                         </RouterLink>
                     </div>
