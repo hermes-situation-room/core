@@ -27,6 +27,7 @@ public static class DependencyRegistrationExtension
         services.AddScoped<IPostRepository, PostRepository>();
         services.AddScoped<IPrivacyLevelPersonalRepository, PrivacyLevelPersonalRepository>();
         services.AddScoped<ITagRepository, TagRepository>();
+        services.AddScoped<ICommentRepository, CommentRepository>();
         services.AddScoped<IChatRepository, ChatRepository>();
         services.AddScoped<IMessageRepository, MessageRepository>();
         
@@ -37,6 +38,7 @@ public static class DependencyRegistrationExtension
         services.AddScoped<IPostService, PostService>();
         services.AddScoped<IPrivacyLevelPersonalService, PrivacyLevelPersonalService>();
         services.AddScoped<ITagService, TagService>();
+        services.AddScoped<ICommentService, CommentService>();
         services.AddScoped<IChatService, ChatService>();
         services.AddScoped<IMessageService, MessageService>();
         
