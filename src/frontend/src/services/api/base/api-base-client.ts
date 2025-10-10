@@ -55,7 +55,7 @@ export default class ApiBaseClient {
      * @param input Object which is sent to the API. Object will not be validated, must be done by the caller
      * @returns Always returns a BaseResultBo of type string which contains the uid of the created object
      */
-    async post<T>(route: string, input: T): Promise<BaseResultBo<String>> {
+    async post<T>(route: string, input: T): Promise<BaseResultBo<string>> {
         const url = `${this.apiBaseUrl}${route}`;
         try {
             const response = await fetch(url, {
@@ -69,7 +69,7 @@ export default class ApiBaseClient {
 
             const uid = await response.text();
 
-            const resObj: BaseResultBo<String> = {
+            const resObj: BaseResultBo<string> = {
                 data: uid,
                 responseCode: response.status,
                 responseMessage: response.statusText,
@@ -93,7 +93,7 @@ export default class ApiBaseClient {
      * @param input Object which is sent to the API. Object will not be validated, must be done by the caller
      * @returns Always returns a BaseResultBo of type string which contains the uid of the created object
      */
-    async put<T>(route: string, input: T): Promise<BaseResultBo<String>> {
+    async put<T>(route: string, input: T): Promise<BaseResultBo<string>> {
         const url = `${this.apiBaseUrl}${route}`;
         try {
             const response = await fetch(url, {
@@ -107,7 +107,7 @@ export default class ApiBaseClient {
 
             const uid = await response.text();
 
-            const resObj: BaseResultBo<String> = {
+            const resObj: BaseResultBo<string> = {
                 data: uid,
                 responseCode: response.status,
                 responseMessage: response.statusText,
