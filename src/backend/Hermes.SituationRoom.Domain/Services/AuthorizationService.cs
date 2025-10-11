@@ -1,6 +1,7 @@
 ﻿namespace Hermes.SituationRoom.Domain.Services;
 
 using System.Security.Claims;
+using Hermes.SituationRoom.Data.Entities;
 using Hermes.SituationRoom.Data.Interface;
 using Hermes.SituationRoom.Shared.BusinessObjects;
 using Interfaces;
@@ -8,27 +9,17 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
 
-public class AuthorizationService : IAuthorizationService
+public class AuthorizationService(IHttpContextAccessor httpContextAccessor, IUserRepository userRepository, IActivistRepository activistRepository) : IAuthorizationService
 {
-    private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly IUserRepository _userRepository;
-    private readonly IActivistRepository _activistRepository;
 
-    public AuthorizationService(
-        IHttpContextAccessor httpContextAccessor,
-        IUserRepository userRepository,
-        IActivistRepository activistRepository)
-    {
-        _httpContextAccessor = httpContextAccessor;
-        _userRepository = userRepository;
-        _activistRepository = activistRepository;
-    }
-
-    private HttpContext? HttpContext => _httpContextAccessor.HttpContext;
+    private HttpContext? HttpContext => httpContextAccessor.HttpContext;
 
     public async Task<Guid> LoginActivist(LoginActivistBo loginActivistBo)
     {
-        var activist = await _activistRepository.GetActivistBoByUsernameAsync(loginActivistBo.UserName);
+        var activist = await activistRepository.GetActivistBoByUsernameAsync(loginActivistBo.UserName);
+
+        if (activist.Password != loginActivistBo.Password)
+            throw new UnauthorizedAccessException("Invalid password or username.");
 
         var claims = new List<Claim>
         {
@@ -60,7 +51,10 @@ public class AuthorizationService : IAuthorizationService
 
     public async Task<Guid> LoginJournalist(LoginJournalistBo loginJournalistBo)
     {
-        var journalist = await _userRepository.GetUserBoByEmailAsync(loginJournalistBo.EmailAddress);
+        var journalist = await userRepository.GetUserBoByEmailAsync(loginJournalistBo.EmailAddress);
+
+        if (journalist.Password != loginJournalistBo.Password)
+            throw new UnauthorizedAccessException("Invalid password.");
 
         var claims = new List<Claim>
         {

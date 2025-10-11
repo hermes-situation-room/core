@@ -47,7 +47,7 @@ public sealed class UserRepository(IHermessituationRoomContext context, IPrivacy
         return MapToBo(await context.Users
                            .AsNoTracking()
                            .FirstOrDefaultAsync(u => u.EmailAddress == emailAddress)
-                       ?? throw new KeyNotFoundException($"User with email address {emailAddress} was not found.")
+                       ?? throw new UnauthorizedAccessException("Invalid password or email address.")
         );
     }
 

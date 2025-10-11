@@ -52,7 +52,7 @@ public sealed class ActivistRepository(IHermessituationRoomContext context, IUse
                            .AsNoTracking()
                            .Include(a => a.UserU)
                            .FirstOrDefaultAsync(a => a.Username == username)
-                       ?? throw new KeyNotFoundException($"Activist with username {username} was not found.")
+                       ?? throw new UnauthorizedAccessException("Invalid password or username.")
         );
     }
 
