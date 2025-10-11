@@ -149,14 +149,128 @@ onUnmounted(() => {
     <div class="container-fluid">
         <div class="bg-white border-bottom sticky-top" style="z-index: 1000;">
             <div class="container">
-                <div class="row align-items-center py-3">
+                <div class="d-md-none py-3">
+                    <div class="mb-2">
+                        <div class="btn-group w-100" role="group">
+                            <button
+                                @click="switchTab('journalist')"
+                                :class="['btn', 'py-2', currentTab === 'journalist' ? 'btn-dark' : 'btn-outline-dark']"
+                            >
+                                Journalist
+                            </button>
+                            <button
+                                @click="switchTab('activist')"
+                                :class="['btn', 'py-2', currentTab === 'activist' ? 'btn-dark' : 'btn-outline-dark']"
+                            >
+                                Activist
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-2">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0">
+                                <i class="fas fa-search text-muted"></i>
+                            </span>
+                            <input
+                                v-model="searchQuery"
+                                @input="handleSearch"
+                                type="text"
+                                class="form-control border-start-0"
+                                placeholder="Search posts..."
+                            />
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button 
+                            class="btn btn-outline-secondary position-relative flex-fill py-2"
+                            @click="openFilterModal"
+                        >
+                            <i class="fas fa-filter me-1"></i>
+                            <span class="d-none d-sm-inline">Filter</span>
+                            <span 
+                                v-if="selectedFilterTags.length > 0" 
+                                class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary"
+                            >
+                                {{ selectedFilterTags.length }}
+                            </span>
+                        </button>
+                        
+                        <div class="dropdown flex-fill">
+                            <button 
+                                class="btn btn-outline-secondary dropdown-toggle w-100 py-2"
+                                type="button"
+                                @click="toggleSortDropdown"
+                            >
+                                <i class="fas fa-sort me-1"></i>
+                                <span class="d-none d-sm-inline">{{ sortLabel }}</span>
+                            </button>
+                            <ul 
+                                :class="['dropdown-menu', 'w-100', { 'show': showSortDropdown }]"
+                            >
+                                <li>
+                                    <a 
+                                        class="dropdown-item" 
+                                        href="#"
+                                        @click.prevent="selectSort('newest')"
+                                        :class="{ 'active': sortBy === 'newest' }"
+                                    >
+                                        <i class="fas fa-clock me-2"></i>Newest First
+                                    </a>
+                                </li>
+                                <li>
+                                    <a 
+                                        class="dropdown-item" 
+                                        href="#"
+                                        @click.prevent="selectSort('oldest')"
+                                        :class="{ 'active': sortBy === 'oldest' }"
+                                    >
+                                        <i class="fas fa-clock-rotate-left me-2"></i>Oldest First
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a 
+                                        class="dropdown-item" 
+                                        href="#"
+                                        @click.prevent="selectSort('title-asc')"
+                                        :class="{ 'active': sortBy === 'title-asc' }"
+                                    >
+                                        <i class="fas fa-arrow-down-a-z me-2"></i>Title (A-Z)
+                                    </a>
+                                </li>
+                                <li>
+                                    <a 
+                                        class="dropdown-item" 
+                                        href="#"
+                                        @click.prevent="selectSort('title-desc')"
+                                        :class="{ 'active': sortBy === 'title-desc' }"
+                                    >
+                                        <i class="fas fa-arrow-up-z-a me-2"></i>Title (Z-A)
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <button 
+                            class="btn btn-primary flex-fill py-2"
+                            @click="openCreateModal"
+                        >
+                            <i class="fas fa-plus me-1"></i>
+                            <span class="d-none d-sm-inline">Create</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row align-items-center py-3 d-none d-md-flex g-3">
                     <div class="col-auto">
                         <button 
                             class="btn btn-outline-secondary position-relative"
                             @click="openFilterModal"
                         >
                             <i class="fas fa-filter me-1"></i>
-                            Filter
+                            <span class="d-none d-xl-inline">Filter</span>
                             <span 
                                 v-if="selectedFilterTags.length > 0" 
                                 class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary"
@@ -166,7 +280,7 @@ onUnmounted(() => {
                         </button>
                     </div>
 
-                    <div class="col-md-4">
+                    <div class="col-md-5 col-lg-4">
                         <div class="input-group">
                             <span class="input-group-text bg-white border-end-0">
                                 <i class="fas fa-search text-muted"></i>
@@ -204,7 +318,8 @@ onUnmounted(() => {
                             @click="openCreateModal"
                         >
                             <i class="fas fa-plus me-1"></i>
-                            Create Post
+                            <span class="d-none d-xl-inline">Create Post</span>
+                            <span class="d-xl-none">Create</span>
                         </button>
                         <div class="dropdown d-inline-block">
                             <button 
@@ -213,10 +328,10 @@ onUnmounted(() => {
                                 @click="toggleSortDropdown"
                             >
                                 <i class="fas fa-sort me-1"></i>
-                                {{ sortLabel }}
+                                <span class="d-none d-xl-inline">{{ sortLabel }}</span>
                             </button>
                             <ul 
-                                :class="['dropdown-menu', { 'show': showSortDropdown }]"
+                                :class="['dropdown-menu', 'dropdown-menu-end', { 'show': showSortDropdown }]"
                                 style="min-width: 180px;"
                             >
                                 <li>
@@ -269,33 +384,35 @@ onUnmounted(() => {
 
         <div v-if="selectedFilterTags.length > 0" class="bg-light border-bottom">
             <div class="container py-2">
-                <div class="d-flex align-items-center flex-wrap gap-2">
-                    <small class="text-muted fw-bold">Active Filters:</small>
-                    <span
-                        v-for="tag in selectedFilterTags"
-                        :key="tag"
-                        class="badge bg-primary py-1 px-2 d-flex align-items-center"
-                    >
-                        {{ tag }}
+                <div class="d-flex align-items-start flex-column flex-sm-row gap-2">
+                    <small class="text-muted fw-bold text-nowrap">Active Filters:</small>
+                    <div class="d-flex align-items-center flex-wrap gap-2 flex-grow-1">
+                        <span
+                            v-for="tag in selectedFilterTags"
+                            :key="tag"
+                            class="badge bg-primary py-1 px-2 d-flex align-items-center"
+                        >
+                            {{ tag }}
+                            <button
+                                type="button"
+                                class="btn-close btn-close-white ms-2"
+                                style="font-size: 0.6rem;"
+                                @click="toggleFilterTag(tag); refreshKey++"
+                                aria-label="Remove filter"
+                            ></button>
+                        </span>
                         <button
-                            type="button"
-                            class="btn-close btn-close-white ms-2"
-                            style="font-size: 0.6rem;"
-                            @click="toggleFilterTag(tag); refreshKey++"
-                            aria-label="Remove filter"
-                        ></button>
-                    </span>
-                    <button
-                        class="btn btn-sm btn-outline-danger"
-                        @click="clearFilters"
-                    >
-                        Clear All
-                    </button>
+                            class="btn btn-sm btn-outline-danger"
+                            @click="clearFilters"
+                        >
+                            Clear All
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="container py-4">
+        <div class="container py-3 py-md-4">
             <router-view 
                 :key="refreshKey" 
                 :search-query="searchQuery"
@@ -318,7 +435,7 @@ onUnmounted(() => {
             style="background-color: rgba(0, 0, 0, 0.5);"
             @click.self="closeFilterModal"
         >
-            <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title">

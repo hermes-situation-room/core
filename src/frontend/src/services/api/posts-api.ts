@@ -24,7 +24,6 @@ export default function postsApi(apiBaseClient: ApiBaseClient) {
         async getActivistPostsByTags(tags: string[]): Promise<BaseResultBo<PostBo[]>> {
             const params: Record<string, string> = {};
             if (tags.length > 0) {
-                // Convert tags to uppercase and join with comma
                 params.tags = tags.map(tag => tag.toUpperCase()).join(',');
             }
             return await apiBaseClient.get<PostBo[]>('services/api/internal/post/activist/by-tags', params);
@@ -36,7 +35,6 @@ export default function postsApi(apiBaseClient: ApiBaseClient) {
         async getJournalistPostsByTags(tags: string[]): Promise<BaseResultBo<PostBo[]>> {
             const params: Record<string, string> = {};
             if (tags.length > 0) {
-                // Convert tags to uppercase and join with comma
                 params.tags = tags.map(tag => tag.toUpperCase()).join(',');
             }
             return await apiBaseClient.get<PostBo[]>('services/api/internal/post/journalist/by-tags', params);
@@ -114,7 +112,6 @@ export default function postsApi(apiBaseClient: ApiBaseClient) {
                 return await this.getActivistPosts();
             }
 
-            // If specific category is requested
             if (filter.category === 'activist') {
                 if (filter.tags && filter.tags.length > 0) {
                     return await this.getActivistPostsByTags(filter.tags);
@@ -127,12 +124,10 @@ export default function postsApi(apiBaseClient: ApiBaseClient) {
                 return await this.getJournalistPosts();
             }
 
-            // If user-specific posts are requested
             if (filter.userUid) {
                 return await this.getPostsByUser(filter.userUid);
             }
 
-            // Default to all posts
             return await this.getActivistPosts();
         }
     };

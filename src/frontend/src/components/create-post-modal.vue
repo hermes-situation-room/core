@@ -131,7 +131,7 @@ onMounted(() => {
         style="background-color: rgba(0, 0, 0, 0.5);"
         @click.self="handleClose"
     >
-        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Create New {{ postType === 'journalist' ? 'Journalist' : 'Activist' }}

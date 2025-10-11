@@ -112,16 +112,16 @@ watch([() => props.searchQuery, () => props.filterTags, () => props.sortBy], () 
             </div>
         </div>
 
-        <div v-else class="row g-4">
+        <div v-else-if="filteredPosts.length > 0" class="row g-3 g-md-4">
             <div 
                 v-for="post in filteredPosts" 
                 :key="post.uid"
-                class="col-lg-4 col-md-6 col-sm-12"
+                class="col-12 col-sm-6 col-lg-4"
             >
                 <div class="card h-100 shadow-sm" style="cursor: pointer;" @click="viewPost(post.uid)">
                     <div class="card-body">
                         <h5 class="card-title">{{ post.title }}</h5>
-                        <p class="card-text text-muted">{{ post.description }}</p>
+                        <p class="card-text text-muted small">{{ post.description }}</p>
                         <div class="d-flex flex-wrap gap-1 mb-2">
                             <span v-for="tag in post.tags.slice(0, 3)" :key="tag" class="badge bg-info text-white">
                                 {{ tag }}
@@ -134,6 +134,12 @@ watch([() => props.searchQuery, () => props.filterTags, () => props.sortBy], () 
                     </div>
                 </div>
             </div>
+        </div>
+        
+        <div v-else class="text-center py-5">
+            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">No posts found</h5>
+            <p class="text-muted">Try adjusting your filters or search query</p>
         </div>
     </div>
 </template>
