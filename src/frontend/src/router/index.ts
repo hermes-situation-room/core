@@ -1,5 +1,8 @@
 import {createRouter, createWebHistory} from "vue-router";
-import PostsComponent from "../components/posts-component.vue";
+import MainPostsComponent from "../components/main-posts-component.vue";
+import JournalistPostsComponent from "../components/journalist-posts-component.vue";
+import ActivistPostsComponent from "../components/activist-posts-component.vue";
+import PostDetailComponent from "../components/post-detail-component.vue";
 import LoginComponent from "../components/login-component.vue";
 import RegisterComponent from "../components/register-component.vue";
 
@@ -8,8 +11,26 @@ const router = createRouter({
     routes: [
         {
             path: "/",
-            name: "Posts",
-            component: PostsComponent,
+            name: "MainPosts",
+            component: MainPostsComponent,
+            redirect: "/journalist",
+            children: [
+                {
+                    path: "journalist",
+                    name: "JournalistPosts",
+                    component: JournalistPostsComponent,
+                },
+                {
+                    path: "activist",
+                    name: "ActivistPosts",
+                    component: ActivistPostsComponent,
+                },
+            ],
+        },
+        {
+            path: "/post/:id",
+            name: "PostDetail",
+            component: PostDetailComponent,
         },
         {
             path: "/login",
