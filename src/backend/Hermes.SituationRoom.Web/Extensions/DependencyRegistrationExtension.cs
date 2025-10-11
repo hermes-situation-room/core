@@ -37,7 +37,8 @@ public static class DependencyRegistrationExtension
         services.AddScoped<ICommentService, CommentService>();
         services.AddScoped<IChatService, ChatService>();
         services.AddScoped<IMessageService, MessageService>();
-        
+        services.AddScoped<IAuthorizationService, AuthorizationService>();
+
         var connectionString = configuration.GetConnectionString("SituationRoomDb");
         services.AddDatabaseMigrations(connectionString,
             Path.Combine(AppContext.BaseDirectory, "Migrations"));
