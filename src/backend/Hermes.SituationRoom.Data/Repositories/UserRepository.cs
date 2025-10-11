@@ -65,7 +65,7 @@ public sealed class UserRepository(IHermessituationRoomContext context, IPrivacy
         if (updatedUser.Uid == Guid.Empty)
             throw new ArgumentException("UID required.", nameof(updatedUser));
 
-        var user = await context.Users.FirstOrDefaultAsync(u => u.Uid == updatedUser.Uid)
+        var user = await context.Users.AsTracking().FirstOrDefaultAsync(u => u.Uid == updatedUser.Uid)
                    ?? throw new KeyNotFoundException($"User with UID {updatedUser.Uid} was not found.");
 
         user.Password = updatedUser.Password;
@@ -73,7 +73,6 @@ public sealed class UserRepository(IHermessituationRoomContext context, IPrivacy
         user.LastName = updatedUser.LastName;
         user.EmailAddress = updatedUser.EmailAddress;
 
-        context.Users.Update(user);
         await context.SaveChangesAsync();
 
         return MapToBo(user);

@@ -36,11 +36,11 @@ public class MessageRepository(IHermessituationRoomContext context) : IMessageRe
     public async Task<MessageBo> UpdateAsync(Guid messageId, string newContent)
     {
         var messageToUpdate = await context.Messages
-            .FirstOrDefaultAsync(m => m.Uid == messageId)
-            ?? throw new KeyNotFoundException($"Could not find Message with the Id: {messageId}");
+                                  .AsTracking()
+                                  .FirstOrDefaultAsync(m => m.Uid == messageId) 
+                              ?? throw new KeyNotFoundException($"Could not find Message with the Id: {messageId}");
         
         messageToUpdate.Content = newContent;
-        context.Messages.Update(messageToUpdate);
         await context.SaveChangesAsync();
         return MapToMessageBo(messageToUpdate);
     }

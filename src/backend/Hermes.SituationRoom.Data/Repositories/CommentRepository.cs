@@ -39,12 +39,11 @@ public sealed class CommentRepository(IHermessituationRoomContext context) : ICo
         if (updatedComment.Uid == Guid.Empty)
             throw new ArgumentException("UID required.", nameof(updatedComment));
 
-        var comment = await context.Comments.FirstOrDefaultAsync(u => u.Uid == updatedComment.Uid)
+        var comment = await context.Comments.AsTracking().FirstOrDefaultAsync(u => u.Uid == updatedComment.Uid)
                       ?? throw new KeyNotFoundException($"Comment with UID {updatedComment.Uid} was not found.");
 
         comment.Content = updatedComment.Content;
 
-        context.Comments.Update(comment);
         await context.SaveChangesAsync();
 
         return MapToBo(comment);

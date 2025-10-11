@@ -2,7 +2,6 @@
 
 using Configurations;
 using Controllers.Base;
-using Data.Context;
 using Data.Interface;
 using Data.Migrations;
 using Data.Repositories;
@@ -16,9 +15,6 @@ public static class DependencyRegistrationExtension
     {
         // Web
         services.AddSwagger();
-
-        // Database
-        services.AddDbContext<IHermessituationRoomContext, HermessituationRoomContext>();
         
         // Data
         services.AddScoped<IUserRepository, UserRepository>();

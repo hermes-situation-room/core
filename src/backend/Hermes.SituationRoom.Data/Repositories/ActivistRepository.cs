@@ -56,6 +56,7 @@ public sealed class ActivistRepository(IHermessituationRoomContext context, IUse
             throw new ArgumentException("UID required.", nameof(updatedActivist));
 
         var activist = await context.Activists
+                           .AsTracking()
                            .Include(a => a.UserU)
                            .FirstOrDefaultAsync(a => a.UserUid == updatedActivist.Uid)
                        ?? throw new KeyNotFoundException($"Activist with UID {updatedActivist.Uid} was not found.");
@@ -70,7 +71,6 @@ public sealed class ActivistRepository(IHermessituationRoomContext context, IUse
         activist.IsLastNameVisible = updatedActivist.IsLastNameVisible;
         activist.IsEmailVisible = updatedActivist.IsEmailVisible;
 
-        context.Activists.Update(activist);
         await context.SaveChangesAsync();
 
         return MapToBo(activist);
