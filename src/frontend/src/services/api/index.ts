@@ -1,6 +1,8 @@
 import aboutApi from "./about-api";
 import postsApi from "./posts-api";
 import tagsApi from "./tags-api";
+import chatsApi from "./chats-api";
+import messagesApi from "./messages-api";
 import ApiBaseClient from "./base/api-base-client";
 import SocketBaseClient from "./base/socket-base-client";
 
@@ -9,7 +11,9 @@ const apiBaseClient = new ApiBaseClient();
 export const services = {
     about: aboutApi(apiBaseClient),
     posts: postsApi(apiBaseClient),
-    tags: tagsApi(apiBaseClient)
+    tags: tagsApi(apiBaseClient),
+    chats: chatsApi(apiBaseClient),
+    messages: messagesApi(apiBaseClient)
 }
 
 const socketBaseClient = new SocketBaseClient();

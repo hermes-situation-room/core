@@ -1,8 +1,9 @@
 ﻿<script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { services } from '../services/api';
 import type { PostBo } from '../types/post';
+import type { CreateChatRequest } from '../types/chat';
 
 const route = useRoute();
 const router = useRouter();
@@ -10,6 +11,13 @@ const router = useRouter();
 const post = ref<PostBo | null>(null);
 const loading = ref(false);
 const error = ref<string | null>(null);
+const creatingChat = ref(false);
+
+const currentUserUid = computed(() => localStorage.getItem('userUid') || '');
+
+const canSendMessage = computed(() => {
+    return post.value && currentUserUid.value && post.value.creatorUid !== currentUserUid.value;
+});
 
 const loadPost = async () => {
     const postId = route.params.id as string;
@@ -36,6 +44,54 @@ const loadPost = async () => {
 
 const goBack = () => {
     router.back();
+};
+
+const sendDirectMessage = async () => {
+    if (!post.value || !currentUserUid.value) {
+        return;
+    }
+
+    if (post.value.creatorUid === currentUserUid.value) {
+        alert('You cannot send a message to yourself');
+        return;
+    }
+
+    creatingChat.value = true;
+
+    try {
+        // First, check if a chat already exists between these users
+        const existingChatResult = await services.chats.getChatByUserPair(
+            currentUserUid.value,
+            post.value.creatorUid
+        );
+
+        if (existingChatResult.isSuccess && existingChatResult.data) {
+            // Chat exists, navigate to it
+            router.push(`/chat/${existingChatResult.data.uid}`);
+            return;
+        }
+
+        // Chat doesn't exist, create a new one
+        const chatData: CreateChatRequest = {
+            user1Uid: currentUserUid.value,
+            user2Uid: post.value.creatorUid
+        };
+
+        const createResult = await services.chats.createChat(chatData);
+        
+        if (createResult.isSuccess && createResult.data) {
+            // Navigate to the newly created chat
+            router.push(`/chat/${createResult.data}`);
+        } else {
+            console.error('Failed to create chat:', createResult.responseMessage);
+            alert('Failed to create chat. Please try again.');
+        }
+    } catch (err) {
+        console.error('Error creating chat:', err);
+        alert('An error occurred while creating the chat');
+    } finally {
+        creatingChat.value = false;
+    }
 };
 
 const formatDate = (dateString: string) => {
@@ -113,9 +169,24 @@ onMounted(() => {
                     </div>
 
                     <div class="card-footer bg-light">
-                        <div class="text-muted small d-flex align-items-center">
-                            <i class="fas fa-user me-2"></i>
-                            Created by: {{ post.creatorUid }}
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="text-muted small d-flex align-items-center">
+                                <i class="fas fa-user me-2"></i>
+                                Created by: {{ post.creatorUid }}
+                            </div>
+                            <button 
+                                v-if="canSendMessage"
+                                class="btn btn-primary btn-sm"
+                                :disabled="creatingChat"
+                                @click="sendDirectMessage"
+                            >
+                                <span v-if="creatingChat" class="spinner-border spinner-border-sm me-1"></span>
+                                <i v-else class="fas fa-comment me-1"></i>
+                                Direct Message
+                            </button>
+                            <span v-else-if="post.creatorUid === currentUserUid" class="badge bg-secondary">
+                                Your Post
+                            </span>
                         </div>
                     </div>
                 </div>
