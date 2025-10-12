@@ -16,7 +16,6 @@ const sending = ref(false);
 const currentUserUid = ref<string>('');
 const editingMessageId = ref<string | null>(null);
 const editingContent = ref('');
-const sendError = ref<string>('');
 const messageInputRef = ref<HTMLInputElement | null>(null);
 
 const loadChat = async () => {
@@ -26,7 +25,6 @@ const loadChat = async () => {
         currentUserUid.value = localStorage.getItem('userUid') || '';
         
         if (!currentUserUid.value) {
-            console.error('No user UID found in localStorage');
             router.push('/chats');
             return;
         }
@@ -45,14 +43,13 @@ const loadChat = async () => {
             // Register listener for incoming messages
             sockets.hub.registerToEvent('ReceiveMessage', handleIncomingMessage);
         } else {
-            console.error('Failed to load chat:', result.responseMessage);
             if (result.responseCode === 404) {
                 alert('Chat not found');
                 router.push('/chats');
             }
         }
     } catch (error) {
-        console.error('Error loading chat:', error);
+        alert('Error loading chat');
     } finally {
         loading.value = false;
     }
@@ -86,11 +83,9 @@ const loadMessages = async (chatId: string) => {
             
             // Scroll to bottom after messages are loaded
             setTimeout(() => scrollToBottom(false), 100);
-        } else {
-            console.error('Failed to load messages:', result.responseMessage);
         }
     } catch (error) {
-        console.error('Error loading messages:', error);
+        // Silently fail - messages will be empty
     } finally {
         loadingMessages.value = false;
     }
@@ -123,9 +118,6 @@ const handleIncomingMessage = (message: MessageBo) => {
     
     // Check if message already exists (avoid duplicates)
     const exists = messages.value.some(m => m.uid === completeMessage.uid);
-    
-    console.log('WebSocket message exists check:', exists);
-    console.log('Current messages count before WebSocket:', messages.value.length);
     
     if (!exists) {
         messages.value.push(completeMessage);
@@ -172,12 +164,10 @@ const sendMessage = async () => {
             }
             scrollToBottom();
         } else {
-            console.error('Failed to send message:', result.responseMessage);
             alert('Failed to send message');
             newMessage.value = messageContent; // Restore message on error
         }
     } catch (error) {
-        console.error('Error sending message:', error);
         alert('Failed to send message');
         newMessage.value = messageContent; // Restore message on error
     } finally {
@@ -216,11 +206,9 @@ const saveEdit = async (messageId: string) => {
             }
             cancelEdit();
         } else {
-            console.error('Failed to update message:', result.responseMessage);
             alert('Failed to update message');
         }
     } catch (error) {
-        console.error('Error updating message:', error);
         alert('Failed to update message');
     }
 };
@@ -236,26 +224,11 @@ const deleteMessage = async (messageId: string) => {
         if (result.isSuccess) {
             messages.value = messages.value.filter(m => m.uid !== messageId);
         } else {
-            console.error('Failed to delete message:', result.responseMessage);
             alert('Failed to delete message');
         }
     } catch (error) {
-        console.error('Error deleting message:', error);
         alert('Failed to delete message');
     }
-};
-
-const sortMessages = () => {
-    messages.value.sort((a, b) => {
-        const dateA = new Date(a.timestamp);
-        const dateB = new Date(b.timestamp);
-        
-        if (isNaN(dateA.getTime()) && isNaN(dateB.getTime())) return 0;
-        if (isNaN(dateA.getTime())) return 1;
-        if (isNaN(dateB.getTime())) return -1;
-        
-        return dateA.getTime() - dateB.getTime();
-    });
 };
 
 const scrollToBottom = async (smooth = true) => {
@@ -294,7 +267,10 @@ const shouldShowEditMode = (message: MessageBo) => {
 
 const formatTime = (timestamp: string) => {
     if (!timestamp || timestamp.trim() === '') {
-        return 'Just now';
+        return new Date().toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
     }
     
     try {
@@ -302,7 +278,7 @@ const formatTime = (timestamp: string) => {
         let date: Date;
         
         // Try parsing as ISO string first
-        if (timestamp.includes('T') && timestamp.includes('Z')) {
+        if (timestamp.includes('T')) {
             date = new Date(timestamp);
         }
         // Try parsing as Unix timestamp (if it's a number)
@@ -316,21 +292,10 @@ const formatTime = (timestamp: string) => {
         
         // Check if the date is valid
         if (isNaN(date.getTime())) {
-            return 'Just now';
-        }
-        
-        // Check if date is in the future (more than 1 hour ahead) - might be server time issue
-        const now = new Date();
-        const diffMs = date.getTime() - now.getTime();
-        
-        if (diffMs > 3600000) { // More than 1 hour in future
-            return 'Just now';
-        }
-        
-        // Check if date is too old (more than 1 year ago) - might be invalid
-        const oneYearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
-        if (date < oneYearAgo) {
-            return 'Just now';
+            return new Date().toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
         }
         
         return date.toLocaleTimeString('en-US', {
@@ -338,21 +303,12 @@ const formatTime = (timestamp: string) => {
             minute: '2-digit'
         });
     } catch (error) {
-        return 'Just now';
+        return new Date().toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
     }
 };
-
-// Watch for changes in newMessage to clear errors
-watch(newMessage, () => {
-    if (sendError.value) {
-        sendError.value = '';
-    }
-});
-
-// Debug watcher for editing state
-watch(editingMessageId, (newVal, oldVal) => {
-    console.log('Editing state changed:', { oldVal, newVal, messageCount: messages.value.length });
-});
 
 onMounted(() => {
     loadChat();
@@ -407,19 +363,7 @@ onUnmounted(() => {
                                 </div>
                             </div>
 
-                            <!-- Debug info -->
-                            <div class="alert alert-info small mb-3">
-                                <strong>Debug:</strong> Messages count: {{ messages.length }} | 
-                                Chat ID: {{ chat?.uid }} | 
-                                User ID: {{ currentUserUid }}
-                                <br>
-                                <strong>Last 3 messages:</strong>
-                                <div v-for="(msg, index) in messages.slice(-3)" :key="'debug-' + msg.uid" class="small">
-                                    {{ index + 1 }}. {{ msg.content }} ({{ msg.senderUid?.substring(0, 8) }}...)
-                                </div>
-                            </div>
-
-                            <div v-if="messages.length === 0" class="text-center text-muted py-5">
+                            <div v-if="!loadingMessages && messages.length === 0" class="text-center text-muted py-5">
                                 <i class="fas fa-comments fa-3x mb-3"></i>
                                 <p>No messages yet. Start the conversation!</p>
                             </div>
@@ -500,10 +444,6 @@ onUnmounted(() => {
 
                         <!-- Message Input -->
                         <div class="card-footer bg-white border-top">
-                            <div v-if="sendError" class="alert alert-danger alert-dismissible fade show mb-2 py-2" role="alert">
-                                <small>{{ sendError }}</small>
-                                <button type="button" class="btn-close py-2" @click="sendError = ''" aria-label="Close"></button>
-                            </div>
                             <form @submit.prevent="sendMessage" class="d-flex flex-column gap-2">
                                 <div class="d-flex gap-2">
                                     <input 
@@ -511,7 +451,6 @@ onUnmounted(() => {
                                         v-model="newMessage"
                                         type="text"
                                         class="form-control"
-                                        :class="{'is-invalid': sendError}"
                                         placeholder="Type a message..."
                                         :disabled="sending"
                                         maxlength="1000"
