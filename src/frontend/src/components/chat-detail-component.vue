@@ -17,351 +17,346 @@ const currentUserUid = ref<string>('');
 const editingMessageId = ref<string | null>(null);
 const editingContent = ref('');
 const messageInputRef = ref<HTMLInputElement | null>(null);
+const errorMessage = ref('');
+
+const clearError = () => {
+    errorMessage.value = '';
+};
+
+const showError = (message: string) => {
+    errorMessage.value = message;
+    setTimeout(clearError, 5000);
+};
 
 const loadChat = async () => {
-  loading.value = true;
-  try {
-    const chatId = route.params.id as string;
-    currentUserUid.value = localStorage.getItem('userUid') || '';
+    loading.value = true;
+    try {
+        const chatId = route.params.id as string;
+        currentUserUid.value = localStorage.getItem('userUid') || '';
 
-    if (!currentUserUid.value) {
-      router.push('/chats');
-      return;
+        if (!currentUserUid.value) {
+            router.push('/chats');
+            return;
+        }
+
+        const result = await services.chats.getChatById(chatId);
+        if (result.isSuccess && result.data) {
+            chat.value = result.data;
+            await loadMessages(chatId);
+            await sockets.hub.ensureSocketInitialization();
+            sockets.hub.joinChat(currentUserUid.value, chatId);
+            sockets.hub.registerToEvent('ReceiveMessage', handleIncomingMessage);
+            sockets.hub.registerToEvent('UpdateMessage', handleMessageUpdate);
+            sockets.hub.registerToEvent('DeleteMessage', handleMessageDelete);
+        } else {
+            if (result.responseCode === 404) {
+                showError('Chat not found');
+                router.push('/chats');
+            }
+        }
+    } catch (error) {
+        showError('Error loading chat');
+    } finally {
+        loading.value = false;
     }
-
-    const result = await services.chats.getChatById(chatId);
-    if (result.isSuccess && result.data) {
-      chat.value = result.data;
-
-      await loadMessages(chatId);
-
-      await sockets.hub.ensureSocketInitialization();
-      sockets.hub.joinChat(currentUserUid.value, chatId);
-
-      sockets.hub.registerToEvent('ReceiveMessage', handleIncomingMessage);
-      sockets.hub.registerToEvent('UpdateMessage', handleMessageUpdate);
-      sockets.hub.registerToEvent('DeleteMessage', handleMessageDelete);
-    } else {
-      if (result.responseCode === 404) {
-        alert('Chat not found');
-        router.push('/chats');
-      }
-    }
-  } catch (error) {
-    alert('Error loading chat');
-  } finally {
-    loading.value = false;
-  }
 };
 
 const loadMessages = async (chatId: string) => {
-  loadingMessages.value = true;
-  try {
-    const result = await services.messages.getMessagesByChat(chatId);
-    if (result.isSuccess && result.data) {
-      messages.value = result.data
-          .map(msg => ({
-            uid: msg.uid || msg.id || crypto.randomUUID(),
-            chatUid: chatId,
-            senderUid: msg.senderUid || '',
-            content: msg.content || '',
-            timestamp: msg.timestamp || new Date().toISOString()
-          }))
-          .sort((a, b) => {
-            const dateA = new Date(a.timestamp);
-            const dateB = new Date(b.timestamp);
-
-            if (isNaN(dateA.getTime()) && isNaN(dateB.getTime())) return 0;
-            if (isNaN(dateA.getTime())) return 1;
-            if (isNaN(dateB.getTime())) return -1;
-
-            return dateA.getTime() - dateB.getTime();
-          });
-
-      setTimeout(() => scrollToBottom(false), 100);
+    loadingMessages.value = true;
+    try {
+        const result = await services.messages.getMessagesByChat(chatId);
+        if (result.isSuccess && result.data) {
+            messages.value = result.data
+                .map(msg => ({
+                    uid: msg.uid,
+                    chatUid: chatId,
+                    senderUid: msg.senderUid || '',
+                    content: msg.content || '',
+                    timestamp: msg.timestamp || new Date().toISOString()
+                }))
+                .sort((a, b) => {
+                    const dateA = new Date(a.timestamp);
+                    const dateB = new Date(b.timestamp);
+                    if (isNaN(dateA.getTime()) && isNaN(dateB.getTime())) return 0;
+                    if (isNaN(dateA.getTime())) return 1;
+                    if (isNaN(dateB.getTime())) return -1;
+                    return dateA.getTime() - dateB.getTime();
+                });
+            setTimeout(() => scrollToBottom(false), 100);
+        }
+    } catch (error) {
+    } finally {
+        loadingMessages.value = false;
     }
-  } catch (error) {
-  } finally {
-    loadingMessages.value = false;
-  }
 };
 
 const handleIncomingMessage = (message: MessageBo) => {
-  console.log('Received WebSocket message:', message);
+    console.log('Received WebSocket message:', message);
 
-  if (!chat.value || message.chatUid !== chat.value.uid) {
-    console.log('Ignoring message - not for current chat');
-    return;
-  }
-
-  const completeMessage: MessageBo = {
-    uid: message.uid || message.id || `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-    chatUid: chat.value.uid,
-    senderUid: message.senderUid || '',
-    content: message.content || '',
-    timestamp: message.timestamp || new Date().toISOString()
-  };
-
-  if (!completeMessage.timestamp || isNaN(new Date(completeMessage.timestamp).getTime())) {
-    completeMessage.timestamp = new Date().toISOString();
-  }
-
-  console.log('Processing message:', completeMessage.uid, 'from sender:', completeMessage.senderUid, 'content:', completeMessage.content);
-
-  const existingIndex = messages.value.findIndex(m => m.uid === completeMessage.uid);
-
-  if (existingIndex !== -1) {
-    console.log('Updating existing message by UID:', completeMessage.uid, 'with content:', completeMessage.content);
-    messages.value[existingIndex] = completeMessage;
-  } else {
-    if (message.senderUid !== currentUserUid.value) {
-      console.log('Adding new message from other user:', completeMessage.uid);
-      messages.value.push(completeMessage);
-      scrollToBottom();
-    } else {
-      console.log('Ignoring message from current user (already added via HTTP):', completeMessage.uid);
+    if (!chat.value || message.chatUid !== chat.value.uid) {
+        console.log('Ignoring message - not for current chat');
+        return;
     }
-  }
+
+    const completeMessage: MessageBo = {
+        uid: message.uid,
+        chatUid: chat.value.uid,
+        senderUid: message.senderUid || '',
+        content: message.content || '',
+        timestamp: message.timestamp || new Date().toISOString()
+    };
+
+    if (!completeMessage.timestamp || isNaN(new Date(completeMessage.timestamp).getTime())) {
+        completeMessage.timestamp = new Date().toISOString();
+    }
+
+    console.log('Processing message:', completeMessage.uid, 'from sender:', completeMessage.senderUid, 'content:', completeMessage.content);
+
+    const existingIndex = messages.value.findIndex(m => m.uid === completeMessage.uid);
+
+    if (existingIndex !== -1) {
+        console.log('Updating existing message by UID:', completeMessage.uid, 'with content:', completeMessage.content);
+        messages.value[existingIndex] = completeMessage;
+    } else {
+        if (message.senderUid !== currentUserUid.value) {
+            console.log('Adding new message from other user:', completeMessage.uid);
+            messages.value.push(completeMessage);
+            scrollToBottom();
+        } else {
+            console.log('Ignoring message from current user (already added via HTTP):', completeMessage.uid);
+        }
+    }
 };
 
 const handleMessageUpdate = (message: MessageBo) => {
-  console.log('Received UpdateMessage event:', message);
+    console.log('Received UpdateMessage event:', message);
 
-  if (!chat.value || message.chatUid !== chat.value.uid) {
-    console.log('Ignoring update - not for current chat');
-    return;
-  }
-
-  if (message.senderUid === currentUserUid.value) {
-    console.log('Ignoring update from current user');
-    return;
-  }
-
-  console.log('Processing update for message:', message.uid);
-
-  const messageIndex = messages.value.findIndex(m => m.uid === message.uid);
-  if (messageIndex !== -1) {
-    console.log('Found message to update by UID:', message.uid, 'with content:', messages.value[messageIndex].content);
-    console.log('Updating to new content:', message.content);
-
-    messages.value.splice(messageIndex, 1, message);
-
-    if (editingMessageId.value === message.uid) {
-      editingMessageId.value = null;
-      editingContent.value = '';
+    if (!chat.value || message.chatUid !== chat.value.uid) {
+        console.log('Ignoring update - not for current chat');
+        return;
     }
-  } else {
-    console.log('Message with UID not found, adding as new message:', message.uid);
-    messages.value.push(message);
-    scrollToBottom();
-  }
+
+    if (message.senderUid === currentUserUid.value) {
+        console.log('Ignoring update from current user');
+        return;
+    }
+
+    console.log('Processing update for message:', message.uid);
+
+    const messageIndex = messages.value.findIndex(m => m.uid === message.uid);
+    if (messageIndex !== -1) {
+        console.log('Found message to update by UID:', message.uid, 'with content:', messages.value[messageIndex].content);
+        console.log('Updating to new content:', message.content);
+        messages.value.splice(messageIndex, 1, message);
+        if (editingMessageId.value === message.uid) {
+            editingMessageId.value = null;
+            editingContent.value = '';
+        }
+    } else {
+        console.log('Message with UID not found, adding as new message:', message.uid);
+        messages.value.push(message);
+        scrollToBottom();
+    }
 };
 
 const handleMessageDelete = (messageId: string) => {
-  console.log('Received DeleteMessage event:', messageId);
+    console.log('Received DeleteMessage event:', messageId);
 
-  if (!chat.value) {
-    console.log('No chat found, ignoring delete');
-    return;
-  }
+    if (!chat.value) {
+        console.log('No chat found, ignoring delete');
+        return;
+    }
 
-  console.log('Processing delete for message:', messageId);
-  const beforeCount = messages.value.length;
-  messages.value = messages.value.filter(m => m.uid !== messageId);
-  const afterCount = messages.value.length;
-  console.log('Messages count before/after delete:', beforeCount, '/', afterCount);
-
-  if (editingMessageId.value === messageId) {
-    editingMessageId.value = null;
-    editingContent.value = '';
-  }
+    console.log('Processing delete for message:', messageId);
+    const beforeCount = messages.value.length;
+    messages.value = messages.value.filter(m => m.uid !== messageId);
+    const afterCount = messages.value.length;
+    console.log('Messages count before/after delete:', beforeCount, '/', afterCount);
+    if (editingMessageId.value === messageId) {
+        editingMessageId.value = null;
+        editingContent.value = '';
+    }
 };
 
 
 const sendMessage = async () => {
-  if (!newMessage.value.trim() || !chat.value) {
-    return;
-  }
-
-  sending.value = true;
-  const messageContent = newMessage.value.trim();
-  newMessage.value = '';
-
-  editingMessageId.value = null;
-  editingContent.value = '';
-
-  try {
-    const messageData: CreateMessageRequest = {
-      content: messageContent,
-      senderUid: currentUserUid.value,
-      chatUid: chat.value.uid
-    };
-
-    const result = await services.messages.createMessage(messageData);
-
-    if (result.isSuccess && result.data) {
-      const message = (await services.messages.getMessageById(result.data)).data!;
-      console.log('Message sent successfully:', result.data);
-      const exists = messages.value.some(m =>
-          m.uid === message.uid ||
-          (m.senderUid === message.senderUid &&
-              m.content === message.content &&
-              Math.abs(new Date(m.timestamp).getTime() - new Date(message.timestamp).getTime()) < 5000)
-      );
-      if (!exists) {
-        messages.value.push(message);
-      }
-      scrollToBottom();
-    } else {
-      alert('Failed to send message');
-      newMessage.value = messageContent;
+    if (!newMessage.value.trim() || !chat.value) {
+        return;
     }
-  } catch (error) {
-    alert('Failed to send message');
-    newMessage.value = messageContent;
-  } finally {
-    sending.value = false;
-  }
+
+    sending.value = true;
+    const messageContent = newMessage.value.trim();
+    newMessage.value = '';
+    editingMessageId.value = null;
+    editingContent.value = '';
+
+    try {
+        const messageData: CreateMessageRequest = {
+            content: messageContent,
+            senderUid: currentUserUid.value,
+            chatUid: chat.value.uid
+        };
+
+        const result = await services.messages.createMessage(messageData);
+
+        if (result.isSuccess && result.data) {
+            const message = (await services.messages.getMessageById(result.data)).data!;
+            console.log('Message sent successfully:', result.data);
+            const exists = messages.value.some(m =>
+                m.uid === message.uid ||
+                (m.senderUid === message.senderUid &&
+                    m.content === message.content &&
+                    Math.abs(new Date(m.timestamp).getTime() - new Date(message.timestamp).getTime()) < 5000)
+            );
+            if (!exists) {
+                messages.value.push(message);
+            }
+             scrollToBottom();
+         } else {
+             showError('Failed to send message');
+             newMessage.value = messageContent;
+         }
+     } catch (error) {
+         showError('Failed to send message');
+         newMessage.value = messageContent;
+    } finally {
+        sending.value = false;
+    }
 };
 
 const startEditMessage = (message: MessageBo) => {
-  if (message.senderUid === currentUserUid.value) {
-    editingMessageId.value = message.uid;
-    editingContent.value = message.content;
-  }
+    if (message.senderUid === currentUserUid.value) {
+        editingMessageId.value = message.uid;
+        editingContent.value = message.content;
+    }
 };
 
 const cancelEdit = () => {
-  editingMessageId.value = null;
-  editingContent.value = '';
+    editingMessageId.value = null;
+    editingContent.value = '';
 };
 
 const saveEdit = async (messageId: string) => {
-  if (!editingContent.value.trim()) {
-    return;
-  }
-
-  const newContent = editingContent.value.trim();
-
-  try {
-    const result = await services.messages.updateMessage(messageId, {
-      content: newContent
-    });
-
-    if (result.isSuccess) {
-      const messageIndex = messages.value.findIndex(m => m.uid === messageId);
-      if (messageIndex !== -1 && messages.value[messageIndex]) {
-        messages.value[messageIndex].content = newContent;
-      }
-
-      cancelEdit();
-    } else {
-      alert('Failed to update message');
+    if (!editingContent.value.trim()) {
+        return;
     }
-  } catch (error) {
-    alert('Failed to update message');
-  }
+
+    const newContent = editingContent.value.trim();
+
+    try {
+        const result = await services.messages.updateMessage(messageId, {
+            content: newContent
+        });
+
+        if (result.isSuccess) {
+            const messageIndex = messages.value.findIndex(m => m.uid === messageId);
+            if (messageIndex !== -1 && messages.value[messageIndex]) {
+                messages.value[messageIndex].content = newContent;
+            }
+             cancelEdit();
+         } else {
+             showError('Failed to update message');
+         }
+     } catch (error) {
+         showError('Failed to update message');
+     }
 };
 
 const deleteMessage = async (messageId: string) => {
-  if (!confirm('Are you sure you want to delete this message?')) {
-    return;
-  }
-
-  try {
-    const result = await services.messages.deleteMessage(messageId);
-
-    if (result.isSuccess) {
-      messages.value = messages.value.filter(m => m.uid !== messageId);
-    } else {
-      alert('Failed to delete message');
+    if (!confirm('Are you sure you want to delete this message?')) {
+        return;
     }
-  } catch (error) {
-    alert('Failed to delete message');
-  }
+
+    try {
+        const result = await services.messages.deleteMessage(messageId);
+         if (result.isSuccess) {
+             messages.value = messages.value.filter(m => m.uid !== messageId);
+         } else {
+             showError('Failed to delete message');
+         }
+     } catch (error) {
+         showError('Failed to delete message');
+     }
 };
 
 const scrollToBottom = async (smooth = true) => {
-  await nextTick();
-  const container = document.getElementById('messages-container');
-  if (container) {
-    setTimeout(() => {
-      if (smooth) {
-        container.scrollTo({
-          top: container.scrollHeight,
-          behavior: 'smooth'
-        });
-      } else {
-        container.scrollTop = container.scrollHeight;
-      }
-    }, 50);
-  }
+    await nextTick();
+    const container = document.getElementById('messages-container');
+    if (container) {
+        setTimeout(() => {
+            if (smooth) {
+                container.scrollTo({
+                    top: container.scrollHeight,
+                    behavior: 'smooth'
+                });
+            } else {
+                container.scrollTop = container.scrollHeight;
+            }
+        }, 50);
+    }
 };
 
 const getOtherUserUid = () => {
-  if (!chat.value) return '';
-  return chat.value.user1Uid === currentUserUid.value ? chat.value.user2Uid : chat.value.user1Uid;
+    if (!chat.value) return '';
+    return chat.value.user1Uid === currentUserUid.value ? chat.value.user2Uid : chat.value.user1Uid;
 };
 
 const isMyMessage = (message: MessageBo) => {
-  return message.senderUid === currentUserUid.value;
+    return message.senderUid === currentUserUid.value;
 };
 
 const shouldShowEditMode = (message: MessageBo) => {
-  return editingMessageId.value === message.uid &&
-      isMyMessage(message) &&
-      currentUserUid.value &&
-      message.uid;
+    return editingMessageId.value === message.uid &&
+        isMyMessage(message) &&
+        currentUserUid.value &&
+        message.uid;
 };
 
 const formatTime = (timestamp: string) => {
-  if (!timestamp || timestamp.trim() === '') {
-    return new Date().toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  }
-
-  try {
-    let date: Date;
-
-    if (timestamp.includes('T')) {
-      date = new Date(timestamp);
-    }
-    else if (/^\d+$/.test(timestamp)) {
-      date = new Date(parseInt(timestamp));
-    }
-    else {
-      date = new Date(timestamp);
+    if (!timestamp || timestamp.trim() === '') {
+        return new Date().toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
     }
 
-    if (isNaN(date.getTime())) {
-      return new Date().toLocaleTimeString('en-US', {
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    }
+    try {
+        let date: Date;
+        if (timestamp.includes('T')) {
+            date = new Date(timestamp);
+        } else if (/^\d+$/.test(timestamp)) {
+            date = new Date(parseInt(timestamp));
+        } else {
+            date = new Date(timestamp);
+        }
 
-    return date.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  } catch (error) {
-    return new Date().toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  }
+        if (isNaN(date.getTime())) {
+            return new Date().toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        return date.toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    } catch (error) {
+        return new Date().toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
 };
 
 onMounted(() => {
-  loadChat();
+    loadChat();
 });
 
 onUnmounted(() => {
-  if (chat.value) {
-    sockets.hub.leaveChat(chat.value.uid);
-  }
+    if (chat.value) {
+        sockets.hub.leaveChat(chat.value.uid);
+    }
 });
 </script>
 
@@ -390,6 +385,11 @@ onUnmounted(() => {
                 </div>
               </div>
             </div>
+          </div>
+
+          <div v-if="errorMessage" class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+            {{ errorMessage }}
+            <button type="button" class="btn-close" @click="clearError" aria-label="Close"></button>
           </div>
 
           <div class="card flex-grow-1 d-flex flex-column" style="min-height: 0;">
