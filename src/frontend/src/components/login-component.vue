@@ -53,11 +53,9 @@ async function handleLogin() {
         }
 
         if (result.isSuccess && result.data) {
-            // Remove quotes from GUID if present
             const userId = result.data.replace(/"/g, '')
             authStore.login(selectedUserType.value, userId)
             
-            // Redirect to home page
             await router.push('/')
         } else {
             errorMessage.value = result.responseMessage || 'Login failed. Please check your credentials.'

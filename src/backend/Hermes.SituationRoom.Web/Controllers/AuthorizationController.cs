@@ -2,6 +2,7 @@
 
 using Base;
 using Configurations;
+using Domain.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Shared.BusinessObjects;

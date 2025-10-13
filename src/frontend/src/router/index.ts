@@ -18,19 +18,16 @@ const router = createRouter({
             name: "MainPosts",
             component: MainPostsComponent,
             redirect: "/journalist",
-            // Allow unauthenticated users to view posts
             children: [
                 {
                     path: "journalist",
                     name: "JournalistPosts",
                     component: JournalistPostsComponent,
-                    // Allow unauthenticated users to view journalist posts
                 },
                 {
                     path: "activist",
                     name: "ActivistPosts",
                     component: ActivistPostsComponent,
-                    // Allow unauthenticated users to view activist posts
                 },
             ],
         },
@@ -38,7 +35,6 @@ const router = createRouter({
             path: "/post/:id",
             name: "PostDetail",
             component: PostDetailComponent,
-            // Allow unauthenticated users to view post details
         },
         {
             path: "/login",
@@ -69,6 +65,21 @@ const router = createRouter({
             name: "ChatDetail",
             component: ChatDetailComponent,
             meta: { requiresAuth: true },
+        },
+        {
+            path: "/chats",
+            name: "ChatsList",
+            component: ChatsListComponent,
+        },
+        {
+            path: "/chat/new",
+            name: "CreateChat",
+            component: CreateChatComponent,
+        },
+        {
+            path: "/chat/:id",
+            name: "ChatDetail",
+            component: ChatDetailComponent,
         },
     ],
 });

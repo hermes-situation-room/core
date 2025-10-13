@@ -86,7 +86,7 @@ const handleLogout = () => {
                         </template>
                         <template v-else>
                             <RouterLink 
-                                to="/login" 
+                                to="/chats" 
                                 class="btn btn-outline-secondary btn-sm d-flex align-items-center"
                             >
                                 <i class="fas fa-sign-in-alt"></i>
@@ -156,7 +156,7 @@ const handleLogout = () => {
                     </template>
                     <template v-else>
                         <RouterLink 
-                            to="/login" 
+                            to="/chats" 
                             class="list-group-item list-group-item-action d-flex align-items-center gap-3"
                             @click="closeMobileMenu"
                         >
