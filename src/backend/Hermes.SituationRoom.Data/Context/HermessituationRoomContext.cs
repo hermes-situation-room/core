@@ -30,6 +30,8 @@ public partial class HermessituationRoomContext : DbContext
 
     public virtual DbSet<User> Users { get; set; }
 
+    public virtual DbSet<UserChatReadStatus> UserChatReadStatuses { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Activist>(entity =>
@@ -240,6 +242,34 @@ public partial class HermessituationRoomContext : DbContext
             entity.Property(e => e.PasswordSalt)
                 .IsRequired()
                 .HasMaxLength(16);
+        });
+
+        modelBuilder.Entity<UserChatReadStatus>(entity =>
+        {
+            entity.HasKey(e => e.UserChatReadStatusId).HasName("PK__UserChat__5353C53112D0ECCE");
+
+            entity.ToTable("UserChatReadStatus");
+
+            entity.HasIndex(e => e.ChatId, "IX_UserChatReadStatus_Chat");
+
+            entity.HasIndex(e => e.UserId, "IX_UserChatReadStatus_User");
+
+            entity.Property(e => e.UserChatReadStatusId)
+                .ValueGeneratedNever()
+                .HasColumnName("UserChatReadStatusID");
+            entity.Property(e => e.ChatId).HasColumnName("ChatID");
+            entity.Property(e => e.ReadTime).HasColumnType("datetime");
+            entity.Property(e => e.UserId).HasColumnName("UserID");
+
+            entity.HasOne(d => d.Chat).WithMany(p => p.UserChatReadStatuses)
+                .HasForeignKey(d => d.ChatId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_UserChatReadStatus_Chat");
+
+            entity.HasOne(d => d.User).WithMany(p => p.UserChatReadStatuses)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_UserChatReadStatus_User");
         });
 
         OnModelCreatingPartial(modelBuilder);
