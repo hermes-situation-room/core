@@ -24,10 +24,6 @@ function selectUserType(type: UserType) {
 }
 
 function handleLogin() {
-    console.log('Login attempt:', {
-        userType: selectedUserType.value,
-        ...loginData.value
-    })
     // TODO: Implement actual login logic
 }
 </script>

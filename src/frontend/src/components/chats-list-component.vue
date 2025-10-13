@@ -10,6 +10,16 @@ const chats = ref<ChatBo[]>([]);
 const chatsWithLastMessage = ref<Array<ChatBo & { lastMessageTime?: string, lastMessage?: string }>>([]);
 const loading = ref(false);
 const currentUserUid = ref<string>('');
+const errorMessage = ref<string>('');
+
+const clearError = () => {
+    errorMessage.value = '';
+};
+
+const showError = (message: string) => {
+    errorMessage.value = message;
+    setTimeout(clearError, 5000);
+};
 
 const loadChats = async () => {
     loading.value = true;
@@ -17,8 +27,7 @@ const loadChats = async () => {
         currentUserUid.value = localStorage.getItem('userUid') || '';
         
         if (!currentUserUid.value) {
-            console.error('No user UID found in localStorage');
-            return;
+            router.push("/login");
         }
 
         const result = await services.chats.getChatsByUser(currentUserUid.value);
@@ -26,10 +35,10 @@ const loadChats = async () => {
             chats.value = result.data;
             await loadChatsWithLastMessage();
         } else {
-            console.error('Failed to load chats:', result.responseMessage);
+            showError(result.responseMessage || 'Failed to load chats');
         }
     } catch (error) {
-        console.error('Error loading chats:', error);
+        showError('Error loading chats');
     } finally {
         loading.value = false;
     }
@@ -69,10 +78,9 @@ const loadChatsWithLastMessage = async () => {
         chatsWithLastMessage.value = chatsWithMessages.sort((a, b) => {
             const timeA = new Date(a.lastMessageTime || '').getTime();
             const timeB = new Date(b.lastMessageTime || '').getTime();
-            return timeB - timeA; // Most recent first
+            return timeB - timeA;
         });
     } catch (error) {
-        console.error('Error loading chats with last messages:', error);
         chatsWithLastMessage.value = chats.value.map(chat => ({
             ...chat,
             lastMessageTime: chat.uid,
@@ -102,12 +110,10 @@ const deleteChat = async (chatId: string, event: Event) => {
             chats.value = chats.value.filter(chat => chat.uid !== chatId);
             chatsWithLastMessage.value = chatsWithLastMessage.value.filter(chat => chat.uid !== chatId);
         } else {
-            console.error('Failed to delete chat:', result.responseMessage);
-            alert('Failed to delete chat');
+            showError(result.responseMessage || 'Failed to delete chat');
         }
     } catch (error) {
-        console.error('Error deleting chat:', error);
-        alert('Error deleting chat');
+        showError('Error deleting chat');
     }
 };
 
@@ -155,6 +161,11 @@ onMounted(() => {
                     </button>
                 </div>
 
+                <div v-if="errorMessage" class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+                    {{ errorMessage }}
+                    <button type="button" class="btn-close" @click="clearError" aria-label="Close"></button>
+                </div>
+
                 <div v-if="loading" class="d-flex justify-content-center align-items-center py-5">
                     <div class="text-center">
                         <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
@@ -176,7 +187,7 @@ onMounted(() => {
                                     <div class="flex-grow-1">
                                         <div class="d-flex justify-content-between align-items-start mb-2">
                                             <h5 class="card-title mb-0" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ getOtherUserUid(chat) }}</h5>
-                                            <small class="text-muted">{{ formatLastMessageTime(chat.lastMessageTime) }}</small>
+                                            <small v-if="chat.lastMessage !== 'No messages yet'" class="text-muted">{{ formatLastMessageTime(chat.lastMessageTime) }}</small>
                                         </div>
                                         <p class="card-text text-muted small mb-0" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                                             {{ chat.lastMessage }}

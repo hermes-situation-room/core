@@ -47,7 +47,6 @@ function selectUserType(type: UserType) {
 }
 
 function handleRegister() {
-    console.log('Register attempt:', formData.value)
     // TODO: Implement actual registration logic
 }
 </script>

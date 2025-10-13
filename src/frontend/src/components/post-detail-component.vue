@@ -36,7 +36,6 @@ const loadPost = async () => {
         }
     } catch (err) {
         error.value = 'Error loading post';
-        console.error('Error loading post:', err);
     } finally {
         loading.value = false;
     }
@@ -52,7 +51,7 @@ const sendDirectMessage = async () => {
     }
 
     if (post.value.creatorUid === currentUserUid.value) {
-        alert('You cannot send a message to yourself');
+        error.value = 'You cannot send a message to yourself';
         return;
     }
 
@@ -77,14 +76,13 @@ const sendDirectMessage = async () => {
         const createResult = await services.chats.createChat(chatData);
         
         if (createResult.isSuccess && createResult.data) {
-            router.push(`/chat/${createResult.data}`);
+            const chatId = JSON.parse(createResult.data);
+            router.push(`/chat/${chatId}`);
         } else {
-            console.error('Failed to create chat:', createResult.responseMessage);
-            alert('Failed to create chat. Please try again.');
+            error.value = createResult.responseMessage || 'Failed to create chat';
         }
     } catch (err) {
-        console.error('Error creating chat:', err);
-        alert('An error occurred while creating the chat');
+        error.value = 'An error occurred while creating the chat';
     } finally {
         creatingChat.value = false;
     }

@@ -91,10 +91,7 @@ const loadMessages = async (chatId: string) => {
 };
 
 const handleIncomingMessage = (message: MessageBo) => {
-    console.log('Received WebSocket message:', message);
-
     if (!chat.value || message.chatUid !== chat.value.uid) {
-        console.log('Ignoring message - not for current chat');
         return;
     }
 
@@ -110,68 +107,46 @@ const handleIncomingMessage = (message: MessageBo) => {
         completeMessage.timestamp = new Date().toISOString();
     }
 
-    console.log('Processing message:', completeMessage.uid, 'from sender:', completeMessage.senderUid, 'content:', completeMessage.content);
-
     const existingIndex = messages.value.findIndex(m => m.uid === completeMessage.uid);
 
     if (existingIndex !== -1) {
-        console.log('Updating existing message by UID:', completeMessage.uid, 'with content:', completeMessage.content);
         messages.value[existingIndex] = completeMessage;
     } else {
         if (message.senderUid !== currentUserUid.value) {
-            console.log('Adding new message from other user:', completeMessage.uid);
             messages.value.push(completeMessage);
             scrollToBottom();
-        } else {
-            console.log('Ignoring message from current user (already added via HTTP):', completeMessage.uid);
         }
     }
 };
 
 const handleMessageUpdate = (message: MessageBo) => {
-    console.log('Received UpdateMessage event:', message);
-
     if (!chat.value || message.chatUid !== chat.value.uid) {
-        console.log('Ignoring update - not for current chat');
         return;
     }
 
     if (message.senderUid === currentUserUid.value) {
-        console.log('Ignoring update from current user');
         return;
     }
 
-    console.log('Processing update for message:', message.uid);
-
     const messageIndex = messages.value.findIndex(m => m.uid === message.uid);
     if (messageIndex !== -1) {
-        console.log('Found message to update by UID:', message.uid, 'with content:', messages.value[messageIndex].content);
-        console.log('Updating to new content:', message.content);
         messages.value.splice(messageIndex, 1, message);
         if (editingMessageId.value === message.uid) {
             editingMessageId.value = null;
             editingContent.value = '';
         }
     } else {
-        console.log('Message with UID not found, adding as new message:', message.uid);
         messages.value.push(message);
         scrollToBottom();
     }
 };
 
 const handleMessageDelete = (messageId: string) => {
-    console.log('Received DeleteMessage event:', messageId);
-
     if (!chat.value) {
-        console.log('No chat found, ignoring delete');
         return;
     }
 
-    console.log('Processing delete for message:', messageId);
-    const beforeCount = messages.value.length;
     messages.value = messages.value.filter(m => m.uid !== messageId);
-    const afterCount = messages.value.length;
-    console.log('Messages count before/after delete:', beforeCount, '/', afterCount);
     if (editingMessageId.value === messageId) {
         editingMessageId.value = null;
         editingContent.value = '';
@@ -201,7 +176,6 @@ const sendMessage = async () => {
 
         if (result.isSuccess && result.data) {
             const message = (await services.messages.getMessageById(result.data)).data!;
-            console.log('Message sent successfully:', result.data);
             const exists = messages.value.some(m =>
                 m.uid === message.uid ||
                 (m.senderUid === message.senderUid &&

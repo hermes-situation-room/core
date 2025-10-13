@@ -51,7 +51,6 @@ const createChat = async () => {
             error.value = result.responseMessage || 'Failed to create chat';
         }
     } catch (err) {
-        console.error('Error creating chat:', err);
         error.value = 'An error occurred while creating the chat';
     } finally {
         creating.value = false;

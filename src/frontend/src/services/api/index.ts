@@ -29,7 +29,6 @@ export const sockets = {
          */
         ensureSocketInitialization: async() => {
             await initPromise;
-            console.log("Hub-Socket initialized");
         },
         /**
          * Registers a new event over the socket

@@ -16,6 +16,16 @@ const refreshKey = ref(0);
 const availableTags = ref<string[]>([]);
 const selectedFilterTags = ref<string[]>([]);
 const loadingTags = ref(false);
+const errorMessage = ref<string>('');
+
+const clearError = () => {
+    errorMessage.value = '';
+};
+
+const showError = (message: string) => {
+    errorMessage.value = message;
+    setTimeout(clearError, 5000);
+};
 
 type SortOption = 'newest' | 'oldest' | 'title-asc' | 'title-desc';
 const sortBy = ref<SortOption>('newest');
@@ -50,8 +60,6 @@ const switchTab = (tab: 'journalist' | 'activist') => {
 };
 
 const handleSearch = () => {
-    // Trigger search in child components
-    // This will be handled by the child components watching the search query
 };
 
 const handleScroll = () => {
@@ -76,9 +84,11 @@ const loadTags = async () => {
         const result = await services.tags.getAllTags();
         if (result.isSuccess && result.data) {
             availableTags.value = result.data;
+        } else {
+            showError(result.responseMessage || 'Failed to load tags');
         }
     } catch (err) {
-        console.error('Error loading tags:', err);
+        showError('Error loading tags');
     } finally {
         loadingTags.value = false;
     }
@@ -147,6 +157,11 @@ onUnmounted(() => {
 
 <template>
     <div class="container-fluid">
+        <div v-if="errorMessage" class="alert alert-danger alert-dismissible fade show m-3" role="alert">
+            {{ errorMessage }}
+            <button type="button" class="btn-close" @click="clearError" aria-label="Close"></button>
+        </div>
+
         <div class="bg-white border-bottom sticky-top" style="z-index: 1000;">
             <div class="container">
                 <div class="d-md-none py-3">

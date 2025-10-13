@@ -58,7 +58,6 @@ export default function postsApi(apiBaseClient: ApiBaseClient) {
          * Create a new post
          */
         async createPost(postData: CreatePostRequest): Promise<BaseResultBo<string>> {
-            console.log(postData)
             return await apiBaseClient.post<CreatePostRequest>('services/api/internal/post', postData);
         },
 

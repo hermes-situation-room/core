@@ -25,6 +25,16 @@ const currentUserUid = computed(() => localStorage.getItem('userUid') || '');
 
 const posts = ref<PostBo[]>([]);
 const loading = ref(false);
+const errorMessage = ref<string>('');
+
+const clearError = () => {
+    errorMessage.value = '';
+};
+
+const showError = (message: string) => {
+    errorMessage.value = message;
+    setTimeout(clearError, 5000);
+};
 
 const filteredPosts = computed(() => {
     let filtered = [...posts.value];
@@ -69,10 +79,10 @@ const loadPosts = async () => {
         if (result.isSuccess && result.data) {
             posts.value = result.data;
         } else {
-            console.error('Failed to load posts:', result.responseMessage);
+            showError(result.responseMessage || 'Failed to load posts');
         }
     } catch (error) {
-        console.error('Error loading posts:', error);
+        showError('Error loading posts');
     } finally {
         loading.value = false;
     }
@@ -98,7 +108,7 @@ const sendDirectMessage = async (post: PostBo, event: Event) => {
     event.stopPropagation();
 
     if (!currentUserUid.value) {
-        alert('Please log in to send messages');
+        showError('Please log in to send messages');
         return;
     }
 
@@ -125,13 +135,13 @@ const sendDirectMessage = async (post: PostBo, event: Event) => {
         const createResult = await services.chats.createChat(chatData);
         
         if (createResult.isSuccess && createResult.data) {
-            router.push(`/chat/${createResult.data}`);
+            const chatId = JSON.parse(createResult.data)
+            router.push(`/chat/${chatId}`);
         } else {
-            alert('Failed to create chat. Please try again.');
+            showError(createResult.responseMessage || 'Failed to create chat');
         }
     } catch (err) {
-        console.error('Error creating chat:', err);
-        alert('An error occurred while creating the chat');
+        showError('An error occurred while creating the chat');
     }
 };
 
@@ -146,6 +156,11 @@ watch([() => props.searchQuery, () => props.filterTags, () => props.sortBy], () 
 
 <template>
     <div class="w-100">
+        <div v-if="errorMessage" class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+            {{ errorMessage }}
+            <button type="button" class="btn-close" @click="clearError" aria-label="Close"></button>
+        </div>
+
         <div v-if="loading" class="d-flex justify-content-center align-items-center py-5">
             <div class="text-center">
                 <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">

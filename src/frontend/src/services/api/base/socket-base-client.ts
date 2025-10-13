@@ -18,7 +18,6 @@ export default class SocketBaseClient {
      */
     registerToEvent = (event: string, action: Function) => {
         connection.on(event, (response) => action(response));
-        console.log(`BaseClient registered to event: '${event}'`);
     }
 
     /**
@@ -28,15 +27,14 @@ export default class SocketBaseClient {
      */
     sendEvent = (event: string, args: any[]) => {
         connection.send(event, ...args);
-        console.log(`BaseClient sending event '${event}'`);
     }
+
     /**
      * Initializes the socket-connection and returns the state of the initialization as promise
      * @returns Promise which represents the initialization-state of the socket-connection 
      * -> promise.resolved == connection is fully initialized
      */
     initialize = (): Promise<void> => {
-        console.log(`BaseClient start socket connection`)
         const promise = connection.start()
             .catch((err) => console.log(err))
         return promise;
