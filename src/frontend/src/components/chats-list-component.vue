@@ -7,6 +7,7 @@ import type {ChatBo} from '../types/chat';
 const router = useRouter();
 
 const chats = ref<ChatBo[]>([]);
+const chatsWithLastMessage = ref<Array<ChatBo & { lastMessageTime?: string, lastMessage?: string }>>([]);
 const loading = ref(false);
 const currentUserUid = ref<string>('');
 
@@ -23,6 +24,7 @@ const loadChats = async () => {
         const result = await services.chats.getChatsByUser(currentUserUid.value);
         if (result.isSuccess && result.data) {
             chats.value = result.data;
+            await loadChatsWithLastMessage();
         } else {
             console.error('Failed to load chats:', result.responseMessage);
         }
@@ -30,6 +32,52 @@ const loadChats = async () => {
         console.error('Error loading chats:', error);
     } finally {
         loading.value = false;
+    }
+};
+
+const loadChatsWithLastMessage = async () => {
+    try {
+        const chatsWithMessages = await Promise.all(
+            chats.value.map(async (chat) => {
+                try {
+                    const messagesResult = await services.messages.getMessagesByChat(chat.uid);
+                    if (messagesResult.isSuccess && messagesResult.data && messagesResult.data.length > 0) {
+                        const lastMessage = messagesResult.data[messagesResult.data.length - 1];
+                        if (lastMessage) {
+                            return {
+                                ...chat,
+                                lastMessageTime: lastMessage.timestamp,
+                                lastMessage: lastMessage.content
+                            };
+                        }
+                    }
+                    return {
+                        ...chat,
+                        lastMessageTime: chat.uid,
+                        lastMessage: 'No messages yet'
+                    };
+                } catch (error) {
+                    return {
+                        ...chat,
+                        lastMessageTime: chat.uid,
+                        lastMessage: 'No messages yet'
+                    };
+                }
+            })
+        );
+
+        chatsWithLastMessage.value = chatsWithMessages.sort((a, b) => {
+            const timeA = new Date(a.lastMessageTime || '').getTime();
+            const timeB = new Date(b.lastMessageTime || '').getTime();
+            return timeB - timeA; // Most recent first
+        });
+    } catch (error) {
+        console.error('Error loading chats with last messages:', error);
+        chatsWithLastMessage.value = chats.value.map(chat => ({
+            ...chat,
+            lastMessageTime: chat.uid,
+            lastMessage: 'No messages yet'
+        }));
     }
 };
 
@@ -52,6 +100,7 @@ const deleteChat = async (chatId: string, event: Event) => {
         const result = await services.chats.deleteChat(chatId);
         if (result.isSuccess) {
             chats.value = chats.value.filter(chat => chat.uid !== chatId);
+            chatsWithLastMessage.value = chatsWithLastMessage.value.filter(chat => chat.uid !== chatId);
         } else {
             console.error('Failed to delete chat:', result.responseMessage);
             alert('Failed to delete chat');
@@ -59,6 +108,34 @@ const deleteChat = async (chatId: string, event: Event) => {
     } catch (error) {
         console.error('Error deleting chat:', error);
         alert('Error deleting chat');
+    }
+};
+
+const formatLastMessageTime = (timestamp?: string) => {
+    if (!timestamp) return '';
+    
+    try {
+        const date = new Date(timestamp);
+        const now = new Date();
+        const diffMs = now.getTime() - date.getTime();
+        const diffHours = diffMs / (1000 * 60 * 60);
+        const diffDays = diffMs / (1000 * 60 * 60 * 24);
+        
+        if (diffHours < 24) {
+            return date.toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        } else if (diffDays < 7) {
+            return date.toLocaleDateString('en-US', { weekday: 'short' });
+        } else {
+            return date.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+    } catch (error) {
+        return '';
     }
 };
 
@@ -73,7 +150,7 @@ onMounted(() => {
             <div class="col-12 col-lg-10">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h2>My Chats</h2>
-                    <button class="btn btn-primary" @click="$router.push('/chat/new')">
+                    <button class="btn btn-primary" @click="router.push('/chat/new')">
                         New Chat
                     </button>
                 </div>
@@ -87,23 +164,29 @@ onMounted(() => {
                     </div>
                 </div>
 
-                <div v-else-if="chats.length > 0" class="row g-3">
+                <div v-else-if="chatsWithLastMessage.length > 0" class="row g-3">
                     <div 
-                        v-for="chat in chats" 
+                        v-for="chat in chatsWithLastMessage" 
                         :key="chat.uid"
                         class="col-12"
                     >
                         <div class="card shadow-sm" style="cursor: pointer;" @click="viewChat(chat.uid)">
                             <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <h5 class="card-title mb-1">Chat with User</h5>
-                                        <p class="card-text text-muted small mb-0">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <h5 class="card-title mb-0">Chat with User</h5>
+                                            <small class="text-muted">{{ formatLastMessageTime(chat.lastMessageTime) }}</small>
+                                        </div>
+                                        <p class="card-text text-muted small mb-1">
                                             Other User ID: {{ getOtherUserUid(chat) }}
+                                        </p>
+                                        <p class="card-text text-muted small mb-0" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                            {{ chat.lastMessage }}
                                         </p>
                                     </div>
                                     <button 
-                                        class="btn btn-danger btn-sm" 
+                                        class="btn btn-danger btn-sm ms-3" 
                                         @click="deleteChat(chat.uid, $event)"
                                     >
                                         Delete
@@ -118,7 +201,7 @@ onMounted(() => {
                     <i class="fas fa-comments fa-3x text-muted mb-3"></i>
                     <h5 class="text-muted">No chats found</h5>
                     <p class="text-muted">Start a new chat to begin messaging</p>
-                    <button class="btn btn-primary mt-3" @click="$router.push('/chat/new')">
+                    <button class="btn btn-primary mt-3" @click="router.push('/chat/new')">
                         Create New Chat
                     </button>
                 </div>
