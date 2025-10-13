@@ -15,6 +15,7 @@ public class SwaggerTagDescriptions : IDocumentFilter
     public const string ENDPOINT_TAG_INTERNAL_USER = "Internal User";
     public const string ENDPOINT_TAG_INTERNAL_PRIVACY_LEVEL = "Internal Privacy Level";
     public const string ENDPOINT_TAG_INTERNAL_MESSAGE = "Internal Message";
+    public const string ENDPOINT_TAG_INTERNAL_AUTHORIZATION = "Internal Authorization";
 
     public void Apply(OpenApiDocument swaggerDoc, DocumentFilterContext context)
     {
