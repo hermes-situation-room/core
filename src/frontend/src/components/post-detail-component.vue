@@ -167,8 +167,8 @@ onMounted(() => {
                     <div class="card-footer bg-light">
                         <div class="d-flex justify-content-between align-items-center">
                             <div class="text-muted small d-flex align-items-center">
-                                <i class="fas fa-user me-2"></i>
-                                Created by: {{ post.creatorUid }}
+                            <i class="fas fa-user me-2"></i>
+                            Created by: {{ post.creatorUid }}
                             </div>
                             <button 
                                 v-if="canSendMessage"
