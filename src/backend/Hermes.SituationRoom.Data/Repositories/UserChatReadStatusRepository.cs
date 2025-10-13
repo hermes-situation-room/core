@@ -23,7 +23,7 @@ public class UserChatReadStatusRepository(IHermessituationRoomContext context) :
             ?? throw new KeyNotFoundException($"Could not find ChatReadStatus with Id: {readStatusId}")
         );
 
-    public async Task<UserChatReadStatusBo> GetReadStatusByUserAndChatAsync(Guid userId, Guid chatId) =>
+    public async Task<UserChatReadStatusBo> GetReadStatusAsync(Guid userId, Guid chatId) =>
         MapToBo(await context.UserChatReadStatuses
             .AsNoTracking()
             .FirstOrDefaultAsync(rs => rs.UserId == userId && rs.ChatId == chatId)
@@ -42,7 +42,7 @@ public class UserChatReadStatusRepository(IHermessituationRoomContext context) :
         return MapToBo(readStatusToUpdate);
     }
 
-    public async Task<UserChatReadStatusBo> UpdateByUserAndChatAsync(Guid userId, Guid chatId)
+    public async Task<UserChatReadStatusBo> UpdateAsync(Guid userId, Guid chatId)
     {
         var readStatusToUpdate = await context.UserChatReadStatuses
             .AsTracking()
@@ -59,6 +59,16 @@ public class UserChatReadStatusRepository(IHermessituationRoomContext context) :
         var readStatusToDelete = new UserChatReadStatus { UserChatReadStatusId = readStatusId };
         context.UserChatReadStatuses.Remove(readStatusToDelete);
         await context.SaveChangesAsync();
+    }
+
+    public async Task<int> GetUnreadMessagesCountAsync(Guid readStatusId)
+    {
+        return 3;
+    }
+    
+    public async Task<int> GetUnreadMessagesCountAsync(Guid userId, Guid chatId)
+    {
+        return 3;
     }
 
     private static UserChatReadStatus CreateReadStatus(UserChatReadStatusBo readStatusBo) => new()
