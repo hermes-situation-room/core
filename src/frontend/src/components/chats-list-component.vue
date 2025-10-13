@@ -175,12 +175,9 @@ onMounted(() => {
                                 <div class="d-flex justify-content-between align-items-start">
                                     <div class="flex-grow-1">
                                         <div class="d-flex justify-content-between align-items-start mb-2">
-                                            <h5 class="card-title mb-0">Chat with User</h5>
+                                            <h5 class="card-title mb-0" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ getOtherUserUid(chat) }}</h5>
                                             <small class="text-muted">{{ formatLastMessageTime(chat.lastMessageTime) }}</small>
                                         </div>
-                                        <p class="card-text text-muted small mb-1">
-                                            Other User ID: {{ getOtherUserUid(chat) }}
-                                        </p>
                                         <p class="card-text text-muted small mb-0" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                                             {{ chat.lastMessage }}
                                         </p>
