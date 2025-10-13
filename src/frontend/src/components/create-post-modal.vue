@@ -38,10 +38,10 @@ const loadTags = async () => {
         if (result.isSuccess && result.data) {
             availableTags.value = result.data;
         } else {
-            console.error('Failed to load tags:', result.responseMessage);
+            error.value = result.responseMessage || 'Failed to load tags';
         }
     } catch (err) {
-        console.error('Error loading tags:', err);
+        error.value = 'Error loading tags';
     } finally {
         loadingTags.value = false;
     }
@@ -98,8 +98,7 @@ const handleSubmit = async () => {
             title: formData.value.title,
             description: formData.value.description,
             content: formData.value.content,
-            creatorUid: // TODO - replace with actual user ID from auth context
-                '-',
+            creatorUid: localStorage.getItem('userUid') || '',
             tags: selectedTags.value.map(tag => tag.toUpperCase())
         };
 

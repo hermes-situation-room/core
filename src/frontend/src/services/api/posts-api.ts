@@ -58,7 +58,6 @@ export default function postsApi(apiBaseClient: ApiBaseClient) {
          * Create a new post
          */
         async createPost(postData: CreatePostRequest): Promise<BaseResultBo<string>> {
-            console.log(postData)
             return await apiBaseClient.post<CreatePostRequest>('services/api/internal/post', postData);
         },
 
@@ -66,8 +65,6 @@ export default function postsApi(apiBaseClient: ApiBaseClient) {
          * Update an existing post
          */
         async updatePost(uid: string, postData: UpdatePostRequest): Promise<BaseResultBo<PostBo>> {
-            // The PUT endpoint returns a PostBo, but our base client expects string
-            // We need to create a custom implementation for this endpoint
             const url = `${apiBaseClient.apiBaseUrl}services/api/internal/post/${uid}`;
             try {
                 const response = await fetch(url, {

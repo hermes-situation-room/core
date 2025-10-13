@@ -64,7 +64,7 @@ const closeMobileMenu = () => {
                             <span class="d-none d-xl-inline ms-1">Search Users</span>
                         </RouterLink>
                         <RouterLink 
-                            to="/login" 
+                            to="/chats" 
                             class="btn btn-outline-secondary btn-sm d-flex align-items-center"
                         >
                             <i class="fas fa-comments"></i>
@@ -115,7 +115,7 @@ const closeMobileMenu = () => {
                         <span>Search Users</span>
                     </RouterLink>
                     <RouterLink 
-                        to="/login" 
+                        to="/chats" 
                         class="list-group-item list-group-item-action d-flex align-items-center gap-3"
                         @click="closeMobileMenu"
                     >

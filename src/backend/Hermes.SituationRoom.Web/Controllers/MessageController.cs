@@ -18,12 +18,12 @@ public class MessageController(IControllerInfrastructure controllerInfrastructur
 {
     [HttpPost("internal/message")]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_MESSAGE])]
-    [ProducesResponseType(typeof(MessageBo), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(string), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> AddMessageAsync([FromBody] NewMessageDto newMessage)
     {
         var newMessageId = await messageService.AddAsync(newMessage);
-        return Ok(new { id = newMessageId });
+        return Ok(newMessageId);
     }
     
     [HttpGet("internal/message/{messageId:guid}")]

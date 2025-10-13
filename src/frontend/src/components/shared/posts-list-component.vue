@@ -3,6 +3,7 @@ import {computed, onMounted, ref, watch} from 'vue';
 import {useRouter} from 'vue-router';
 import {services} from '../../services/api';
 import type {PostBo, PostFilter} from '../../types/post';
+import type {CreateChatRequest} from '../../types/chat';
 
 type SortOption = 'newest' | 'oldest' | 'title-asc' | 'title-desc';
 
@@ -20,9 +21,20 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const router = useRouter();
+const currentUserUid = computed(() => localStorage.getItem('userUid') || '');
 
 const posts = ref<PostBo[]>([]);
 const loading = ref(false);
+const errorMessage = ref<string>('');
+
+const clearError = () => {
+    errorMessage.value = '';
+};
+
+const showError = (message: string) => {
+    errorMessage.value = message;
+    setTimeout(clearError, 5000);
+};
 
 const filteredPosts = computed(() => {
     let filtered = [...posts.value];
@@ -67,10 +79,10 @@ const loadPosts = async () => {
         if (result.isSuccess && result.data) {
             posts.value = result.data;
         } else {
-            console.error('Failed to load posts:', result.responseMessage);
+            showError(result.responseMessage || 'Failed to load posts');
         }
     } catch (error) {
-        console.error('Error loading posts:', error);
+        showError('Error loading posts');
     } finally {
         loading.value = false;
     }
@@ -92,6 +104,47 @@ const formatDate = (dateString: string) => {
     });
 };
 
+const sendDirectMessage = async (post: PostBo, event: Event) => {
+    event.stopPropagation();
+
+    if (!currentUserUid.value) {
+        showError('Please log in to send messages');
+        return;
+    }
+
+    if (post.creatorUid === currentUserUid.value) {
+        return;
+    }
+
+    try {
+        const existingChatResult = await services.chats.getChatByUserPair(
+            currentUserUid.value,
+            post.creatorUid
+        );
+
+        if (existingChatResult.isSuccess && existingChatResult.data) {
+            router.push(`/chat/${existingChatResult.data.uid}`);
+            return;
+        }
+
+        const chatData: CreateChatRequest = {
+            user1Uid: currentUserUid.value,
+            user2Uid: post.creatorUid
+        };
+
+        const createResult = await services.chats.createChat(chatData);
+        
+        if (createResult.isSuccess && createResult.data) {
+            const chatId = JSON.parse(createResult.data)
+            router.push(`/chat/${chatId}`);
+        } else {
+            showError(createResult.responseMessage || 'Failed to create chat');
+        }
+    } catch (err) {
+        showError('An error occurred while creating the chat');
+    }
+};
+
 onMounted(() => {
     loadPosts();
 });
@@ -103,6 +156,11 @@ watch([() => props.searchQuery, () => props.filterTags, () => props.sortBy], () 
 
 <template>
     <div class="w-100">
+        <div v-if="errorMessage" class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+            {{ errorMessage }}
+            <button type="button" class="btn-close" @click="clearError" aria-label="Close"></button>
+        </div>
+
         <div v-if="loading" class="d-flex justify-content-center align-items-center py-5">
             <div class="text-center">
                 <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
@@ -118,8 +176,8 @@ watch([() => props.searchQuery, () => props.filterTags, () => props.sortBy], () 
                 :key="post.uid"
                 class="col-12 col-sm-6 col-lg-4"
             >
-                <div class="card h-100 shadow-sm" style="cursor: pointer;" @click="viewPost(post.uid)">
-                    <div class="card-body">
+                <div class="card h-100 shadow-sm d-flex flex-column">
+                    <div class="card-body flex-grow-1" style="cursor: pointer;" @click="viewPost(post.uid)">
                         <h5 class="card-title">{{ post.title }}</h5>
                         <p class="card-text text-muted small">{{ post.description }}</p>
                         <div class="d-flex flex-wrap gap-1 mb-2">
@@ -131,6 +189,22 @@ watch([() => props.searchQuery, () => props.filterTags, () => props.sortBy], () 
                             </span>
                         </div>
                         <small class="text-muted">{{ formatDate(post.timestamp) }}</small>
+                    </div>
+                    <div class="card-footer bg-light border-top">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">
+                                <i class="fas fa-user me-1"></i>
+                                {{ post.creatorUid === currentUserUid ? 'You' : post.creatorUid.substring(0, 8) + '...' }}
+                            </small>
+                            <button 
+                                v-if="post.creatorUid !== currentUserUid && currentUserUid"
+                                class="btn btn-primary btn-sm"
+                                @click="sendDirectMessage(post, $event)"
+                            >
+                                <i class="fas fa-comment me-1"></i>
+                                Message
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
