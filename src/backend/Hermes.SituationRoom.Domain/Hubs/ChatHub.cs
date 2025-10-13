@@ -2,7 +2,9 @@
 
 using Microsoft.AspNetCore.SignalR;
 using Interfaces;
+using Microsoft.AspNetCore.Authorization;
 
+[Authorize]
 public class ChatHub(IChatService chatService) : Hub
 {
     public async Task JoinChat(Guid userId, Guid chatId)
