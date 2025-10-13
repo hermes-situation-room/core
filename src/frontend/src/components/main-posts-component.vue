@@ -60,6 +60,7 @@ const switchTab = (tab: 'journalist' | 'activist') => {
 };
 
 const handleSearch = () => {
+    // Is handled in the subcomponent via props
 };
 
 const handleScroll = () => {
