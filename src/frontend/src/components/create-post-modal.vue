@@ -98,8 +98,7 @@ const handleSubmit = async () => {
             title: formData.value.title,
             description: formData.value.description,
             content: formData.value.content,
-            creatorUid: // TODO - replace with actual user ID from auth context
-                '00ac60b1-0b59-40cb-8a9d-172a645fdc7a',
+            creatorUid: localStorage.getItem('userUid') || '',
             tags: selectedTags.value.map(tag => tag.toUpperCase())
         };
 

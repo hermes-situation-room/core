@@ -59,19 +59,16 @@ const sendDirectMessage = async () => {
     creatingChat.value = true;
 
     try {
-        // First, check if a chat already exists between these users
         const existingChatResult = await services.chats.getChatByUserPair(
             currentUserUid.value,
             post.value.creatorUid
         );
 
         if (existingChatResult.isSuccess && existingChatResult.data) {
-            // Chat exists, navigate to it
             router.push(`/chat/${existingChatResult.data.uid}`);
             return;
         }
 
-        // Chat doesn't exist, create a new one
         const chatData: CreateChatRequest = {
             user1Uid: currentUserUid.value,
             user2Uid: post.value.creatorUid
@@ -80,7 +77,6 @@ const sendDirectMessage = async () => {
         const createResult = await services.chats.createChat(chatData);
         
         if (createResult.isSuccess && createResult.data) {
-            // Navigate to the newly created chat
             router.push(`/chat/${createResult.data}`);
         } else {
             console.error('Failed to create chat:', createResult.responseMessage);

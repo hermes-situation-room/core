@@ -18,16 +18,16 @@ public class MessageService(IMessageRepository messageRepository, IHubContext<Ch
             DateTime.UtcNow
         );
         var newMessageGuid = await messageRepository.AddAsync(messageBo);
-        
-        await chatHub.Clients.Group(newMessageDto.ChatUid.ToString()).SendAsync("ReceiveMessage", messageBo);
+
+        await chatHub.Clients.Group(newMessageDto.ChatUid.ToString())
+            .SendAsync("ReceiveMessage", messageBo with { Uid = newMessageGuid, });
 
         return newMessageGuid;
     }
 
-    public Task<MessageBo> GetMessageAsync(Guid messageId) => 
-        messageRepository.GetMessageAsync(messageId);
+    public Task<MessageBo> GetMessageAsync(Guid messageId) => messageRepository.GetMessageAsync(messageId);
 
-    public Task<IReadOnlyList<MessageBo>> GetMessagesByChatAsync(Guid chatId) => 
+    public Task<IReadOnlyList<MessageBo>> GetMessagesByChatAsync(Guid chatId) =>
         messageRepository.GetMessagesByChatAsync(chatId);
 
     public async Task UpdateAsync(Guid messageId, string newContent)
@@ -39,9 +39,9 @@ public class MessageService(IMessageRepository messageRepository, IHubContext<Ch
     public async Task DeleteAsync(Guid messageId)
     {
         var message = await messageRepository.GetMessageAsync(messageId);
-    
+
         await messageRepository.DeleteAsync(messageId);
-        
+
         await chatHub.Clients.Group(message.ChatUid.ToString()).SendAsync("DeleteMessage", messageId);
     }
 }

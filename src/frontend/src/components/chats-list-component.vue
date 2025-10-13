@@ -13,7 +13,6 @@ const currentUserUid = ref<string>('');
 const loadChats = async () => {
     loading.value = true;
     try {
-        // Get the current user UID from localStorage
         currentUserUid.value = localStorage.getItem('userUid') || '';
         
         if (!currentUserUid.value) {

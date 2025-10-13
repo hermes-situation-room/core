@@ -28,19 +28,16 @@ const createChat = async () => {
             return;
         }
 
-        // Check if chat already exists between these users
         const existingChatResult = await services.chats.getChatByUserPair(
             currentUserUid,
             otherUserUid.value.trim()
         );
 
         if (existingChatResult.isSuccess && existingChatResult.data) {
-            // Chat already exists, navigate to it
             router.push(`/chat/${existingChatResult.data.uid}`);
             return;
         }
 
-        // Create new chat
         const chatData: CreateChatRequest = {
             user1Uid: currentUserUid,
             user2Uid: otherUserUid.value.trim()
@@ -49,7 +46,6 @@ const createChat = async () => {
         const result = await services.chats.createChat(chatData);
         
         if (result.isSuccess && result.data) {
-            // Navigate to the new chat
             router.push(`/chat/${result.data}`);
         } else {
             error.value = result.responseMessage || 'Failed to create chat';
