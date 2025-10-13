@@ -1,5 +1,5 @@
 ﻿import type {BaseResultBo} from "../models/bo/base-result-bo";
-import type {ChatBo, CreateChatRequest} from "../../types/chat";
+import type {ChatBo, CreateChatDto} from "../../types/chat";
 import ApiBaseClient from "./base/api-base-client";
 
 export default function chatsApi(apiBaseClient: ApiBaseClient) {
@@ -32,8 +32,8 @@ export default function chatsApi(apiBaseClient: ApiBaseClient) {
         /**
          * Create a new chat
          */
-        async createChat(chatData: CreateChatRequest): Promise<BaseResultBo<string>> {
-            return await apiBaseClient.post<CreateChatRequest>('services/api/internal/chats', chatData);
+        async createChat(chatData: CreateChatDto): Promise<BaseResultBo<string>> {
+            return await apiBaseClient.post<CreateChatDto>('services/api/internal/chats', chatData);
         },
 
         /**

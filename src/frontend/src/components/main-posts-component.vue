@@ -83,6 +83,9 @@ const closeCreateModal = () => {
 
 const handlePostCreated = () => {
     refreshKey.value++;
+    if (authStore.userType.value) {
+        router.push('/' + authStore.userType.value);
+    }
 };
 
 const loadTags = async () => {
@@ -445,7 +448,6 @@ onUnmounted(() => {
 
         <CreatePostModal 
             :show="showCreateModal"
-            :post-type="currentTab"
             @close="closeCreateModal"
             @post-created="handlePostCreated"
         />

@@ -26,6 +26,7 @@ public class ActivistController(IControllerInfrastructure infra, IActivistServic
         Ok(await activistService.GetActivistsAsync());
 
     [HttpPost("internal/activist/")]
+    [AllowAnonymous]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_ACTIVIST])]
     [ProducesResponseType(typeof(Guid), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]

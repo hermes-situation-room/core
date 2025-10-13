@@ -1,17 +1,20 @@
 <script setup lang="ts">
-import {onMounted, ref, watch} from 'vue';
+import {computed, onMounted, ref, watch} from 'vue';
 import {services} from '../services/api';
-import type {CreatePostRequest} from '../types/post';
+import type {CreatePostDto} from '../types/post';
 import { useAuthStore } from '../stores/auth-store';
 
 const authStore = useAuthStore();
 
 interface Props {
     show: boolean;
-    postType: 'activist' | 'journalist';
 }
 
 const props = defineProps<Props>();
+
+const postType = computed(() => {
+    return authStore.userType.value;
+});
 
 const emit = defineEmits<{
     (e: 'close'): void;
@@ -103,7 +106,7 @@ const handleSubmit = async () => {
             return;
         }
 
-        const postData: CreatePostRequest = {
+        const postData: CreatePostDto = {
             title: formData.value.title,
             description: formData.value.description,
             content: formData.value.content,

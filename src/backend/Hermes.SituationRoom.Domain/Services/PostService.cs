@@ -40,7 +40,12 @@ public class PostService(IPostRepository postRepository, ITagService tagService)
     public async Task<Guid> CreatePostAsync(CreatePostDto createPostDto)
     {
         var guid = await postRepository.AddAsync(MapToBo(createPostDto, DateTime.UtcNow));
-        createPostDto.Tags.ToList().ForEach(t => tagService.CreatePostTagAsync(new(guid, t)));
+        
+        foreach (var tag in createPostDto.Tags)
+        {
+            await tagService.CreatePostTagAsync(new(guid, tag));
+        }
+        
         return guid;
     }
 

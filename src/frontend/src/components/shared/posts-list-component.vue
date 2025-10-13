@@ -3,7 +3,7 @@ import {computed, onMounted, ref, watch} from 'vue';
 import {useRouter} from 'vue-router';
 import {services} from '../../services/api';
 import type {PostBo, PostFilter} from '../../types/post';
-import type {CreateChatRequest} from '../../types/chat';
+import type {CreateChatDto} from '../../types/chat';
 import { useAuthStore } from '../../stores/auth-store';
 
 type SortOption = 'newest' | 'oldest' | 'title-asc' | 'title-desc';
@@ -129,7 +129,7 @@ const sendDirectMessage = async (post: PostBo, event: Event) => {
             return;
         }
 
-        const chatData: CreateChatRequest = {
+        const chatData: CreateChatDto = {
             user1Uid: currentUserUid.value,
             user2Uid: post.creatorUid
         };

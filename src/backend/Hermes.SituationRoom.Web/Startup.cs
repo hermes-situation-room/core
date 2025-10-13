@@ -40,6 +40,10 @@ public class Startup
         services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
             .AddCookie(options =>
             {
+                options.Cookie.Name = "SituationRoom.Auth";
+                options.Cookie.HttpOnly = true; // Secure in production
+                options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest; // Works with both HTTP and HTTPS
+                options.Cookie.SameSite = SameSiteMode.None; // Allow cross-site requests
                 options.Events.OnRedirectToLogin = ctx =>
                 {
                     // Return 401 instead of redirect
@@ -70,12 +74,13 @@ public class Startup
         
         services.AddCors(options =>
         {
-            options.AddPolicy("AllowAnyOrigin",
+            options.AddPolicy("AllowCredentials",
                 builder =>
                 {
                     builder.AllowAnyOrigin()
                         .AllowAnyHeader()
-                        .AllowAnyMethod();
+                        .AllowAnyMethod()
+                        .AllowCredentials();
                 });
         });
     }
@@ -86,7 +91,7 @@ public class Startup
         app.UseSerilogRequestLogging();
         app.UseHttpsRedirection()
             .UseRouting()
-            .UseCors("AllowAnyOrigin")
+            .UseCors("AllowCredentials")
             .UseRequestLocalization()
             .UseMiddleware<ExceptionMiddleware>()
             .UseAuthentication()

@@ -1,18 +1,17 @@
 ﻿import ApiBaseClient from "./base/api-base-client";
-import type { BaseResultBo } from "../models/bo/base-result-bo";
+import type {BaseResultBo} from "../models/bo/base-result-bo";
 
-export interface LoginActivistRequest {
+export interface LoginActivistDto {
     userName: string;
     password: string;
 }
 
-export interface LoginJournalistRequest {
+export interface LoginJournalistDto {
     emailAddress: string;
     password: string;
 }
 
-export interface RegisterActivistRequest {
-    uid: string;
+export interface RegisterActivistDto {
     userName: string;
     password: string;
     firstName?: string;
@@ -23,8 +22,7 @@ export interface RegisterActivistRequest {
     isEmailVisible: boolean;
 }
 
-export interface RegisterJournalistRequest {
-    uid: string;
+export interface RegisterJournalistDto {
     firstName: string;
     lastName: string;
     emailAddress: string;
@@ -38,8 +36,8 @@ class AuthApi extends ApiBaseClient {
      * @param request Login credentials for activist
      * @returns User UID on success
      */
-    async loginActivist(request: LoginActivistRequest): Promise<BaseResultBo<string>> {
-        return await this.post<LoginActivistRequest>(
+    async loginActivist(request: LoginActivistDto): Promise<BaseResultBo<string>> {
+        return await this.post<LoginActivistDto>(
             "services/api/internal/authorization/login/activist",
             request
         );
@@ -50,8 +48,8 @@ class AuthApi extends ApiBaseClient {
      * @param request Login credentials for journalist
      * @returns User UID on success
      */
-    async loginJournalist(request: LoginJournalistRequest): Promise<BaseResultBo<string>> {
-        return await this.post<LoginJournalistRequest>(
+    async loginJournalist(request: LoginJournalistDto): Promise<BaseResultBo<string>> {
+        return await this.post<LoginJournalistDto>(
             "services/api/internal/authorization/login/journalist",
             request
         );
@@ -62,8 +60,8 @@ class AuthApi extends ApiBaseClient {
      * @param request Activist registration data
      * @returns User UID on success
      */
-    async registerActivist(request: RegisterActivistRequest): Promise<BaseResultBo<string>> {
-        return await this.post<RegisterActivistRequest>(
+    async registerActivist(request: RegisterActivistDto): Promise<BaseResultBo<string>> {
+        return await this.post<RegisterActivistDto>(
             "services/api/internal/activist",
             request
         );
@@ -74,8 +72,8 @@ class AuthApi extends ApiBaseClient {
      * @param request Journalist registration data
      * @returns User UID on success
      */
-    async registerJournalist(request: RegisterJournalistRequest): Promise<BaseResultBo<string>> {
-        return await this.post<RegisterJournalistRequest>(
+    async registerJournalist(request: RegisterJournalistDto): Promise<BaseResultBo<string>> {
+        return await this.post<RegisterJournalistDto>(
             "services/api/internal/journalist",
             request
         );

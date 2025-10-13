@@ -26,6 +26,7 @@ public class JournalistController(IControllerInfrastructure infra, IJournalistSe
         Ok(await journalistService.GetJournalistsAsync());
 
     [HttpPost("internal/journalist/")]
+    [AllowAnonymous]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_JOURNALIST])]
     [ProducesResponseType(typeof(Guid), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]

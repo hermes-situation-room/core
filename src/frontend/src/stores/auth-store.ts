@@ -15,7 +15,6 @@ const state = reactive<AuthState>({
     userData: null
 });
 
-// Initialize from localStorage if available
 const initAuth = () => {
     const storedAuth = localStorage.getItem('auth');
     if (storedAuth) {

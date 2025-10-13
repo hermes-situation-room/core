@@ -65,7 +65,6 @@ async function handleRegister() {
         
         if (isActivist.value) {
             result = await authApi.registerActivist({
-                uid: '00000000-0000-0000-0000-000000000000', // Empty GUID for creation
                 userName: formData.value.userName,
                 password: formData.value.password,
                 firstName: formData.value.firstName || undefined,
@@ -84,7 +83,6 @@ async function handleRegister() {
             }
             
             result = await authApi.registerJournalist({
-                uid: '00000000-0000-0000-0000-000000000000', // Empty GUID for creation
                 firstName: formData.value.firstName,
                 lastName: formData.value.lastName,
                 emailAddress: formData.value.emailAddress,
@@ -94,11 +92,9 @@ async function handleRegister() {
         }
 
         if (result.isSuccess && result.data) {
-            // Remove quotes from GUID if present
-            const userId = result.data.replace(/"/g, '')
+            const userId = result.data
             authStore.login(selectedUserType.value, userId)
             
-            // Redirect to home page
             await router.push('/')
         } else {
             errorMessage.value = result.responseMessage || 'Registration failed. Please try again.'
@@ -155,7 +151,7 @@ async function handleRegister() {
                                     {{ errorMessage }}
                                 </div>
 
-                                <div class="mb-3">
+                                <div v-if="isActivist" class="mb-3">
                                     <label class="form-label">Username</label>
                                     <input
                                         v-model="formData.userName"

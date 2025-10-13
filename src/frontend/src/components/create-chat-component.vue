@@ -2,7 +2,7 @@
 import {ref} from 'vue';
 import {useRouter} from 'vue-router';
 import {services} from '../services/api';
-import type {CreateChatRequest} from '../types/chat';
+import type {CreateChatDto} from '../types/chat';
 import { useAuthStore } from '../stores/auth-store';
 
 const router = useRouter();
@@ -40,7 +40,7 @@ const createChat = async () => {
             return;
         }
 
-        const chatData: CreateChatRequest = {
+        const chatData: CreateChatDto = {
             user1Uid: currentUserUid,
             user2Uid: otherUserUid.value.trim()
         };

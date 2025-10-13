@@ -3,7 +3,7 @@ import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { services } from '../services/api';
 import type { PostBo } from '../types/post';
-import type { CreateChatRequest } from '../types/chat';
+import type { CreateChatDto } from '../types/chat';
 import { useAuthStore } from '../stores/auth-store';
 
 const route = useRoute();
@@ -70,7 +70,7 @@ const sendDirectMessage = async () => {
             return;
         }
 
-        const chatData: CreateChatRequest = {
+        const chatData: CreateChatDto = {
             user1Uid: currentUserUid.value,
             user2Uid: post.value.creatorUid
         };

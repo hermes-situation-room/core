@@ -1,5 +1,5 @@
 ﻿import type {BaseResultBo} from "../models/bo/base-result-bo";
-import type {CreatePostRequest, PostBo, PostFilter, UpdatePostRequest} from "../../types/post";
+import type {CreatePostDto, PostBo, PostFilter, UpdatePostDto} from "../../types/post";
 import ApiBaseClient from "./base/api-base-client";
 
 export default function postsApi(apiBaseClient: ApiBaseClient) {
@@ -57,41 +57,15 @@ export default function postsApi(apiBaseClient: ApiBaseClient) {
         /**
          * Create a new post
          */
-        async createPost(postData: CreatePostRequest): Promise<BaseResultBo<string>> {
-            return await apiBaseClient.post<CreatePostRequest>('services/api/internal/post', postData);
+        async createPost(postData: CreatePostDto): Promise<BaseResultBo<string>> {
+            return await apiBaseClient.post<CreatePostDto>('services/api/internal/post', postData);
         },
 
         /**
          * Update an existing post
          */
-        async updatePost(uid: string, postData: UpdatePostRequest): Promise<BaseResultBo<PostBo>> {
-            const url = `${apiBaseClient.apiBaseUrl}services/api/internal/post/${uid}`;
-            try {
-                const response = await fetch(url, {
-                    method: 'PUT',
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Accept": "application/json, text/plain, */*"
-                    },
-                    body: JSON.stringify(postData)
-                });
-
-                const data = await response.json();
-
-                return {
-                    data: data as PostBo,
-                    responseCode: response.status,
-                    responseMessage: response.statusText,
-                    isSuccess: response.ok,
-                };
-            } catch (e) {
-                return {
-                    data: undefined,
-                    responseCode: undefined,
-                    responseMessage: e instanceof Error ? e.message : String(e),
-                    isSuccess: false,
-                };
-            }
+        async updatePost(uid: string, postData: UpdatePostDto): Promise<BaseResultBo<string>> {
+            return await apiBaseClient.put<PostBo>(`services/api/internal/post/${uid}`, postData);
         },
 
         /**

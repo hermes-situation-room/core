@@ -53,7 +53,7 @@ async function handleLogin() {
         }
 
         if (result.isSuccess && result.data) {
-            const userId = result.data.replace(/"/g, '')
+            const userId = result.data
             authStore.login(selectedUserType.value, userId)
             
             await router.push('/')
