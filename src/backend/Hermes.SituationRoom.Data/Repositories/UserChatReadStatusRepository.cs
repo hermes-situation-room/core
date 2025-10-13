@@ -13,13 +13,13 @@ public class UserChatReadStatusRepository(IHermessituationRoomContext context) :
         var readStatus = CreateReadStatus(newReadStatusBo);
         context.UserChatReadStatuses.Add(readStatus);
         await context.SaveChangesAsync();
-        return readStatus.Uid;
+        return readStatus.UserChatReadStatusId;
     }
 
     public async Task<UserChatReadStatusBo> GetReadStatusAsync(Guid readStatusId) =>
         MapToBo(await context.UserChatReadStatuses
             .AsNoTracking()
-            .FirstOrDefaultAsync(rs => rs.Uid == readStatusId)
+            .FirstOrDefaultAsync(rs => rs.UserChatReadStatusId == readStatusId)
             ?? throw new KeyNotFoundException($"Could not find ChatReadStatus with Id: {readStatusId}")
         );
 
@@ -34,7 +34,7 @@ public class UserChatReadStatusRepository(IHermessituationRoomContext context) :
     {
         var readStatusToUpdate = await context.UserChatReadStatuses
             .AsTracking()
-            .FirstOrDefaultAsync(rs => rs.Uid == readStatusId)
+            .FirstOrDefaultAsync(rs => rs.UserChatReadStatusId == readStatusId)
             ?? throw new KeyNotFoundException($"Could not find ChatReadStatus with Id: {readStatusId}");
 
         readStatusToUpdate.ReadTime = DateTime.UtcNow;
@@ -56,20 +56,20 @@ public class UserChatReadStatusRepository(IHermessituationRoomContext context) :
 
     public async Task DeleteAsync(Guid readStatusId)
     {
-        var readStatusToDelete = new UserChatReadStatus { Uid = readStatusId };
+        var readStatusToDelete = new UserChatReadStatus { UserChatReadStatusId = readStatusId };
         context.UserChatReadStatuses.Remove(readStatusToDelete);
         await context.SaveChangesAsync();
     }
 
     private static UserChatReadStatus CreateReadStatus(UserChatReadStatusBo readStatusBo) => new()
     {
-        Uid = Guid.NewGuid(),
+        UserChatReadStatusId = Guid.NewGuid(),
         UserId = readStatusBo.UserId,
         ChatId = readStatusBo.ChatId,
         ReadTime = readStatusBo.ReadTime
     };
 
     private static UserChatReadStatusBo MapToBo(UserChatReadStatus readStatus) =>
-        new(readStatus.UserId, readStatus.ChatId, readStatus.ReadTime) {Uid = readStatus.Uid};
+        new(readStatus.UserId, readStatus.ChatId, readStatus.ReadTime) {Uid = readStatus.UserChatReadStatusId};
 
 }

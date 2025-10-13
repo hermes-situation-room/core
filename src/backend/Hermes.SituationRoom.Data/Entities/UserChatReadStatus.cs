@@ -1,4 +1,7 @@
-﻿namespace Hermes.SituationRoom.Data.Entities;
+﻿using System;
+using System.Collections.Generic;
+
+namespace Hermes.SituationRoom.Data.Entities;
 
 public partial class UserChatReadStatus
 {
