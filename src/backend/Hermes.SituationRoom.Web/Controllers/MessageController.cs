@@ -1,17 +1,18 @@
 ﻿#nullable enable
 namespace Hermes.SituationRoom.Api.Controllers;
 
-using Shared.BusinessObjects;
-using Microsoft.AspNetCore.Mvc;
 using System.Net.Mime;
 using Base;
+using Configurations;
 using Domain.Interfaces;
-using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Shared.BusinessObjects;
 using Shared.DataTransferObjects;
 using Swashbuckle.AspNetCore.Annotations;
-using Configurations;
 
 [ApiController]
+[Authorize]
 [Produces(MediaTypeNames.Application.Json)]
 [ProducesResponseType(typeof(string), StatusCodes.Status500InternalServerError)]
 public class MessageController(IControllerInfrastructure controllerInfrastructure, IMessageService messageService) : SituationRoomControllerBase(controllerInfrastructure)

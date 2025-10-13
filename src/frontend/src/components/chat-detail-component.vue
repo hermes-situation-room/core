@@ -3,9 +3,11 @@ import {nextTick, onMounted, onUnmounted, ref} from 'vue';
 import {useRoute, useRouter} from 'vue-router';
 import {services, sockets} from '../services/api';
 import type {ChatBo, CreateMessageRequest, MessageBo} from '../types/chat';
+import { useAuthStore } from '../stores/auth-store';
 
 const route = useRoute();
 const router = useRouter();
+const authStore = useAuthStore();
 
 const chat = ref<ChatBo | null>(null);
 const messages = ref<MessageBo[]>([]);
@@ -32,9 +34,10 @@ const loadChat = async () => {
     loading.value = true;
     try {
         const chatId = route.params.id as string;
-        currentUserUid.value = localStorage.getItem('userUid') || '';
+        currentUserUid.value = authStore.userId.value || '';
 
         if (!currentUserUid.value) {
+            showError('You must be logged in to view chats');
             router.push('/chats');
             return;
         }

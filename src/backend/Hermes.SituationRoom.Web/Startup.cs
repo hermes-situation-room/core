@@ -55,6 +55,13 @@ public class Startup
                 };
             });
 
+        services.AddAuthorization(options =>
+        {
+            options.DefaultPolicy = new Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder()
+                .RequireAuthenticatedUser()
+                .Build();
+        });
+
         services.AddControllers();
 
         services.RegisterDependencies(Configuration);

@@ -3,8 +3,10 @@ import {onMounted, ref} from 'vue';
 import {useRouter} from 'vue-router';
 import {services} from '../services/api';
 import type {ChatBo} from '../types/chat';
+import { useAuthStore } from '../stores/auth-store';
 
 const router = useRouter();
+const authStore = useAuthStore();
 
 const chats = ref<ChatBo[]>([]);
 const chatsWithLastMessage = ref<Array<ChatBo & { lastMessageTime?: string, lastMessage?: string }>>([]);
@@ -24,10 +26,12 @@ const showError = (message: string) => {
 const loadChats = async () => {
     loading.value = true;
     try {
-        currentUserUid.value = localStorage.getItem('userUid') || '';
+        currentUserUid.value = authStore.userId.value || '';
         
         if (!currentUserUid.value) {
+            showError('You must be logged in to view chats');
             router.push("/login");
+            return;
         }
 
         const result = await services.chats.getChatsByUser(currentUserUid.value);

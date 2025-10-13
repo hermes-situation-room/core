@@ -3,10 +3,12 @@
 using Base;
 using Configurations;
 using Domain.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Shared.BusinessObjects;
 using Swashbuckle.AspNetCore.Annotations;
 
+[Authorize]
 public class ActivistController(IControllerInfrastructure infra, IActivistService activistService)
     : SituationRoomControllerBase(infra)
 {

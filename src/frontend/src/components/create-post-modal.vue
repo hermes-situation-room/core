@@ -2,6 +2,9 @@
 import {onMounted, ref, watch} from 'vue';
 import {services} from '../services/api';
 import type {CreatePostRequest} from '../types/post';
+import { useAuthStore } from '../stores/auth-store';
+
+const authStore = useAuthStore();
 
 interface Props {
     show: boolean;
@@ -94,11 +97,17 @@ const handleSubmit = async () => {
     error.value = '';
 
     try {
+        if (!authStore.userId.value) {
+            error.value = 'You must be logged in to create a post';
+            loading.value = false;
+            return;
+        }
+
         const postData: CreatePostRequest = {
             title: formData.value.title,
             description: formData.value.description,
             content: formData.value.content,
-            creatorUid: localStorage.getItem('userUid') || '',
+            creatorUid: authStore.userId.value,
             tags: selectedTags.value.map(tag => tag.toUpperCase())
         };
 

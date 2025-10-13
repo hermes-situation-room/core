@@ -3,8 +3,10 @@ import {ref} from 'vue';
 import {useRouter} from 'vue-router';
 import {services} from '../services/api';
 import type {CreateChatRequest} from '../types/chat';
+import { useAuthStore } from '../stores/auth-store';
 
 const router = useRouter();
+const authStore = useAuthStore();
 
 const otherUserUid = ref('');
 const creating = ref(false);
@@ -20,10 +22,10 @@ const createChat = async () => {
     error.value = '';
 
     try {
-        const currentUserUid = localStorage.getItem('userUid') || '';
+        const currentUserUid = authStore.userId.value || '';
         
         if (!currentUserUid) {
-            error.value = 'No user UID found in localStorage';
+            error.value = 'You must be logged in to create a chat';
             creating.value = false;
             return;
         }

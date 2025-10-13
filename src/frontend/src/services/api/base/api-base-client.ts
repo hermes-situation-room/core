@@ -1,7 +1,26 @@
 import type { BaseResultBo } from "../../models/bo/base-result-bo";
+import { useAuthStore } from "../../../stores/auth-store";
 
 export default class ApiBaseClient {
     apiBaseUrl: string = import.meta.env.VITE_APP_BACKEND;
+
+    /**
+     * Get auth headers if user is authenticated
+     */
+    protected getAuthHeaders(): Record<string, string> {
+        const headers: Record<string, string> = {};
+        const authStore = useAuthStore();
+        
+        if (authStore.isAuthenticated.value && authStore.userId.value) {
+            headers['X-User-Id'] = authStore.userId.value;
+        }
+        
+        if (authStore.userType.value) {
+            headers['X-User-Type'] = authStore.userType.value;
+        }
+        
+        return headers;
+    }
 
     /**
      * GET functionality which handels errors, no try-catch needed for the caller
@@ -18,6 +37,7 @@ export default class ApiBaseClient {
                 method: "GET",
                 headers: {
                     "Accept": "application/json, text/plain, */*",
+                    ...this.getAuthHeaders(),
                 },
             });
 
@@ -62,7 +82,8 @@ export default class ApiBaseClient {
                 method: 'POST',
                 headers: {
                     "Content-Type": "application/json",
-                    "Accept": "application/json, text/plain, */*"
+                    "Accept": "application/json, text/plain, */*",
+                    ...this.getAuthHeaders(),
                 },
                 body: JSON.stringify(input)
             });
@@ -100,7 +121,8 @@ export default class ApiBaseClient {
                 method: 'PUT',
                 headers: {
                     "Content-Type": "application/json",
-                    "Accept": "application/json, text/plain, */*"
+                    "Accept": "application/json, text/plain, */*",
+                    ...this.getAuthHeaders(),
                 },
                 body: JSON.stringify(input)
             });
@@ -135,6 +157,9 @@ export default class ApiBaseClient {
         try {
             const response = await fetch(url, {
                 method: 'DELETE',
+                headers: {
+                    ...this.getAuthHeaders(),
+                },
             });
 
             const resObj: BaseResultBo<undefined> = {

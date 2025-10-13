@@ -3,12 +3,13 @@
 using Base;
 using Configurations;
 using Domain.Interfaces;
-using Domain.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Shared.BusinessObjects;
 using Shared.DataTransferObjects;
 using Swashbuckle.AspNetCore.Annotations;
 
+[Authorize]
 public class CommentController(IControllerInfrastructure infra, ICommentService commentService)
     : SituationRoomControllerBase(infra)
 {

@@ -3,11 +3,12 @@ namespace Hermes.SituationRoom.Api.Controllers;
 using Base;
 using Configurations;
 using Domain.Interfaces;
-using Domain.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Shared.BusinessObjects;
 using Swashbuckle.AspNetCore.Annotations;
 
+[Authorize]
 public class UserController(IControllerInfrastructure infra, IUserService userService)
     : SituationRoomControllerBase(infra)
 {
@@ -18,6 +19,7 @@ public class UserController(IControllerInfrastructure infra, IUserService userSe
     public async Task<ActionResult<UserBo>> GetUser(Guid uid) => Ok(await userService.GetUserAsync(uid));
 
     [HttpGet("internal/user/profile/")]
+    [AllowAnonymous]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_USER])]
     [ProducesResponseType(typeof(UserBo), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

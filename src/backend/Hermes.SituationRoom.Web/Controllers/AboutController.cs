@@ -2,6 +2,7 @@ namespace Hermes.SituationRoom.Api.Controllers;
 
 using Base;
 using Configurations;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 
@@ -9,6 +10,7 @@ public class AboutController(IControllerInfrastructure controllerInfrastructure)
     : SituationRoomControllerBase(controllerInfrastructure)
 {
     [HttpGet("external/about")]
+    [AllowAnonymous]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_EXTERNAL])]
     [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(string), StatusCodes.Status500InternalServerError)]

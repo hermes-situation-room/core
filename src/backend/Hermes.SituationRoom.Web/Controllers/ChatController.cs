@@ -1,6 +1,7 @@
 ﻿namespace Hermes.SituationRoom.Api.Controllers;
 
 using Shared.BusinessObjects;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Mime;
 using Base;
@@ -10,6 +11,7 @@ using Domain.Interfaces;
 using Swashbuckle.AspNetCore.Annotations;
 
 [ApiController]
+[Authorize]
 [Produces(MediaTypeNames.Application.Json)]
 public class ChatController(IControllerInfrastructure controllerInfrastructure, IChatService chatService)
     : SituationRoomControllerBase(controllerInfrastructure)

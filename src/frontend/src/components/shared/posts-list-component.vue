@@ -4,6 +4,7 @@ import {useRouter} from 'vue-router';
 import {services} from '../../services/api';
 import type {PostBo, PostFilter} from '../../types/post';
 import type {CreateChatRequest} from '../../types/chat';
+import { useAuthStore } from '../../stores/auth-store';
 
 type SortOption = 'newest' | 'oldest' | 'title-asc' | 'title-desc';
 
@@ -21,7 +22,8 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const router = useRouter();
-const currentUserUid = computed(() => localStorage.getItem('userUid') || '');
+const authStore = useAuthStore();
+const currentUserUid = computed(() => authStore.userId.value || '');
 
 const posts = ref<PostBo[]>([]);
 const loading = ref(false);
@@ -194,7 +196,7 @@ watch([() => props.searchQuery, () => props.filterTags, () => props.sortBy], () 
                         <div class="d-flex justify-content-between align-items-center">
                             <small class="text-muted">
                                 <i class="fas fa-user me-1"></i>
-                                {{ post.creatorUid === currentUserUid ? 'You' : post.creatorUid.substring(0, 8) + '...' }}
+                                {{ currentUserUid && post.creatorUid === currentUserUid ? 'You' : post.creatorUid.substring(0, 8) + '...' }}
                             </small>
                             <button 
                                 v-if="post.creatorUid !== currentUserUid && currentUserUid"
@@ -204,6 +206,15 @@ watch([() => props.searchQuery, () => props.filterTags, () => props.sortBy], () 
                                 <i class="fas fa-comment me-1"></i>
                                 Message
                             </button>
+                            <RouterLink 
+                                v-else-if="!currentUserUid"
+                                to="/login"
+                                class="btn btn-outline-primary btn-sm"
+                                @click.stop
+                            >
+                                <i class="fas fa-sign-in-alt me-1"></i>
+                                Login to Message
+                            </RouterLink>
                         </div>
                     </div>
                 </div>

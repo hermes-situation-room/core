@@ -2,9 +2,13 @@
 import { onMounted, ref, watch } from 'vue'
 import faviconUrl from '../assets/logo_situation_room_URL.png'
 import logoUrl from '../assets/logo_situation_room.png'
-import { RouterLink, useRoute } from 'vue-router'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
+import { useAuthStore } from '../stores/auth-store'
 
 const route = useRoute()
+const router = useRouter()
+const authStore = useAuthStore()
+
 const pageTitle = ref('Posts')
 const showMobileMenu = ref(false)
 
@@ -32,6 +36,11 @@ const toggleMobileMenu = () => {
 const closeMobileMenu = () => {
     showMobileMenu.value = false
 }
+
+const handleLogout = () => {
+    authStore.logout()
+    router.push('/login')
+}
 </script>
 
 <template>
@@ -56,27 +65,41 @@ const closeMobileMenu = () => {
                     </div>
 
                     <div class="d-none d-md-flex align-items-center gap-1 gap-lg-2">
-                        <RouterLink 
-                            to="/login" 
-                            class="btn btn-outline-secondary btn-sm d-flex align-items-center"
-                        >
-                            <i class="fas fa-users"></i>
-                            <span class="d-none d-xl-inline ms-1">Search Users</span>
-                        </RouterLink>
-                        <RouterLink 
-                            to="/chats" 
-                            class="btn btn-outline-secondary btn-sm d-flex align-items-center"
-                        >
-                            <i class="fas fa-comments"></i>
-                            <span class="d-none d-xl-inline ms-1">Messages</span>
-                        </RouterLink>
-                        <RouterLink 
-                            to="/login" 
-                            class="btn btn-outline-secondary btn-sm d-flex align-items-center"
-                        >
-                            <i class="fas fa-user-circle"></i>
-                            <span class="d-none d-xl-inline ms-1">Profile</span>
-                        </RouterLink>
+                        <template v-if="authStore.isAuthenticated.value">
+                            <RouterLink 
+                                to="/chats" 
+                                class="btn btn-outline-secondary btn-sm d-flex align-items-center"
+                            >
+                                <i class="fas fa-comments"></i>
+                                <span class="d-none d-xl-inline ms-1">Messages</span>
+                            </RouterLink>
+                            <span class="badge bg-dark text-white px-2 py-1 d-none d-lg-inline">
+                                {{ authStore.userType.value === 'journalist' ? 'Journalist' : 'Activist' }}
+                            </span>
+                            <button 
+                                @click="handleLogout"
+                                class="btn btn-outline-danger btn-sm d-flex align-items-center"
+                            >
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span class="d-none d-xl-inline ms-1">Logout</span>
+                            </button>
+                        </template>
+                        <template v-else>
+                            <RouterLink 
+                                to="/login" 
+                                class="btn btn-outline-secondary btn-sm d-flex align-items-center"
+                            >
+                                <i class="fas fa-sign-in-alt"></i>
+                                <span class="d-none d-xl-inline ms-1">Login</span>
+                            </RouterLink>
+                            <RouterLink 
+                                to="/register" 
+                                class="btn btn-dark btn-sm d-flex align-items-center"
+                            >
+                                <i class="fas fa-user-plus"></i>
+                                <span class="d-none d-xl-inline ms-1">Register</span>
+                            </RouterLink>
+                        </template>
                     </div>
 
                     <button 
@@ -106,30 +129,49 @@ const closeMobileMenu = () => {
             </div>
             <div class="offcanvas-body">
                 <div class="list-group list-group-flush">
-                    <RouterLink 
-                        to="/login" 
-                        class="list-group-item list-group-item-action d-flex align-items-center gap-3"
-                        @click="closeMobileMenu"
-                    >
-                        <i class="fas fa-users fs-5"></i>
-                        <span>Search Users</span>
-                    </RouterLink>
-                    <RouterLink 
-                        to="/chats" 
-                        class="list-group-item list-group-item-action d-flex align-items-center gap-3"
-                        @click="closeMobileMenu"
-                    >
-                        <i class="fas fa-comments fs-5"></i>
-                        <span>Messages</span>
-                    </RouterLink>
-                    <RouterLink 
-                        to="/login" 
-                        class="list-group-item list-group-item-action d-flex align-items-center gap-3"
-                        @click="closeMobileMenu"
-                    >
-                        <i class="fas fa-user-circle fs-5"></i>
-                        <span>Profile</span>
-                    </RouterLink>
+                    <template v-if="authStore.isAuthenticated.value">
+                        <div class="list-group-item bg-light">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <span class="fw-bold">Logged in as:</span>
+                                <span class="badge bg-dark">
+                                    {{ authStore.userType.value === 'journalist' ? 'Journalist' : 'Activist' }}
+                                </span>
+                            </div>
+                        </div>
+                        <RouterLink 
+                            to="/chats" 
+                            class="list-group-item list-group-item-action d-flex align-items-center gap-3"
+                            @click="closeMobileMenu"
+                        >
+                            <i class="fas fa-comments fs-5"></i>
+                            <span>Messages</span>
+                        </RouterLink>
+                        <button 
+                            @click="handleLogout"
+                            class="list-group-item list-group-item-action d-flex align-items-center gap-3 text-danger"
+                        >
+                            <i class="fas fa-sign-out-alt fs-5"></i>
+                            <span>Logout</span>
+                        </button>
+                    </template>
+                    <template v-else>
+                        <RouterLink 
+                            to="/login" 
+                            class="list-group-item list-group-item-action d-flex align-items-center gap-3"
+                            @click="closeMobileMenu"
+                        >
+                            <i class="fas fa-sign-in-alt fs-5"></i>
+                            <span>Login</span>
+                        </RouterLink>
+                        <RouterLink 
+                            to="/register" 
+                            class="list-group-item list-group-item-action d-flex align-items-center gap-3"
+                            @click="closeMobileMenu"
+                        >
+                            <i class="fas fa-user-plus fs-5"></i>
+                            <span>Register</span>
+                        </RouterLink>
+                    </template>
                 </div>
             </div>
         </div>

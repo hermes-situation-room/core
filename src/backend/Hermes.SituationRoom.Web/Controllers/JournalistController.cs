@@ -3,11 +3,12 @@
 using Base;
 using Configurations;
 using Domain.Interfaces;
-using Domain.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Shared.BusinessObjects;
 using Swashbuckle.AspNetCore.Annotations;
 
+[Authorize]
 public class JournalistController(IControllerInfrastructure infra, IJournalistService journalistService)
     : SituationRoomControllerBase(infra)
 {

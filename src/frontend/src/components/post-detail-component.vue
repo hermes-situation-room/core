@@ -4,16 +4,18 @@ import { useRoute, useRouter } from 'vue-router';
 import { services } from '../services/api';
 import type { PostBo } from '../types/post';
 import type { CreateChatRequest } from '../types/chat';
+import { useAuthStore } from '../stores/auth-store';
 
 const route = useRoute();
 const router = useRouter();
+const authStore = useAuthStore();
 
 const post = ref<PostBo | null>(null);
 const loading = ref(false);
 const error = ref<string | null>(null);
 const creatingChat = ref(false);
 
-const currentUserUid = computed(() => localStorage.getItem('userUid') || '');
+const currentUserUid = computed(() => authStore.userId.value || '');
 
 const canSendMessage = computed(() => {
     return post.value && currentUserUid.value && post.value.creatorUid !== currentUserUid.value;
@@ -178,9 +180,17 @@ onMounted(() => {
                                 <i v-else class="fas fa-comment me-1"></i>
                                 Direct Message
                             </button>
-                            <span v-else-if="post.creatorUid === currentUserUid" class="badge bg-secondary">
+                            <span v-else-if="currentUserUid && post.creatorUid === currentUserUid" class="badge bg-secondary">
                                 Your Post
                             </span>
+                            <RouterLink 
+                                v-else-if="!currentUserUid"
+                                to="/login"
+                                class="btn btn-outline-primary btn-sm"
+                            >
+                                <i class="fas fa-sign-in-alt me-1"></i>
+                                Login to Message
+                            </RouterLink>
                         </div>
                     </div>
                 </div>
