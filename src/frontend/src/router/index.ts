@@ -1,4 +1,4 @@
-import {createRouter, createWebHistory} from "vue-router";
+import { createRouter, createWebHistory } from "vue-router";
 import MainPostsComponent from "../components/main-posts-component.vue";
 import JournalistPostsComponent from "../components/journalist-posts-component.vue";
 import ActivistPostsComponent from "../components/activist-posts-component.vue";
@@ -17,30 +17,30 @@ const router = createRouter({
     routes: [
         {
             path: "/",
-            name: "MainPosts",
+            name: "Posts",
             component: MainPostsComponent,
             redirect: "/journalist",
             children: [
                 {
                     path: "journalist",
-                    name: "JournalistPosts",
+                    name: "Journalist Posts",
                     component: JournalistPostsComponent,
                 },
                 {
                     path: "activist",
-                    name: "ActivistPosts",
+                    name: "Activist Posts",
                     component: ActivistPostsComponent,
                 },
             ],
         },
         {
             path: "/post/:id",
-            name: "PostDetail",
+            name: "Post Detail",
             component: PostDetailComponent,
         },
         {
             path: "/post/:id/edit",
-            name: "EditPost",
+            name: "Edit Post",
             component: EditPostComponent,
             meta: { requiresAuth: true },
         },
@@ -58,19 +58,19 @@ const router = createRouter({
         },
         {
             path: "/chats",
-            name: "ChatsList",
+            name: "Chats",
             component: ChatsListComponent,
             meta: { requiresAuth: true },
         },
         {
             path: "/chat/new",
-            name: "CreateChat",
+            name: "Create Chat",
             component: CreateChatComponent,
             meta: { requiresAuth: true },
         },
         {
             path: "/chat/:id",
-            name: "ChatDetail",
+            name: "Chat Detail",
             component: ChatDetailComponent,
             meta: { requiresAuth: true },
         },
@@ -88,9 +88,9 @@ router.beforeEach((to, _, next) => {
     const isAuthenticated = authStore.isAuthenticated.value;
 
     if (to.meta.requiresAuth && !isAuthenticated) {
-        next({ name: 'Login' });
+        next({ name: "Login" });
     } else if (to.meta.guestOnly && isAuthenticated) {
-        next({ name: 'MainPosts' });
+        next({ name: "Posts" });
     } else {
         next();
     }
