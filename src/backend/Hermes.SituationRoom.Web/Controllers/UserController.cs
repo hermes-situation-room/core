@@ -29,9 +29,13 @@ public class UserController(IControllerInfrastructure infra, IUserService userSe
     [HttpGet("internal/user/display-name/{uid:guid}")]
     [AllowAnonymous]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_USER])]
-    [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Shared.DataTransferObjects.DisplayNameDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<string>> GetDisplayName(Guid uid) => Ok(await userService.GetDisplayNameAsync(uid));
+    public async Task<ActionResult<Shared.DataTransferObjects.DisplayNameDto>> GetDisplayName(Guid uid)
+    {
+        var displayName = await userService.GetDisplayNameAsync(uid);
+        return Ok(new Shared.DataTransferObjects.DisplayNameDto(displayName));
+    }
 
     [HttpGet("internal/user/")]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_USER])]
