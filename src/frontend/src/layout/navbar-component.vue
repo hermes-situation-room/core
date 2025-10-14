@@ -91,7 +91,7 @@ const handleLogout = async () => {
                                 class="btn btn-outline-secondary btn-sm d-flex align-items-center"
                             >
                                 <i class="fas fa-circle-user"></i>
-                                <span class="d-none d-xl-inline ms-1">Logout</span>
+                                <span class="d-none d-xl-inline ms-1">Profile</span>
                             </button>
                             <button 
                                 @click="handleLogout"
