@@ -85,7 +85,7 @@ export const useAuthStore = () => {
      * Login user - sets authentication state after successful login
      * Note: The actual authentication cookie is set by the backend
      */
-    const login = async (type: UserType, uid: string, data?: ActivistBo | JournalistBo) => {
+    const login = async () => {
         // Refresh from server to ensure we have the latest data from the cookie
         await refreshUserData();
     };

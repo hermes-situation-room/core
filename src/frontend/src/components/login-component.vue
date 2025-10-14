@@ -55,7 +55,7 @@ async function handleLogin() {
         if (result.isSuccess) {
             // Backend has set the authentication cookie
             // Now fetch the user data from the /me endpoint
-            await authStore.login(selectedUserType.value, '')
+            await authStore.login()
             
             // Only redirect if login was successful
             if (authStore.isAuthenticated.value) {

@@ -92,8 +92,7 @@ async function handleRegister() {
         }
 
         if (result.isSuccess && result.data) {
-            const userId = result.data
-            authStore.login(selectedUserType.value, userId)
+            authStore.login()
             
             await router.push('/')
         } else {
