@@ -34,8 +34,9 @@ const app = createApp(App);
 app.use(router);
 app.use(vuetify);
 
+// Initialize auth before mounting to ensure auth state is ready
 const authStore = useAuthStore();
-authStore.initAuth();
-
-app.mount("#app");
+authStore.initAuth().then(() => {
+    app.mount("#app");
+});
 

@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
 
-public class AuthorizationService(IHttpContextAccessor httpContextAccessor, IUserRepository userRepository, IActivistRepository activistRepository) : IAuthorizationService
+public class AuthorizationService(IHttpContextAccessor httpContextAccessor, IUserRepository userRepository, IActivistRepository activistRepository, IJournalistRepository journalistRepository) : IAuthorizationService
 {
 
     private HttpContext? HttpContext => httpContextAccessor.HttpContext;
@@ -24,7 +24,8 @@ public class AuthorizationService(IHttpContextAccessor httpContextAccessor, IUse
         var claims = new List<Claim>
         {
             new Claim(ClaimTypes.Name, activist.UserName),
-            new Claim(ClaimTypes.NameIdentifier, activist.Uid.ToString())
+            new Claim(ClaimTypes.NameIdentifier, activist.Uid.ToString()),
+            new Claim(ClaimTypes.Role, "Activist")
         };
 
         var claimsIdentity = new ClaimsIdentity(
@@ -33,7 +34,7 @@ public class AuthorizationService(IHttpContextAccessor httpContextAccessor, IUse
         var authProperties = new AuthenticationProperties
         {
             AllowRefresh = true,
-            ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(10),
+            ExpiresUtc = DateTimeOffset.UtcNow.AddHours(24),
             IsPersistent = true,
             IssuedUtc = DateTimeOffset.UtcNow,
         };
@@ -59,7 +60,8 @@ public class AuthorizationService(IHttpContextAccessor httpContextAccessor, IUse
         var claims = new List<Claim>
         {
             new Claim(ClaimTypes.Email, journalist.EmailAddress),
-            new Claim(ClaimTypes.NameIdentifier, journalist.Uid.ToString())
+            new Claim(ClaimTypes.NameIdentifier, journalist.Uid.ToString()),
+            new Claim(ClaimTypes.Role, "Journalist")
         };
 
         var claimsIdentity = new ClaimsIdentity(
@@ -68,7 +70,7 @@ public class AuthorizationService(IHttpContextAccessor httpContextAccessor, IUse
         var authProperties = new AuthenticationProperties
         {
             AllowRefresh = true,
-            ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(10),
+            ExpiresUtc = DateTimeOffset.UtcNow.AddHours(24),
             IsPersistent = true,
             IssuedUtc = DateTimeOffset.UtcNow,
         };
@@ -82,5 +84,54 @@ public class AuthorizationService(IHttpContextAccessor httpContextAccessor, IUse
             authProperties);
 
         return journalist.Uid;
+    }
+
+    public async Task Logout()
+    {
+        if (HttpContext == null)
+            throw new InvalidOperationException("No active HttpContext available.");
+
+        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+    }
+
+    public async Task<CurrentUserBo?> GetCurrentUser()
+    {
+        if (HttpContext?.User?.Identity?.IsAuthenticated != true)
+            return null;
+
+        var userIdClaim = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier);
+        var roleClaim = HttpContext.User.FindFirst(ClaimTypes.Role);
+
+        if (userIdClaim == null || roleClaim == null)
+            return null;
+
+        if (!Guid.TryParse(userIdClaim.Value, out var userId))
+            return null;
+
+        var userType = roleClaim.Value.ToLower();
+
+        // Fetch full user data based on type
+        if (userType == "activist")
+        {
+            var activist = await activistRepository.GetActivistBoAsync(userId);
+            return new CurrentUserBo
+            {
+                UserId = userId,
+                UserType = "activist",
+                UserData = activist
+            };
+        }
+        else if (userType == "journalist")
+        {
+            var journalist = await journalistRepository.GetJournalistBoAsync(userId);
+            return new CurrentUserBo
+            {
+                UserId = userId,
+                UserType = "journalist",
+                UserData = journalist
+            };
+        }
+
+        return null;
     }
 }

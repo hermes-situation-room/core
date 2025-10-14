@@ -30,6 +30,12 @@ export interface RegisterJournalistDto {
     employer: string;
 }
 
+export interface CurrentUserResponse {
+    userId: string;
+    userType: string;
+    userData: any;
+}
+
 class AuthApi extends ApiBaseClient {
     /**
      * Login as activist
@@ -76,6 +82,47 @@ class AuthApi extends ApiBaseClient {
         return await this.post<RegisterJournalistDto>(
             "services/api/internal/journalist",
             request
+        );
+    }
+
+    /**
+     * Logout current user
+     * Clears authentication cookie
+     */
+    async logout(): Promise<BaseResultBo<undefined>> {
+        const url = `${this.apiBaseUrl}services/api/internal/authorization/logout`;
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    "Accept": "application/json, text/plain, */*",
+                },
+            });
+
+            return {
+                data: undefined,
+                responseCode: response.status,
+                responseMessage: response.statusText,
+                isSuccess: response.ok,
+            };
+        } catch (e) {
+            return {
+                data: undefined,
+                responseCode: undefined,
+                responseMessage: e instanceof Error ? e.message : String(e),
+                isSuccess: false,
+            };
+        }
+    }
+
+    /**
+     * Get current authenticated user information
+     * @returns Current user data from authentication cookie
+     */
+    async getCurrentUser(): Promise<BaseResultBo<CurrentUserResponse>> {
+        return await this.get<CurrentUserResponse>(
+            "services/api/internal/authorization/me"
         );
     }
 }

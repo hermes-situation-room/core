@@ -66,21 +66,6 @@ const router = createRouter({
             component: ChatDetailComponent,
             meta: { requiresAuth: true },
         },
-        {
-            path: "/chats",
-            name: "ChatsList",
-            component: ChatsListComponent,
-        },
-        {
-            path: "/chat/new",
-            name: "CreateChat",
-            component: CreateChatComponent,
-        },
-        {
-            path: "/chat/:id",
-            name: "ChatDetail",
-            component: ChatDetailComponent,
-        },
     ],
 });
 

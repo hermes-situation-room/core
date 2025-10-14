@@ -5,4 +5,6 @@ public interface IAuthorizationService
 {
     Task<Guid> LoginActivist(LoginActivistBo activistLoginBo);
     Task<Guid> LoginJournalist(LoginJournalistBo journalistLoginBo);
+    Task Logout();
+    Task<CurrentUserBo?> GetCurrentUser();
 }

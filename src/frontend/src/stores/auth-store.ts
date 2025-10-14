@@ -1,43 +1,75 @@
 ﻿import { reactive, computed } from 'vue';
 import type { UserType, ActivistBo, JournalistBo } from '../types/user';
+import authApi from '../services/api/auth-api';
 
 interface AuthState {
     isAuthenticated: boolean;
     userType: UserType | null;
     userId: string | null;
     userData: ActivistBo | JournalistBo | null;
+    isLoading: boolean;
 }
 
 const state = reactive<AuthState>({
     isAuthenticated: false,
     userType: null,
     userId: null,
-    userData: null
+    userData: null,
+    isLoading: false
 });
 
-const initAuth = () => {
-    const storedAuth = localStorage.getItem('auth');
-    if (storedAuth) {
-        try {
-            const parsedAuth = JSON.parse(storedAuth);
-            state.isAuthenticated = parsedAuth.isAuthenticated;
-            state.userType = parsedAuth.userType;
-            state.userId = parsedAuth.userId;
-            state.userData = parsedAuth.userData;
-        } catch (e) {
-            console.error('Failed to parse stored auth', e);
-            localStorage.removeItem('auth');
+/**
+ * Initialize authentication from server cookie
+ * This is called on app startup to check if user is already authenticated
+ */
+const initAuth = async () => {
+    state.isLoading = true;
+    try {
+        const response = await authApi.getCurrentUser();
+        
+        if (response.isSuccess && response.data) {
+            state.isAuthenticated = true;
+            state.userType = response.data.userType as UserType;
+            state.userId = response.data.userId;
+            state.userData = response.data.userData;
+        } else {
+            // Not authenticated or session expired
+            clearAuthState();
         }
+    } catch (error) {
+        console.error('Failed to initialize auth', error);
+        clearAuthState();
+    } finally {
+        state.isLoading = false;
     }
 };
 
-const saveAuthToStorage = () => {
-    localStorage.setItem('auth', JSON.stringify({
-        isAuthenticated: state.isAuthenticated,
-        userType: state.userType,
-        userId: state.userId,
-        userData: state.userData
-    }));
+const clearAuthState = () => {
+    state.isAuthenticated = false;
+    state.userType = null;
+    state.userId = null;
+    state.userData = null;
+};
+
+const refreshUserData = async () => {
+    try {
+        const response = await authApi.getCurrentUser();
+        
+        if (response.isSuccess && response.data) {
+            state.isAuthenticated = true;
+            state.userType = response.data.userType as UserType;
+            state.userId = response.data.userId;
+            state.userData = response.data.userData;
+            return true;
+        } else {
+            clearAuthState();
+            return false;
+        }
+    } catch (error) {
+        console.error('Failed to refresh user data', error);
+        clearAuthState();
+        return false;
+    }
 };
 
 export const useAuthStore = () => {
@@ -47,26 +79,36 @@ export const useAuthStore = () => {
     const userData = computed(() => state.userData);
     const isActivist = computed(() => state.userType === 'activist');
     const isJournalist = computed(() => state.userType === 'journalist');
+    const isLoading = computed(() => state.isLoading);
 
-    const login = (type: UserType, uid: string, data?: ActivistBo | JournalistBo) => {
-        state.isAuthenticated = true;
-        state.userType = type;
-        state.userId = uid;
-        state.userData = data || null;
-        saveAuthToStorage();
+    /**
+     * Login user - sets authentication state after successful login
+     * Note: The actual authentication cookie is set by the backend
+     */
+    const login = async (type: UserType, uid: string, data?: ActivistBo | JournalistBo) => {
+        // Refresh from server to ensure we have the latest data from the cookie
+        await refreshUserData();
     };
 
-    const logout = () => {
-        state.isAuthenticated = false;
-        state.userType = null;
-        state.userId = null;
-        state.userData = null;
-        localStorage.removeItem('auth');
+    /**
+     * Logout user - clears cookie on server and local state
+     */
+    const logout = async () => {
+        try {
+            await authApi.logout();
+        } catch (error) {
+            console.error('Logout error:', error);
+        } finally {
+            // Clear local state regardless of API call success
+            clearAuthState();
+        }
     };
 
-    const updateUserData = (data: ActivistBo | JournalistBo) => {
-        state.userData = data;
-        saveAuthToStorage();
+    /**
+     * Update user data - fetches fresh data from server
+     */
+    const updateUserData = async () => {
+        await refreshUserData();
     };
 
     return {
@@ -76,10 +118,10 @@ export const useAuthStore = () => {
         userData,
         isActivist,
         isJournalist,
+        isLoading,
         login,
         logout,
         updateUserData,
         initAuth
     };
 };
-

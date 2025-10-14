@@ -1,20 +1,23 @@
 ﻿namespace Hermes.SituationRoom.Api;
 
+using Configurations;
 using Data.Context;
 using Data.Interface;
 using Domain.Hubs;
-using Hermes.SituationRoom.Api.Configurations;
-using Hermes.SituationRoom.Api.Extensions;
-using Hermes.SituationRoom.Api.Middlewares;
+using Extensions;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
+using Middlewares;
 using Serilog;
 
 public class Startup
 {
+    private readonly IWebHostEnvironment _env;
+
     public Startup(IConfiguration configuration, IWebHostEnvironment env)
     {
+        _env = env;
         var builder = new ConfigurationBuilder()
             .SetBasePath(env.ContentRootPath)
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
@@ -41,9 +44,23 @@ public class Startup
             .AddCookie(options =>
             {
                 options.Cookie.Name = "SituationRoom.Auth";
-                options.Cookie.HttpOnly = true; // Secure in production
-                options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest; // Works with both HTTP and HTTPS
-                options.Cookie.SameSite = SameSiteMode.None; // Allow cross-site requests
+                options.Cookie.HttpOnly = true;
+                
+                // Cookie security settings based on environment
+                if (_env.IsDevelopment())
+                {
+                    // Development: Allow HTTP and use Lax for localhost
+                    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+                    options.Cookie.SameSite = SameSiteMode.Lax;
+                }
+                else
+                {
+                    // Production: Require HTTPS and use None for cross-origin
+                    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+                    options.Cookie.SameSite = SameSiteMode.None;
+                }
+                options.ExpireTimeSpan = TimeSpan.FromHours(24);
+                options.SlidingExpiration = true;
                 options.Events.OnRedirectToLogin = ctx =>
                 {
                     // Return 401 instead of redirect
@@ -61,7 +78,7 @@ public class Startup
 
         services.AddAuthorization(options =>
         {
-            options.DefaultPolicy = new Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder()
+            options.DefaultPolicy = new AuthorizationPolicyBuilder()
                 .RequireAuthenticatedUser()
                 .Build();
         });

@@ -52,11 +52,17 @@ async function handleLogin() {
             })
         }
 
-        if (result.isSuccess && result.data) {
-            const userId = result.data
-            authStore.login(selectedUserType.value, userId)
+        if (result.isSuccess) {
+            // Backend has set the authentication cookie
+            // Now fetch the user data from the /me endpoint
+            await authStore.login(selectedUserType.value, '')
             
-            await router.push('/')
+            // Only redirect if login was successful
+            if (authStore.isAuthenticated.value) {
+                await router.push('/')
+            } else {
+                errorMessage.value = 'Failed to fetch user data. Please try again.'
+            }
         } else {
             errorMessage.value = result.responseMessage || 'Login failed. Please check your credentials.'
         }
