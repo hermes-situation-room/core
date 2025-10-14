@@ -1,6 +1,7 @@
 ﻿namespace Hermes.SituationRoom.Domain.Interfaces;
 
 using Shared.BusinessObjects;
+using Shared.DataTransferObjects;
 
 public interface IActivistService
 {
@@ -11,6 +12,8 @@ public interface IActivistService
     Task<Guid> CreateActivistAsync(ActivistBo activistBo);
 
     Task<ActivistBo> UpdateActivistAsync(ActivistBo updatedActivist);
+
+    Task<ActivistBo> UpdateActivistVisibilityAsync(Guid activistUid, UpdateActivistPrivacyLevelDto updateActivistPrivacyLevelDto);
 
     Task DeleteActivistAsync(Guid activistUid);
 }

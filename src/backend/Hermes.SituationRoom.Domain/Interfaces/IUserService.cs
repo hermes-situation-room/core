@@ -6,7 +6,7 @@ public interface IUserService
 {
     Task<UserBo> GetUserAsync(Guid userUid);
 
-    Task<UserBo> GetUserProfileAsync(Guid userUid, Guid consumerUid);
+    Task<UserProfileBo> GetUserProfileAsync(Guid userUid, Guid consumerUid);
 
     Task<IReadOnlyList<UserBo>> GetUsersAsync();
 
