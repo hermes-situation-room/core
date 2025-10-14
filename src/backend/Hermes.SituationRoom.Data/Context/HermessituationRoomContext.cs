@@ -246,7 +246,7 @@ public partial class HermessituationRoomContext : DbContext
 
         modelBuilder.Entity<UserChatReadStatus>(entity =>
         {
-            entity.HasKey(e => e.Uid).HasName("PK__UserChat__C5B196026A7A569E");
+            entity.HasKey(e => e.Uid).HasName("PK__UserChat__C5B196023B47AEE0");
 
             entity.ToTable("UserChatReadStatus");
 
@@ -255,7 +255,9 @@ public partial class HermessituationRoomContext : DbContext
             entity.HasIndex(e => e.UserId, "IX_UserChatReadStatus_User");
 
             entity.Property(e => e.Uid)
+            entity.Property(e => e.Uid)
                 .ValueGeneratedNever()
+                .HasColumnName("UID");
                 .HasColumnName("UID");
             entity.Property(e => e.ChatId).HasColumnName("ChatID");
             entity.Property(e => e.ReadTime).HasColumnType("datetime");
