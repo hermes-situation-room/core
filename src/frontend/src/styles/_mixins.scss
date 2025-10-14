@@ -101,8 +101,28 @@
 }
 
 // --------------------------------------------
-// Glassmorphism Effect
+// Glassmorphism Effect (iOS 26 Enhanced)
 // --------------------------------------------
+
+@mixin ios-glass($opacity: 0.72) {
+  background: rgba(255, 255, 255, $opacity);
+  backdrop-filter: blur($glass-blur) saturate(180%);
+  -webkit-backdrop-filter: blur($glass-blur) saturate(180%);
+  border: 1px solid $ios-glass-border;
+  box-shadow: $ios-glass-shadow;
+}
+
+@mixin ios-glass-card {
+  @include ios-glass(0.75);
+  border-radius: $radius-2xl;
+  @include smooth-transition(all);
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.85);
+    box-shadow: 0 12px 48px 0 rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+  }
+}
 
 @mixin glass($opacity: 0.7, $blur: $glass-blur) {
   background: rgba(255, 255, 255, $opacity);
@@ -231,18 +251,19 @@
 }
 
 @mixin button-variant($bg-color, $text-color: $text-inverse, $hover-scale: 1.02) {
-  background: $bg-color;
+  background: linear-gradient(135deg, $bg-color, darken($bg-color, 5%));
   color: $text-color;
+  box-shadow: 0 4px 16px 0 rgba($bg-color, 0.25);
   
   &:hover:not(:disabled) {
-    background: darken($bg-color, 5%);
-    transform: translateY(-1px) scale($hover-scale);
-    @include elevation(2);
+    background: linear-gradient(135deg, lighten($bg-color, 3%), $bg-color);
+    transform: translateY(-2px) scale($hover-scale);
+    box-shadow: 0 8px 24px 0 rgba($bg-color, 0.35);
   }
   
   &:active:not(:disabled) {
-    transform: translateY(0) scale(0.98);
-    @include elevation(1);
+    transform: translateY(0) scale(0.96);
+    box-shadow: 0 2px 8px 0 rgba($bg-color, 0.2);
   }
 }
 
@@ -302,9 +323,11 @@
   font-weight: $font-weight-regular;
   line-height: $line-height-normal;
   color: $text-primary;
-  background: $bg-elevated;
-  border: $input-border-width solid $border-light;
-  border-radius: $radius-lg;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid $ios-glass-border;
+  border-radius: $radius-xl;
   @include smooth-transition(all);
   appearance: none;
   
@@ -314,13 +337,14 @@
   
   &:focus {
     outline: none;
+    background: rgba(255, 255, 255, 0.85);
     border-color: $color-primary-500;
-    box-shadow: 0 0 0 $input-focus-ring-width $input-focus-ring-color;
-    @include elevation(1);
+    box-shadow: 0 0 0 3px rgba($color-primary-500, 0.15),
+                0 4px 16px 0 rgba(0, 0, 0, 0.1);
   }
   
   &:disabled {
-    background: $bg-tertiary;
+    background: rgba(255, 255, 255, 0.5);
     color: $text-tertiary;
     cursor: not-allowed;
   }
@@ -329,7 +353,8 @@
     border-color: $color-error;
     
     &:focus {
-      box-shadow: 0 0 0 $input-focus-ring-width rgba($color-error, 0.25);
+      box-shadow: 0 0 0 3px rgba($color-error, 0.15),
+                  0 4px 16px 0 rgba($color-error, 0.1);
     }
   }
 }

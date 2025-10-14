@@ -21,25 +21,34 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: $bg-secondary;
+  background: transparent;
+  padding-bottom: $bottom-nav-height;
+  
+  @include respond-to('md') {
+    padding-bottom: 0;
+  }
 }
 
 main {
   flex: 1;
   display: flex;
   flex-direction: column;
+  padding: $space-4;
+  
+  @include respond-to('md') {
+    padding: $space-6;
+  }
 }
 
 // ============================================
 // Custom Component Overrides
 // ============================================
 
-// Enhanced Navbar with Glass Effect
+// Enhanced Navbar with iOS Glass Effect
 .navbar {
-  @include glass(0.9, 12px);
-  backdrop-filter: blur(12px) saturate(180%);
-  -webkit-backdrop-filter: blur(12px) saturate(180%);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+  @include ios-glass(0.85);
+  border: none;
+  border-bottom: 1px solid $ios-glass-border;
   
   .logo {
     transition: transform $transition-base $ease-out;
@@ -50,14 +59,61 @@ main {
   }
 }
 
-// Enhanced Cards with better hover effects
-.card {
-  background: $bg-elevated;
-  border: 1px solid $border-light;
+// Bottom Navigation (iOS Style)
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: $bottom-nav-height;
+  @include ios-glass(0.85);
+  border-top: 1px solid $ios-glass-border;
+  padding: 0 $space-4 env(safe-area-inset-bottom, 0);
+  z-index: $z-index-fixed;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
   
-  &:hover {
-    border-color: rgba($color-primary-500, 0.3);
+  @include respond-to('md') {
+    display: none;
   }
+  
+  .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: $space-1;
+    padding: $space-2;
+    color: $text-tertiary;
+    text-decoration: none;
+    border-radius: $radius-lg;
+    min-width: 60px;
+    @include smooth-transition(all);
+    
+    i {
+      font-size: $font-size-lg;
+    }
+    
+    span {
+      font-size: $font-size-xs;
+      font-weight: $font-weight-medium;
+    }
+    
+    &:active {
+      transform: scale(0.9);
+    }
+    
+    &.active {
+      color: $color-primary-600;
+      background: rgba($color-primary-500, 0.1);
+    }
+  }
+}
+
+// Enhanced Cards with iOS glass style
+.card {
+  @include ios-glass-card;
+  border: 1px solid $ios-glass-border;
 }
 
 // Smooth scrolling container

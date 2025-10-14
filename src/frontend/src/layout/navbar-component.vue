@@ -10,15 +10,10 @@ const router = useRouter()
 const authStore = useAuthStore()
 
 const pageTitle = ref('Posts')
-const showMobileMenu = ref(false)
 
 watch(() => route.name, (newRouteName) => {
     pageTitle.value = newRouteName as string || 'Posts'
 }, { immediate: true })
-
-watch(() => route.path, () => {
-    showMobileMenu.value = false
-})
 
 onMounted(() => {
     const existing = document.querySelector<HTMLLinkElement>('link[rel="icon"]')
@@ -29,14 +24,6 @@ onMounted(() => {
     if (!existing) document.head.appendChild(link)
 })
 
-const toggleMobileMenu = () => {
-    showMobileMenu.value = !showMobileMenu.value
-}
-
-const closeMobileMenu = () => {
-    showMobileMenu.value = false
-}
-
 const handleLogout = async () => {
     await authStore.logout()
     await router.push('/login')
@@ -44,9 +31,9 @@ const handleLogout = async () => {
 </script>
 
 <template>
-    <div class="sticky-top" style="background-color: #F5F5F5; z-index: 1030;">
-        <nav class="navbar py-2 px-3" style="background-color: #F5F5F5;">
-            <div class="container-fluid">
+    <div class="sticky-top" style="z-index: 1030;">
+        <nav class="navbar py-2 px-3">
+            <div class="container-fluid d-none d-md-flex">
                 <div class="d-flex align-items-center justify-content-between w-100">
                     <RouterLink to="/" class="navbar-brand d-flex align-items-center me-3">
                         <img
@@ -102,84 +89,8 @@ const handleLogout = async () => {
                         </template>
                     </div>
 
-                    <button 
-                        class="btn btn-link text-dark d-md-none p-0"
-                        @click="toggleMobileMenu"
-                        type="button"
-                    >
-                        <i class="fas fa-bars fs-4"></i>
-                    </button>
                 </div>
             </div>
         </nav>
-        <hr style="border: none; height: 1px; background-color: #000; margin: 0;" />
-
-        <div 
-            :class="['offcanvas', 'offcanvas-end', { 'show': showMobileMenu }]"
-            tabindex="-1"
-            :style="{ visibility: showMobileMenu ? 'visible' : 'hidden' }"
-        >
-            <div class="offcanvas-header">
-                <h5 class="offcanvas-title">Menu</h5>
-                <button 
-                    type="button" 
-                    class="btn-close"
-                    @click="closeMobileMenu"
-                ></button>
-            </div>
-            <div class="offcanvas-body">
-                <div class="list-group list-group-flush">
-                    <template v-if="authStore.isAuthenticated.value">
-                        <div class="list-group-item bg-light">
-                            <div class="d-flex align-items-center justify-content-between">
-                                <span class="fw-bold">Logged in as:</span>
-                                <span class="badge bg-dark">
-                                    {{ authStore.userType.value === 'journalist' ? 'Journalist' : 'Activist' }}
-                                </span>
-                            </div>
-                        </div>
-                        <RouterLink 
-                            to="/chats" 
-                            class="list-group-item list-group-item-action d-flex align-items-center gap-3"
-                            @click="closeMobileMenu"
-                        >
-                            <i class="fas fa-comments fs-5"></i>
-                            <span>Messages</span>
-                        </RouterLink>
-                        <button 
-                            @click="handleLogout"
-                            class="list-group-item list-group-item-action d-flex align-items-center gap-3 text-danger"
-                        >
-                            <i class="fas fa-sign-out-alt fs-5"></i>
-                            <span>Logout</span>
-                        </button>
-                    </template>
-                    <template v-else>
-                        <RouterLink 
-                            to="/chats" 
-                            class="list-group-item list-group-item-action d-flex align-items-center gap-3"
-                            @click="closeMobileMenu"
-                        >
-                            <i class="fas fa-sign-in-alt fs-5"></i>
-                            <span>Login</span>
-                        </RouterLink>
-                        <RouterLink 
-                            to="/register" 
-                            class="list-group-item list-group-item-action d-flex align-items-center gap-3"
-                            @click="closeMobileMenu"
-                        >
-                            <i class="fas fa-user-plus fs-5"></i>
-                            <span>Register</span>
-                        </RouterLink>
-                    </template>
-                </div>
-            </div>
-        </div>
-
-        <div 
-            v-if="showMobileMenu"
-            class="offcanvas-backdrop fade show"
-            @click="closeMobileMenu"
-        ></div>
     </div>
 </template>

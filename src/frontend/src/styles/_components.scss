@@ -255,23 +255,29 @@ select.form-control {
 }
 
 // --------------------------------------------
-// Cards
+// Cards (iOS Glass Style)
 // --------------------------------------------
 
 .card {
-  @include card;
+  @include ios-glass-card;
   
   &-interactive {
-    @include card-interactive;
+    @include ios-glass-card;
+    cursor: pointer;
+    
+    &:active {
+      transform: scale(0.98);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+    }
   }
   
   &-glass {
-    @include glass(0.7);
-    @include elevation(1);
+    @include ios-glass(0.75);
     border-radius: $radius-2xl;
+    @include elevation(1);
     
     &:hover {
-      @include glass(0.9);
+      @include ios-glass(0.85);
       @include elevation(2);
     }
   }
@@ -412,7 +418,7 @@ select.form-control {
 }
 
 // --------------------------------------------
-// Modals
+// Modals (iOS Glass Style)
 // --------------------------------------------
 
 .modal {
@@ -427,9 +433,9 @@ select.form-control {
   
   &-backdrop {
     @include absolute-cover;
-    background: rgba($color-neutral-950, $modal-backdrop-opacity);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    background: rgba($color-neutral-950, 0.3);
+    backdrop-filter: blur($glass-blur);
+    -webkit-backdrop-filter: blur($glass-blur);
     z-index: $z-index-modal-backdrop;
   }
   
@@ -453,9 +459,8 @@ select.form-control {
   }
   
   &-content {
-    background: $bg-elevated;
+    @include ios-glass(0.9);
     border-radius: $modal-border-radius;
-    @include elevation(4);
     overflow: hidden;
     animation: scaleIn $transition-slow $ease-out;
   }
@@ -548,9 +553,8 @@ select.form-control {
     z-index: $z-index-dropdown;
     min-width: 200px;
     padding: $space-2;
-    background: $bg-elevated;
+    @include ios-glass(0.9);
     border-radius: $radius-xl;
-    @include elevation(3);
     opacity: 0;
     visibility: hidden;
     transform: translateY(-10px);
@@ -597,7 +601,7 @@ select.form-control {
 }
 
 // --------------------------------------------
-// Navbar
+// Navbar (iOS Glass Style)
 // --------------------------------------------
 
 .navbar {
@@ -605,9 +609,8 @@ select.form-control {
   align-items: center;
   justify-content: space-between;
   padding: $navbar-padding-y $navbar-padding-x;
-  background: $bg-elevated;
-  border-bottom: 1px solid $border-light;
-  @include elevation(1);
+  @include ios-glass(0.85);
+  border-bottom: 1px solid $ios-glass-border;
   
   &-brand {
     display: flex;
@@ -730,7 +733,7 @@ select.form-control {
 }
 
 // --------------------------------------------
-// Offcanvas (Sidebar)
+// Offcanvas (Sidebar - iOS Glass)
 // --------------------------------------------
 
 .offcanvas {
@@ -739,8 +742,7 @@ select.form-control {
   height: 100vh;
   max-width: 320px;
   width: 100%;
-  background: $bg-elevated;
-  @include elevation(4);
+  @include ios-glass(0.9);
   z-index: $z-index-modal;
   transform: translateX(-100%);
   @include smooth-transition(transform, $transition-slow);
@@ -780,9 +782,9 @@ select.form-control {
   &-backdrop {
     @include absolute-cover;
     position: fixed;
-    background: rgba($color-neutral-950, 0.5);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+    background: rgba($color-neutral-950, 0.3);
+    backdrop-filter: blur($glass-blur);
+    -webkit-backdrop-filter: blur($glass-blur);
     z-index: $z-index-modal-backdrop;
     opacity: 0;
     @include smooth-transition(opacity);

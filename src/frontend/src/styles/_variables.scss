@@ -198,14 +198,20 @@ $ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
 $ease-sharp: cubic-bezier(0.4, 0, 0.6, 1);
 
 // --------------------------------------------
-// Glassmorphism Effects
+// Glassmorphism Effects (iOS 26 Enhanced)
 // --------------------------------------------
 
-$glass-background: rgba(255, 255, 255, 0.7);
-$glass-background-dark: rgba(255, 255, 255, 0.1);
-$glass-border: rgba(255, 255, 255, 0.18);
-$glass-blur: 16px;
-$glass-blur-heavy: 24px;
+$glass-background: rgba(255, 255, 255, 0.75);
+$glass-background-dark: rgba(255, 255, 255, 0.08);
+$glass-border: rgba(255, 255, 255, 0.25);
+$glass-blur: 24px;
+$glass-blur-heavy: 40px;
+$glass-blur-light: 16px;
+
+// iOS-specific glass
+$ios-glass-bg: rgba(255, 255, 255, 0.72);
+$ios-glass-border: rgba(0, 0, 0, 0.08);
+$ios-glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.12);
 
 // --------------------------------------------
 // Z-Index System
@@ -279,6 +285,10 @@ $card-padding-lg: $space-8;
 $navbar-height: 4rem;
 $navbar-padding-y: $space-3;
 $navbar-padding-x: $space-4;
+
+// Bottom Navigation (iOS style)
+$bottom-nav-height: 5rem;
+$bottom-nav-padding: $space-3;
 
 // Modal
 $modal-padding: $space-6;

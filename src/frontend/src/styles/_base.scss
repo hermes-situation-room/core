@@ -35,10 +35,10 @@ body {
   font-weight: $font-weight-regular;
   line-height: $line-height-normal;
   color: $text-primary;
-  background: $bg-secondary;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
   overflow-x: hidden;
   min-height: 100vh;
-  @include smooth-transition(background-color, $transition-slow);
+  @include smooth-transition(background, $transition-slow);
 }
 
 // --------------------------------------------
