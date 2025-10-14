@@ -64,10 +64,10 @@ const loadChat = async () => {
             // Try to initialize socket connection for real-time updates
             try {
                 await sockets.hub.initialize();
+                sockets.hub.joinChat(chatId);
                 sockets.hub.registerToEvent('ReceiveMessage', handleIncomingMessage);
                 sockets.hub.registerToEvent('UpdateMessage', handleMessageUpdate);
                 sockets.hub.registerToEvent('DeleteMessage', handleMessageDelete);
-                sockets.hub.joinChat(chatId);
                 isSocketConnected.value = true;
             } catch (socketError) {
                 console.warn('Failed to connect to real-time messaging. Messages will not update automatically:', socketError);
