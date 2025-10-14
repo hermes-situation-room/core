@@ -4,24 +4,18 @@ import {useRouter} from 'vue-router';
 import {services} from '../services/api';
 import type {ChatBo} from '../types/chat';
 import { useAuthStore } from '../stores/auth-store';
+import { useErrorStore } from '../stores/error-store';
+import { useNotifications } from '../composables/use-notifications';
 
 const router = useRouter();
 const authStore = useAuthStore();
+const errorStore = useErrorStore();
+const { showDeleteSuccess } = useNotifications();
 
 const chats = ref<ChatBo[]>([]);
 const chatsWithLastMessage = ref<Array<ChatBo & { lastMessageTime?: string, lastMessage?: string }>>([]);
 const loading = ref(false);
 const currentUserUid = ref<string>('');
-const errorMessage = ref<string>('');
-
-const clearError = () => {
-    errorMessage.value = '';
-};
-
-const showError = (message: string) => {
-    errorMessage.value = message;
-    setTimeout(clearError, 5000);
-};
 
 const loadChats = async () => {
     loading.value = true;
@@ -29,7 +23,10 @@ const loadChats = async () => {
         currentUserUid.value = authStore.userId.value || '';
         
         if (!currentUserUid.value) {
-            showError('You must be logged in to view chats');
+            errorStore.addError({
+                category: 'authentication',
+                message: 'You must be logged in to view chats'
+            });
             router.push("/login");
             return;
         }
@@ -38,11 +35,14 @@ const loadChats = async () => {
         if (result.isSuccess && result.data) {
             chats.value = result.data;
             await loadChatsWithLastMessage();
-        } else {
-            showError(result.responseMessage || 'Failed to load chats');
+        } else if (result.error) {
+            errorStore.addError(result.error);
         }
     } catch (error) {
-        showError('Error loading chats');
+        errorStore.addError({
+            category: 'unknown',
+            message: 'Error loading chats'
+        });
     } finally {
         loading.value = false;
     }
@@ -113,11 +113,15 @@ const deleteChat = async (chatId: string, event: Event) => {
         if (result.isSuccess) {
             chats.value = chats.value.filter(chat => chat.uid !== chatId);
             chatsWithLastMessage.value = chatsWithLastMessage.value.filter(chat => chat.uid !== chatId);
-        } else {
-            showError(result.responseMessage || 'Failed to delete chat');
+            showDeleteSuccess('Chat');
+        } else if (result.error) {
+            errorStore.addError(result.error);
         }
     } catch (error) {
-        showError('Error deleting chat');
+        errorStore.addError({
+            category: 'unknown',
+            message: 'Error deleting chat'
+        });
     }
 };
 
@@ -165,10 +169,6 @@ onMounted(() => {
                     </button>
                 </div>
 
-                <div v-if="errorMessage" class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
-                    {{ errorMessage }}
-                    <button type="button" class="btn-close" @click="clearError" aria-label="Close"></button>
-                </div>
 
                 <div v-if="loading" class="d-flex justify-content-center align-items-center py-5">
                     <div class="text-center">

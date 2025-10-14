@@ -4,14 +4,17 @@ import { useRoute, useRouter } from 'vue-router';
 import { services } from '../services/api';
 import type { PostBo } from '../types/post';
 import { useAuthStore } from '../stores/auth-store';
+import { useErrorStore } from '../stores/error-store';
+import { useNotifications } from '../composables/use-notifications';
 
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
+const errorStore = useErrorStore();
+const { showCreateSuccess } = useNotifications();
 
 const post = ref<PostBo | null>(null);
 const loading = ref(false);
-const error = ref<string | null>(null);
 const creatingChat = ref(false);
 
 const currentUserUid = computed(() => authStore.userId.value || '');
@@ -23,7 +26,11 @@ const canSendMessage = computed(() => {
 const loadPost = async () => {
     const postId = route.params.id as string;
     if (!postId) {
-        error.value = 'Post ID not found';
+        errorStore.addError({
+            category: 'validation',
+            message: 'Post ID not found'
+        });
+        router.push('/');
         return;
     }
 
@@ -32,11 +39,16 @@ const loadPost = async () => {
         const result = await services.posts.getPostById(postId);
         if (result.isSuccess && result.data) {
             post.value = result.data;
-        } else {
-            error.value = result.responseMessage || 'Failed to load post';
+        } else if (result.error) {
+            errorStore.addError(result.error);
+            router.push('/');
         }
     } catch (err) {
-        error.value = 'Error loading post';
+        errorStore.addError({
+            category: 'unknown',
+            message: 'Error loading post'
+        });
+        router.push('/');
     } finally {
         loading.value = false;
     }
@@ -52,7 +64,10 @@ const sendDirectMessage = async () => {
     }
 
     if (post.value.creatorUid === currentUserUid.value) {
-        error.value = 'You cannot send a message to yourself';
+        errorStore.addError({
+            category: 'validation',
+            message: 'You cannot send a message to yourself'
+        });
         return;
     }
 
@@ -65,12 +80,16 @@ const sendDirectMessage = async () => {
         );
 
         if (chatResult.isSuccess && chatResult.data) {
+            showCreateSuccess('Chat');
             router.push(`/chat/${chatResult.data.uid}`);
-        } else {
-            error.value = chatResult.responseMessage || 'Failed to open chat';
+        } else if (chatResult.error) {
+            errorStore.addError(chatResult.error);
         }
     } catch (err) {
-        error.value = 'An error occurred while opening the chat';
+        errorStore.addError({
+            category: 'unknown',
+            message: 'An error occurred while opening the chat'
+        });
     } finally {
         creatingChat.value = false;
     }
@@ -110,15 +129,7 @@ onMounted(() => {
                     </div>
                 </div>
 
-                <div v-else-if="error" class="card">
-                    <div class="card-body text-center p-5">
-                        <i class="fas fa-exclamation-triangle mb-4 text-danger" style="font-size: 3rem;"></i>
-                        <h3 class="card-title">Error Loading Post</h3>
-                        <p class="card-text text-muted">{{ error }}</p>
-                    </div>
-                </div>
-
-                <div v-else-if="post" class="card">
+                <div v-if="post" class="card">
                     <div class="card-header bg-dark text-white">
                         <h1 class="h3 mb-2">{{ post.title }}</h1>
                         <small class="text-light">{{ formatDate(post.timestamp) }}</small>

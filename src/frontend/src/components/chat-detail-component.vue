@@ -4,11 +4,15 @@ import {useRoute, useRouter} from 'vue-router';
 import {services, sockets} from '../services/api';
 import type {ChatBo} from '../types/chat';
 import { useAuthStore } from '../stores/auth-store';
-import type {CreateMessageDto, MessageBo} from "../types/message.ts";
+import { useErrorStore } from '../stores/error-store';
+import { useNotifications } from '../composables/use-notifications';
+import type{CreateMessageDto, MessageBo} from "../types/message.ts";
 
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
+const errorStore = useErrorStore();
+const { showUpdateSuccess, showDeleteSuccess } = useNotifications();
 
 const chat = ref<ChatBo | null>(null);
 const messages = ref<MessageBo[]>([]);
@@ -20,16 +24,6 @@ const currentUserUid = ref<string>('');
 const editingMessageId = ref<string | null>(null);
 const editingContent = ref('');
 const messageInputRef = ref<HTMLInputElement | null>(null);
-const errorMessage = ref('');
-
-const clearError = () => {
-    errorMessage.value = '';
-};
-
-const showError = (message: string) => {
-    errorMessage.value = message;
-    setTimeout(clearError, 5000);
-};
 
 const loadChat = async () => {
     loading.value = true;
@@ -38,7 +32,10 @@ const loadChat = async () => {
         currentUserUid.value = authStore.userId.value || '';
 
         if (!currentUserUid.value) {
-            showError('You must be logged in to view chats');
+            errorStore.addError({
+                category: 'authentication',
+                message: 'You must be logged in to view chats'
+            });
             router.push('/chats');
             return;
         }
@@ -52,14 +49,17 @@ const loadChat = async () => {
             sockets.hub.registerToEvent('ReceiveMessage', handleIncomingMessage);
             sockets.hub.registerToEvent('UpdateMessage', handleMessageUpdate);
             sockets.hub.registerToEvent('DeleteMessage', handleMessageDelete);
-        } else {
+        } else if (result.error) {
+            errorStore.addError(result.error);
             if (result.responseCode === 404) {
-                showError('Chat not found');
                 router.push('/chats');
             }
         }
     } catch (error) {
-        showError('Error loading chat');
+        errorStore.addError({
+            category: 'unknown',
+            message: 'Error loading chat'
+        });
     } finally {
         loading.value = false;
     }
@@ -190,12 +190,15 @@ const sendMessage = async () => {
                 messages.value.push(message);
             }
             scrollToBottom();
-        } else {
-            showError('Failed to send message');
+        } else if (result.error) {
+            errorStore.addError(result.error);
             newMessage.value = messageContent;
         }
     } catch (error) {
-        showError('Failed to send message');
+        errorStore.addError({
+            category: 'unknown',
+            message: 'Failed to send message'
+        });
         newMessage.value = messageContent;
     } finally {
         sending.value = false;
@@ -231,13 +234,17 @@ const saveEdit = async (messageId: string) => {
             if (messageIndex !== -1 && messages.value[messageIndex]) {
                 messages.value[messageIndex].content = newContent;
             }
-             cancelEdit();
-         } else {
-             showError('Failed to update message');
-         }
-     } catch (error) {
-         showError('Failed to update message');
-     }
+            showUpdateSuccess('Message');
+            cancelEdit();
+        } else if (result.error) {
+            errorStore.addError(result.error);
+        }
+    } catch (error) {
+        errorStore.addError({
+            category: 'unknown',
+            message: 'Failed to update message'
+        });
+    }
 };
 
 const deleteMessage = async (messageId: string) => {
@@ -247,14 +254,18 @@ const deleteMessage = async (messageId: string) => {
 
     try {
         const result = await services.messages.deleteMessage(messageId);
-         if (result.isSuccess) {
-             messages.value = messages.value.filter(m => m.uid !== messageId);
-         } else {
-             showError('Failed to delete message');
-         }
-     } catch (error) {
-         showError('Failed to delete message');
-     }
+        if (result.isSuccess) {
+            messages.value = messages.value.filter(m => m.uid !== messageId);
+            showDeleteSuccess('Message');
+        } else if (result.error) {
+            errorStore.addError(result.error);
+        }
+    } catch (error) {
+        errorStore.addError({
+            category: 'unknown',
+            message: 'Failed to delete message'
+        });
+    }
 };
 
 const scrollToBottom = async (smooth = true) => {
@@ -365,10 +376,6 @@ onUnmounted(() => {
             </div>
           </div>
 
-          <div v-if="errorMessage" class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
-            {{ errorMessage }}
-            <button type="button" class="btn-close" @click="clearError" aria-label="Close"></button>
-          </div>
 
           <div class="card flex-grow-1 d-flex flex-column" style="min-height: 0;">
             <div

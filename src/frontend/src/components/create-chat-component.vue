@@ -3,28 +3,36 @@ import {ref} from 'vue';
 import {useRouter} from 'vue-router';
 import {services} from '../services/api';
 import { useAuthStore } from '../stores/auth-store';
+import { useErrorStore } from '../stores/error-store';
+import { useNotifications } from '../composables/use-notifications';
 
 const router = useRouter();
 const authStore = useAuthStore();
+const errorStore = useErrorStore();
+const { showCreateSuccess } = useNotifications();
 
 const otherUserUid = ref('');
 const creating = ref(false);
-const error = ref('');
 
 const createChat = async () => {
     if (!otherUserUid.value.trim()) {
-        error.value = 'Please enter a user ID';
+        errorStore.addError({
+            category: 'validation',
+            message: 'Please enter a user ID'
+        });
         return;
     }
 
     creating.value = true;
-    error.value = '';
 
     try {
         const currentUserUid = authStore.userId.value || '';
         
         if (!currentUserUid) {
-            error.value = 'You must be logged in to create a chat';
+            errorStore.addError({
+                category: 'authentication',
+                message: 'You must be logged in to create a chat'
+            });
             creating.value = false;
             return;
         }
@@ -35,12 +43,16 @@ const createChat = async () => {
         );
 
         if (chatResult.isSuccess && chatResult.data) {
+            showCreateSuccess('Chat');
             router.push(`/chat/${chatResult.data.uid}`);
-        } else {
-            error.value = chatResult.responseMessage || 'Failed to open chat';
+        } else if (chatResult.error) {
+            errorStore.addError(chatResult.error);
         }
     } catch (err) {
-        error.value = 'An error occurred while opening the chat';
+        errorStore.addError({
+            category: 'unknown',
+            message: 'An error occurred while opening the chat'
+        });
     } finally {
         creating.value = false;
     }
@@ -68,14 +80,10 @@ const cancel = () => {
                                     v-model="otherUserUid"
                                     type="text"
                                     class="form-control"
-                                    :class="{'is-invalid': error}"
                                     placeholder="Enter the UID of the user you want to chat with"
                                     :disabled="creating"
                                     required
                                 />
-                                <div v-if="error" class="invalid-feedback d-block">
-                                    {{ error }}
-                                </div>
                                 <div class="form-text">
                                     Enter the unique ID of the user you want to start a chat with.
                                 </div>
