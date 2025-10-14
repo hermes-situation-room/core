@@ -212,7 +212,17 @@ onMounted(() => {
                         <div class="d-flex justify-content-between align-items-center">
                             <div class="text-muted small d-flex align-items-center">
                             <i class="fas fa-user me-2"></i>
-                            Created by: {{ currentUserUid && post.creatorUid === currentUserUid ? 'You' : (creatorDisplayName || post.creatorUid) }}
+                            <span v-if="currentUserUid && post.creatorUid === currentUserUid">Created by: You</span>
+                            <span v-else>
+                                Created by: 
+                                <a 
+                                    href="#" 
+                                    class="text-primary text-decoration-none"
+                                    @click.prevent="router.push({ path: '/profile', query: { id: post.creatorUid } })"
+                                >
+                                    {{ creatorDisplayName || post.creatorUid }}
+                                </a>
+                            </span>
                             </div>
                             <button 
                                 v-if="canSendMessage"

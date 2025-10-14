@@ -81,7 +81,6 @@ const loadPosts = async () => {
         if (result.isSuccess && result.data) {
             posts.value = result.data;
             
-            // Load display names for all unique creators
             const uniqueCreators = [...new Set(posts.value.map(p => p.creatorUid))];
             for (const creatorUid of uniqueCreators) {
                 if (creatorUid && creatorUid !== currentUserUid.value) {
@@ -199,9 +198,17 @@ watch([() => props.searchQuery, () => props.filterTags, () => props.sortBy], () 
                     </div>
                     <div class="card-footer bg-light border-top">
                         <div class="d-flex justify-content-between align-items-center">
-                            <small class="text-muted">
+                            <small class="text-muted d-flex align-items-center">
                                 <i class="fas fa-user me-1"></i>
-                                {{ getDisplayName(post.creatorUid) }}
+                                <span v-if="currentUserUid && post.creatorUid === currentUserUid">You</span>
+                                <a 
+                                    v-else
+                                    href="#" 
+                                    class="text-primary text-decoration-none"
+                                    @click.prevent.stop="router.push({ path: '/profile', query: { id: post.creatorUid } })"
+                                >
+                                    {{ getDisplayName(post.creatorUid) }}
+                                </a>
                             </small>
                             <button 
                                 v-if="post.creatorUid !== currentUserUid && currentUserUid"
