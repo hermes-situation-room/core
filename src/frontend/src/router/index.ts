@@ -3,6 +3,7 @@ import MainPostsComponent from "../components/main-posts-component.vue";
 import JournalistPostsComponent from "../components/journalist-posts-component.vue";
 import ActivistPostsComponent from "../components/activist-posts-component.vue";
 import PostDetailComponent from "../components/post-detail-component.vue";
+import EditPostComponent from "../components/edit-post-component.vue";
 import LoginComponent from "../components/login-component.vue";
 import RegisterComponent from "../components/register-component.vue";
 import ChatsListComponent from "../components/chats-list-component.vue";
@@ -35,6 +36,12 @@ const router = createRouter({
             path: "/post/:id",
             name: "PostDetail",
             component: PostDetailComponent,
+        },
+        {
+            path: "/post/:id/edit",
+            name: "EditPost",
+            component: EditPostComponent,
+            meta: { requiresAuth: true },
         },
         {
             path: "/login",
