@@ -8,6 +8,7 @@ import RegisterComponent from "../components/register-component.vue";
 import ChatsListComponent from "../components/chats-list-component.vue";
 import ChatDetailComponent from "../components/chat-detail-component.vue";
 import CreateChatComponent from "../components/create-chat-component.vue";
+import ProfileComponent from "../components/profile-component.vue";
 import { useAuthStore } from "../stores/auth-store";
 
 const router = createRouter({
@@ -64,6 +65,12 @@ const router = createRouter({
             path: "/chat/:id",
             name: "ChatDetail",
             component: ChatDetailComponent,
+            meta: { requiresAuth: true },
+        },
+        {
+            path: "/profile",
+            name: "Profile",
+            component: ProfileComponent,
             meta: { requiresAuth: true },
         },
     ],
