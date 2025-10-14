@@ -17,13 +17,11 @@ public static class MigrationExtension
             var builder = new SqlConnectionStringBuilder(connectionString);
             var databaseName = builder.InitialCatalog;
 
-            // use master first
             var masterBuilder = new SqlConnectionStringBuilder(connectionString)
             {
                 InitialCatalog = "master"
             };
 
-            // wait until SQL Server is ready
             WaitForSqlServer(masterBuilder.ConnectionString);
 
             using (var masterConnection = new SqlConnection(masterBuilder.ConnectionString))
@@ -43,7 +41,6 @@ public static class MigrationExtension
                 }
             }
 
-            // run migrations on the target DB
             using (var sqlConnection = new SqlConnection(connectionString))
             {
                 var evolve = new Evolve(sqlConnection)

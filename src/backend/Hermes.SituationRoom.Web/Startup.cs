@@ -46,16 +46,13 @@ public class Startup
                 options.Cookie.Name = "SituationRoom.Auth";
                 options.Cookie.HttpOnly = true;
                 
-                // Cookie security settings based on environment
                 if (_env.IsDevelopment())
                 {
-                    // Development: Allow HTTP and use Lax for localhost
                     options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
                     options.Cookie.SameSite = SameSiteMode.Lax;
                 }
                 else
                 {
-                    // Production: Require HTTPS and use None for cross-origin
                     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
                     options.Cookie.SameSite = SameSiteMode.None;
                 }
@@ -63,14 +60,12 @@ public class Startup
                 options.SlidingExpiration = true;
                 options.Events.OnRedirectToLogin = ctx =>
                 {
-                    // Return 401 instead of redirect
                     ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
                     return Task.CompletedTask;
                 };
 
                 options.Events.OnRedirectToAccessDenied = ctx =>
                 {
-                    // Return 403 instead of redirect
                     ctx.Response.StatusCode = StatusCodes.Status403Forbidden;
                     return Task.CompletedTask;
                 };

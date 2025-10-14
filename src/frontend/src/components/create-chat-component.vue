@@ -2,7 +2,6 @@
 import {ref} from 'vue';
 import {useRouter} from 'vue-router';
 import {services} from '../services/api';
-import type {CreateChatDto} from '../types/chat';
 import { useAuthStore } from '../stores/auth-store';
 
 const router = useRouter();
@@ -30,30 +29,18 @@ const createChat = async () => {
             return;
         }
 
-        const existingChatResult = await services.chats.getChatByUserPair(
+        const chatResult = await services.chats.getOrCreateChatByUserPair(
             currentUserUid,
             otherUserUid.value.trim()
         );
 
-        if (existingChatResult.isSuccess && existingChatResult.data) {
-            router.push(`/chat/${existingChatResult.data.uid}`);
-            return;
-        }
-
-        const chatData: CreateChatDto = {
-            user1Uid: currentUserUid,
-            user2Uid: otherUserUid.value.trim()
-        };
-
-        const result = await services.chats.createChat(chatData);
-        
-        if (result.isSuccess && result.data) {
-            router.push(`/chat/${result.data}`);
+        if (chatResult.isSuccess && chatResult.data) {
+            router.push(`/chat/${chatResult.data.uid}`);
         } else {
-            error.value = result.responseMessage || 'Failed to create chat';
+            error.value = chatResult.responseMessage || 'Failed to open chat';
         }
     } catch (err) {
-        error.value = 'An error occurred while creating the chat';
+        error.value = 'An error occurred while opening the chat';
     } finally {
         creating.value = false;
     }

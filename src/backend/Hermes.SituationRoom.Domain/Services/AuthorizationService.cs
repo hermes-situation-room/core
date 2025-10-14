@@ -94,44 +94,28 @@ public class AuthorizationService(IHttpContextAccessor httpContextAccessor, IUse
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
     }
 
-    public async Task<CurrentUserBo?> GetCurrentUser()
+    public Task<CurrentUserBo?> GetCurrentUser()
     {
         if (HttpContext?.User?.Identity?.IsAuthenticated != true)
-            return null;
+            return Task.FromResult<CurrentUserBo?>(null);
 
         var userIdClaim = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier);
         var roleClaim = HttpContext.User.FindFirst(ClaimTypes.Role);
 
         if (userIdClaim == null || roleClaim == null)
-            return null;
+            return Task.FromResult<CurrentUserBo?>(null);
 
         if (!Guid.TryParse(userIdClaim.Value, out var userId))
-            return null;
+            return Task.FromResult<CurrentUserBo?>(null);
 
         var userType = roleClaim.Value.ToLower();
 
-        // Fetch full user data based on type
-        if (userType == "activist")
+        var currentUser = new CurrentUserBo
         {
-            var activist = await activistRepository.GetActivistBoAsync(userId);
-            return new CurrentUserBo
-            {
-                UserId = userId,
-                UserType = "activist",
-                UserData = activist
-            };
-        }
-        else if (userType == "journalist")
-        {
-            var journalist = await journalistRepository.GetJournalistBoAsync(userId);
-            return new CurrentUserBo
-            {
-                UserId = userId,
-                UserType = "journalist",
-                UserData = journalist
-            };
-        }
+            UserId = userId,
+            UserType = userType
+        };
 
-        return null;
+        return Task.FromResult<CurrentUserBo?>(currentUser);
     }
 }

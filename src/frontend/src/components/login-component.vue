@@ -2,8 +2,8 @@
 import { computed, ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import type { UserType } from '../types/user'
-import authApi from '../services/api/auth-api'
 import { useAuthStore } from '../stores/auth-store'
+import {services} from "../services/api";
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -41,23 +41,20 @@ async function handleLogin() {
         let result;
         
         if (isActivist.value) {
-            result = await authApi.loginActivist({
+            result = await services.auth.loginActivist({
                 userName: loginData.value.username,
                 password: loginData.value.password
             })
         } else {
-            result = await authApi.loginJournalist({
+            result = await services.auth.loginJournalist({
                 emailAddress: loginData.value.email,
                 password: loginData.value.password
             })
         }
 
         if (result.isSuccess) {
-            // Backend has set the authentication cookie
-            // Now fetch the user data from the /me endpoint
             await authStore.login()
             
-            // Only redirect if login was successful
             if (authStore.isAuthenticated.value) {
                 await router.push('/')
             } else {

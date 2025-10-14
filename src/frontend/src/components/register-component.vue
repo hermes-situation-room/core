@@ -2,8 +2,8 @@
 import { computed, ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import type { LoginFormData, UserType } from '../types/user'
-import authApi from '../services/api/auth-api'
 import { useAuthStore } from '../stores/auth-store'
+import {services} from "../services/api";
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -64,7 +64,7 @@ async function handleRegister() {
         let result;
         
         if (isActivist.value) {
-            result = await authApi.registerActivist({
+            result = await services.auth.registerActivist({
                 userName: formData.value.userName,
                 password: formData.value.password,
                 firstName: formData.value.firstName || undefined,
@@ -82,7 +82,7 @@ async function handleRegister() {
                 return
             }
             
-            result = await authApi.registerJournalist({
+            result = await services.auth.registerJournalist({
                 firstName: formData.value.firstName,
                 lastName: formData.value.lastName,
                 emailAddress: formData.value.emailAddress,

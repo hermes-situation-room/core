@@ -1,7 +1,25 @@
 import type {BaseResultBo} from "../../models/bo/base-result-bo";
+import {useAuthStore} from "../../../stores/auth-store";
+import router from "../../../router";
 
 export default class ApiBaseClient {
     apiBaseUrl: string = import.meta.env.VITE_APP_BACKEND;
+
+    /**
+     * Handle 401 Unauthorized responses by redirecting to login
+     * Clears auth state locally without calling logout API (session already expired)
+     * Uses dynamic imports to avoid circular dependency
+     */
+    private async handleUnauthorized(status: number) {
+        if (status === 401) {
+            const authStore = useAuthStore();
+            authStore.clearAuthState();
+
+            if (router.currentRoute.value.path !== '/login') {
+                router.push('/login');
+            }
+        }
+    }
 
     /**
      * GET functionality which handels errors, no try-catch needed for the caller
@@ -21,6 +39,8 @@ export default class ApiBaseClient {
                     "Accept": "application/json, text/plain, */*",
                 },
             });
+
+            void this.handleUnauthorized(response.status);
 
             const contentType = response.headers.get("content-type");
             let data: any;
@@ -68,6 +88,8 @@ export default class ApiBaseClient {
                 body: JSON.stringify(input)
             });
 
+            void this.handleUnauthorized(response.status);
+
             const uid = (await response.text()).replace(/"/g, '');
 
             return {
@@ -105,6 +127,8 @@ export default class ApiBaseClient {
                 body: JSON.stringify(input)
             });
 
+            void this.handleUnauthorized(response.status);
+
             const uid = await response.text();
 
             return {
@@ -135,6 +159,8 @@ export default class ApiBaseClient {
                 method: 'DELETE',
                 credentials: "include",
             });
+
+            void this.handleUnauthorized(response.status);
 
             return {
                 data: undefined,

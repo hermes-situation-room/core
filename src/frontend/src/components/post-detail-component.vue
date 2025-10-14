@@ -3,7 +3,6 @@ import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { services } from '../services/api';
 import type { PostBo } from '../types/post';
-import type { CreateChatDto } from '../types/chat';
 import { useAuthStore } from '../stores/auth-store';
 
 const route = useRoute();
@@ -60,31 +59,18 @@ const sendDirectMessage = async () => {
     creatingChat.value = true;
 
     try {
-        const existingChatResult = await services.chats.getChatByUserPair(
+        const chatResult = await services.chats.getOrCreateChatByUserPair(
             currentUserUid.value,
             post.value.creatorUid
         );
 
-        if (existingChatResult.isSuccess && existingChatResult.data) {
-            router.push(`/chat/${existingChatResult.data.uid}`);
-            return;
-        }
-
-        const chatData: CreateChatDto = {
-            user1Uid: currentUserUid.value,
-            user2Uid: post.value.creatorUid
-        };
-
-        const createResult = await services.chats.createChat(chatData);
-        
-        if (createResult.isSuccess && createResult.data) {
-            const chatId = JSON.parse(createResult.data);
-            router.push(`/chat/${chatId}`);
+        if (chatResult.isSuccess && chatResult.data) {
+            router.push(`/chat/${chatResult.data.uid}`);
         } else {
-            error.value = createResult.responseMessage || 'Failed to create chat';
+            error.value = chatResult.responseMessage || 'Failed to open chat';
         }
     } catch (err) {
-        error.value = 'An error occurred while creating the chat';
+        error.value = 'An error occurred while opening the chat';
     } finally {
         creatingChat.value = false;
     }
