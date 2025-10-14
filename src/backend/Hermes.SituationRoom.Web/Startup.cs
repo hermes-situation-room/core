@@ -74,14 +74,20 @@ public class Startup
         
         services.AddCors(options =>
         {
-            options.AddPolicy("AllowCredentials",
-                builder =>
-                {
-                    builder.AllowAnyOrigin()
-                        .AllowAnyHeader()
-                        .AllowAnyMethod()
-                        .AllowCredentials();
-                });
+            options.AddPolicy("AllowCredentials", builder =>
+            {
+                builder
+                    .WithOrigins(
+                        "https://hermes-situation-room.release",
+                        "https://hermes-situation-room.stage",
+                        "http://localhost:13500/swagger",
+                        "http://localhost:5005/swagger",
+                        "http://localhost:4300"
+                    )
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials();
+            });
         });
     }
 
