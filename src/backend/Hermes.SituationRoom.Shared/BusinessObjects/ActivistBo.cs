@@ -2,7 +2,9 @@
 namespace Hermes.SituationRoom.Shared.BusinessObjects;
 
 public record ActivistBo(Guid Uid,
-    string Password,
+    string? Password,
+    byte[]? PasswordHash,
+    byte[]? PasswordSalt,
     string? FirstName,
     string? LastName,
     string? EmailAddress,
@@ -13,6 +15,8 @@ public record ActivistBo(Guid Uid,
 )
     : UserBo(Uid,
         Password,
+        PasswordHash,
+        PasswordSalt,
         FirstName,
         LastName,
         EmailAddress

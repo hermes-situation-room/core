@@ -16,26 +16,20 @@ public class PostService(IPostRepository postRepository, ITagService tagService)
         return MapToBo(post, tags);
     }
 
-    public Task<IReadOnlyList<PostWithTagsBo>> GetPostsByTagsAsync(string tags) =>
-        postRepository.GetPostsByTagsAsync(tags.Split(',').Select(TagService.MapToTag).ToList());
+    public Task<IReadOnlyList<PostWithTagsBo>> GetActivistPostsByTagsAsync(string tags, int limit, int offset) =>
+        postRepository.GetActivistPostsByTagsAsync(tags.Split(',').Select(TagService.MapToTag).ToList(), limit, offset);
 
-    public Task<IReadOnlyList<PostWithTagsBo>> GetActivistPostsByTagsAsync(string tags) =>
-        postRepository.GetActivistPostsByTagsAsync(tags.Split(',').Select(TagService.MapToTag).ToList());
+    public Task<IReadOnlyList<PostWithTagsBo>> GetJournalistPostsByTagsAsync(string tags, int limit, int offset) =>
+        postRepository.GetJournalistPostsByTagsAsync(tags.Split(',').Select(TagService.MapToTag).ToList(), limit, offset);
 
-    public Task<IReadOnlyList<PostWithTagsBo>> GetJournalistPostsByTagsAsync(string tags) =>
-        postRepository.GetJournalistPostsByTagsAsync(tags.Split(',').Select(TagService.MapToTag).ToList());
+    public async Task<IReadOnlyList<PostWithTagsBo>> GetUserPostsAsync(Guid userUid, int limit, int offset) =>
+        await GetTagsFromPosts(await postRepository.GetUserPostsAsync(userUid, limit, offset));
 
-    public async Task<IReadOnlyList<PostWithTagsBo>> GetUserPostsAsync(Guid userUid) =>
-        await GetTagsFromPosts(await postRepository.GetUserPostsAsync(userUid));
+    public async Task<IReadOnlyList<PostWithTagsBo>> GetAllActivistPostsAsync(int limit, int offset) =>
+        await GetTagsFromPosts(await postRepository.GetAllActivistPostsAsync(limit, offset));
 
-    public async Task<IReadOnlyList<PostWithTagsBo>> GetAllActivistPostsAsync() =>
-        await GetTagsFromPosts(await postRepository.GetAllActivistPostsAsync());
-
-    public async Task<IReadOnlyList<PostWithTagsBo>> GetAllJournalistPostsAsync() =>
-        await GetTagsFromPosts(await postRepository.GetAllJournalistPostsAsync());
-
-    public async Task<IReadOnlyList<PostWithTagsBo>> GetPostsAsync() =>
-        await GetTagsFromPosts(await postRepository.GetAllPostBosAsync());
+    public async Task<IReadOnlyList<PostWithTagsBo>> GetAllJournalistPostsAsync(int limit, int offset) =>
+        await GetTagsFromPosts(await postRepository.GetAllJournalistPostsAsync(limit, offset));
 
     public async Task<Guid> CreatePostAsync(CreatePostDto createPostDto)
     {

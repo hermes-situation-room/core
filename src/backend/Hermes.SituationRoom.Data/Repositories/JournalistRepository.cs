@@ -1,6 +1,7 @@
 ﻿#nullable enable
 namespace Hermes.SituationRoom.Data.Repositories;
 
+using System.Diagnostics;
 using Entities;
 using Interface;
 using Microsoft.EntityFrameworkCore;
@@ -55,7 +56,6 @@ public sealed class JournalistRepository(IHermessituationRoomContext context, IU
                          ?? throw new KeyNotFoundException($"Journalist with UID {updatedJournalist.Uid} was not found."
                          );
 
-        journalist.UserU.Password = updatedJournalist.Password;
         journalist.UserU.FirstName = updatedJournalist.FirstName;
         journalist.UserU.LastName = updatedJournalist.LastName;
         journalist.UserU.EmailAddress = updatedJournalist.EmailAddress;
@@ -92,7 +92,9 @@ public sealed class JournalistRepository(IHermessituationRoomContext context, IU
         var user = journalist.UserU ?? throw new InvalidOperationException("Expected navigation UserU to be loaded.");
 
         return new(user.Uid,
-            user.Password,
+            null,
+            user.PasswordHash,
+            user.PasswordSalt,
             user.FirstName,
             user.LastName,
             user.EmailAddress,

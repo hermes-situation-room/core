@@ -1,5 +1,6 @@
 ﻿namespace Hermes.SituationRoom.Domain.Services;
 
+using System.Diagnostics;
 using System.Security.Claims;
 using Hermes.SituationRoom.Data.Entities;
 using Hermes.SituationRoom.Data.Interface;
@@ -9,16 +10,16 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
 
-public class AuthorizationService(IHttpContextAccessor httpContextAccessor, IUserRepository userRepository, IActivistRepository activistRepository, IJournalistRepository journalistRepository) : IAuthorizationService
+public class AuthorizationService(IHttpContextAccessor httpContextAccessor, IUserRepository userRepository, IActivistRepository activistRepository, IJournalistRepository journalistRepository, IEncryptionService encryptionService) : IAuthorizationService
 {
 
-    private HttpContext? HttpContext => httpContextAccessor.HttpContext;
+    private HttpContext HttpContext => httpContextAccessor.HttpContext;
 
     public async Task<Guid> LoginActivist(LoginActivistBo loginActivistBo)
     {
         var activist = await activistRepository.GetActivistBoByUsernameAsync(loginActivistBo.UserName);
 
-        if (activist.Password != loginActivistBo.Password)
+        if (!encryptionService.VerifyPassword(loginActivistBo.Password, activist.PasswordHash, activist.PasswordSalt))
             throw new UnauthorizedAccessException("Invalid password or username.");
 
         var claims = new List<Claim>
@@ -54,8 +55,8 @@ public class AuthorizationService(IHttpContextAccessor httpContextAccessor, IUse
     {
         var journalist = await userRepository.GetUserBoByEmailAsync(loginJournalistBo.EmailAddress);
 
-        if (journalist.Password != loginJournalistBo.Password)
-            throw new UnauthorizedAccessException("Invalid password.");
+        if (!encryptionService.VerifyPassword(loginJournalistBo.Password, journalist.PasswordHash, journalist.PasswordSalt))
+            throw new UnauthorizedAccessException("Invalid password or username.");
 
         var claims = new List<Claim>
         {

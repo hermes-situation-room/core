@@ -74,7 +74,6 @@ public sealed class ActivistRepository(IHermessituationRoomContext context, IUse
                            .FirstOrDefaultAsync(a => a.UserUid == updatedActivist.Uid)
                        ?? throw new KeyNotFoundException($"Activist with UID {updatedActivist.Uid} was not found.");
 
-        activist.UserU.Password = updatedActivist.Password;
         activist.UserU.FirstName = updatedActivist.FirstName;
         activist.UserU.LastName = updatedActivist.LastName;
         activist.UserU.EmailAddress = updatedActivist.EmailAddress;
@@ -114,7 +113,9 @@ public sealed class ActivistRepository(IHermessituationRoomContext context, IUse
         var user = activist.UserU ?? throw new InvalidOperationException("Expected navigation User to be loaded.");
 
         return new(user.Uid,
-            user.Password,
+            null,
+            user.PasswordHash,
+            user.PasswordSalt,
             user.FirstName,
             user.LastName,
             user.EmailAddress,

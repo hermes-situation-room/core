@@ -1,3 +1,4 @@
+﻿#nullable enable
 namespace Hermes.SituationRoom.Data.Migrations;
 
 using System.Data;

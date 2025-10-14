@@ -7,19 +7,15 @@ public interface IPostService
 {
     Task<PostWithTagsBo> GetPostAsync(Guid postUid);
     
-    Task<IReadOnlyList<PostWithTagsBo>> GetPostsByTagsAsync(string tags);
+    Task<IReadOnlyList<PostWithTagsBo>> GetActivistPostsByTagsAsync(string tags, int limit, int offset);
     
-    Task<IReadOnlyList<PostWithTagsBo>> GetActivistPostsByTagsAsync(string tags);
+    Task<IReadOnlyList<PostWithTagsBo>> GetJournalistPostsByTagsAsync(string tags, int limit, int offset);
     
-    Task<IReadOnlyList<PostWithTagsBo>> GetJournalistPostsByTagsAsync(string tags);
+    Task<IReadOnlyList<PostWithTagsBo>> GetUserPostsAsync(Guid userUid, int limit, int offset);
     
-    Task<IReadOnlyList<PostWithTagsBo>> GetUserPostsAsync(Guid userUid);
+    Task<IReadOnlyList<PostWithTagsBo>> GetAllActivistPostsAsync(int limit, int offset);
     
-    Task<IReadOnlyList<PostWithTagsBo>> GetAllActivistPostsAsync();
-    
-    Task<IReadOnlyList<PostWithTagsBo>> GetAllJournalistPostsAsync();
-
-    Task<IReadOnlyList<PostWithTagsBo>> GetPostsAsync();
+    Task<IReadOnlyList<PostWithTagsBo>> GetAllJournalistPostsAsync(int limit, int offset);
 
     Task<Guid> CreatePostAsync(CreatePostDto createPostBo);
 
