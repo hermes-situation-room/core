@@ -37,6 +37,16 @@ const closeMobileMenu = () => {
     showMobileMenu.value = false
 }
 
+const viewUser = () => {
+    const uid = authStore.userId.value || '';
+    router.push({ 
+        name: 'Profile', 
+        query: {
+            id: uid,
+        }
+    });
+};
+
 const handleLogout = async () => {
     await authStore.logout()
     await router.push('/login')
@@ -76,6 +86,13 @@ const handleLogout = async () => {
                             <span class="badge bg-dark text-white px-2 py-1 d-none d-lg-inline">
                                 {{ authStore.userType.value === 'journalist' ? 'Journalist' : 'Activist' }}
                             </span>
+                            <button 
+                                @click="viewUser"
+                                class="btn btn-outline-secondary btn-sm d-flex align-items-center"
+                            >
+                                <i class="fas fa-circle-user"></i>
+                                <span class="d-none d-xl-inline ms-1">Logout</span>
+                            </button>
                             <button 
                                 @click="handleLogout"
                                 class="btn btn-outline-danger btn-sm d-flex align-items-center"
