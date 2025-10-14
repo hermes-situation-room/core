@@ -5,6 +5,7 @@ using Entities;
 using Interface;
 using Microsoft.EntityFrameworkCore;
 using Shared.BusinessObjects;
+using Shared.Exceptions;
 
 public sealed class ActivistRepository(IHermessituationRoomContext context, IUserRepository userRepository)
     : IActivistRepository
@@ -39,7 +40,7 @@ public sealed class ActivistRepository(IHermessituationRoomContext context, IUse
                            .AsNoTracking()
                            .Include(a => a.UserU)
                            .FirstOrDefaultAsync(a => a.UserUid == activistUid)
-                       ?? throw new KeyNotFoundException($"Activist with UID {activistUid} was not found.")
+                       ?? throw new ResourceNotFoundException("Activist", activistUid)
         );
     }
 
@@ -52,8 +53,18 @@ public sealed class ActivistRepository(IHermessituationRoomContext context, IUse
                            .AsNoTracking()
                            .Include(a => a.UserU)
                            .FirstOrDefaultAsync(a => a.Username == username)
-                       ?? throw new UnauthorizedAccessException("Invalid password or username.")
+                       ?? throw new InvalidCredentialsException()
         );
+    }
+
+    public async Task<bool> UsernameExistsAsync(string username)
+    {
+        if (string.IsNullOrWhiteSpace(username))
+            return false;
+
+        return await context.Activists
+            .AsNoTracking()
+            .AnyAsync(a => a.Username == username);
     }
 
     public async Task<IReadOnlyList<ActivistBo>> GetAllActivistBosAsync() => await context.Activists
@@ -72,7 +83,7 @@ public sealed class ActivistRepository(IHermessituationRoomContext context, IUse
                            .AsTracking()
                            .Include(a => a.UserU)
                            .FirstOrDefaultAsync(a => a.UserUid == updatedActivist.Uid)
-                       ?? throw new KeyNotFoundException($"Activist with UID {updatedActivist.Uid} was not found.");
+                       ?? throw new ResourceNotFoundException("Activist", updatedActivist.Uid);
 
         activist.UserU.FirstName = updatedActivist.FirstName;
         activist.UserU.LastName = updatedActivist.LastName;

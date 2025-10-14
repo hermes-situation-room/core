@@ -1,14 +1,13 @@
 ﻿namespace Hermes.SituationRoom.Domain.Services;
 
-using System.Diagnostics;
 using System.Security.Claims;
-using Hermes.SituationRoom.Data.Entities;
-using Hermes.SituationRoom.Data.Interface;
-using Hermes.SituationRoom.Shared.BusinessObjects;
+using Data.Interface;
 using Interfaces;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
+using Shared.BusinessObjects;
+using Shared.Exceptions;
 
 public class AuthorizationService(IHttpContextAccessor httpContextAccessor, IUserRepository userRepository, IActivistRepository activistRepository, IJournalistRepository journalistRepository, IEncryptionService encryptionService) : IAuthorizationService
 {
@@ -20,7 +19,7 @@ public class AuthorizationService(IHttpContextAccessor httpContextAccessor, IUse
         var activist = await activistRepository.GetActivistBoByUsernameAsync(loginActivistBo.UserName);
 
         if (!encryptionService.VerifyPassword(loginActivistBo.Password, activist.PasswordHash, activist.PasswordSalt))
-            throw new UnauthorizedAccessException("Invalid password or username.");
+            throw new InvalidCredentialsException();
 
         var claims = new List<Claim>
         {
@@ -56,7 +55,7 @@ public class AuthorizationService(IHttpContextAccessor httpContextAccessor, IUse
         var journalist = await userRepository.GetUserBoByEmailAsync(loginJournalistBo.EmailAddress);
 
         if (!encryptionService.VerifyPassword(loginJournalistBo.Password, journalist.PasswordHash, journalist.PasswordSalt))
-            throw new UnauthorizedAccessException("Invalid password or username.");
+            throw new InvalidCredentialsException();
 
         var claims = new List<Claim>
         {

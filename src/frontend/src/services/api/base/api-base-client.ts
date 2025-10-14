@@ -1,6 +1,7 @@
 import type {BaseResultBo} from "../../models/bo/base-result-bo";
 import {useAuthStore} from "../../../stores/auth-store";
 import router from "../../../router";
+import { parseErrorResponse, parseNetworkError } from "../../../utils/error-parser";
 
 export default class ApiBaseClient {
     apiBaseUrl: string = import.meta.env.VITE_APP_BACKEND;
@@ -42,6 +43,17 @@ export default class ApiBaseClient {
 
             void this.handleUnauthorized(response.status);
 
+            if (!response.ok) {
+                const error = await parseErrorResponse(response);
+                return {
+                    data: undefined,
+                    responseCode: response.status,
+                    responseMessage: error.message,
+                    isSuccess: false,
+                    error
+                };
+            }
+
             const contentType = response.headers.get("content-type");
             let data: any;
 
@@ -60,11 +72,13 @@ export default class ApiBaseClient {
                 isSuccess: response.ok,
             };
         } catch (e) {
+            const error = parseNetworkError(e);
             return {
                 data: undefined,
                 responseCode: undefined,
-                responseMessage: e instanceof Error ? e.message : String(e),
+                responseMessage: error.message,
                 isSuccess: false,
+                error
             };
         }
     }
@@ -90,6 +104,17 @@ export default class ApiBaseClient {
 
             void this.handleUnauthorized(response.status);
 
+            if (!response.ok) {
+                const error = await parseErrorResponse(response);
+                return {
+                    data: undefined,
+                    responseCode: response.status,
+                    responseMessage: error.message,
+                    isSuccess: false,
+                    error
+                };
+            }
+
             const uid = (await response.text()).replace(/"/g, '');
 
             return {
@@ -99,11 +124,13 @@ export default class ApiBaseClient {
                 isSuccess: response.ok,
             };
         } catch (e) {
+            const error = parseNetworkError(e);
             return {
                 data: undefined,
                 responseCode: undefined,
-                responseMessage: e instanceof Error ? e.message : String(e),
+                responseMessage: error.message,
                 isSuccess: false,
+                error
             };
         }
     }
@@ -129,6 +156,17 @@ export default class ApiBaseClient {
 
             void this.handleUnauthorized(response.status);
 
+            if (!response.ok) {
+                const error = await parseErrorResponse(response);
+                return {
+                    data: undefined,
+                    responseCode: response.status,
+                    responseMessage: error.message,
+                    isSuccess: false,
+                    error
+                };
+            }
+
             const uid = await response.text();
 
             return {
@@ -138,11 +176,13 @@ export default class ApiBaseClient {
                 isSuccess: response.ok,
             };
         } catch (e) {
+            const error = parseNetworkError(e);
             return {
                 data: undefined,
                 responseCode: undefined,
-                responseMessage: e instanceof Error ? e.message : String(e),
+                responseMessage: error.message,
                 isSuccess: false,
+                error
             };
         }
     }
@@ -162,6 +202,17 @@ export default class ApiBaseClient {
 
             void this.handleUnauthorized(response.status);
 
+            if (!response.ok) {
+                const error = await parseErrorResponse(response);
+                return {
+                    data: undefined,
+                    responseCode: response.status,
+                    responseMessage: error.message,
+                    isSuccess: false,
+                    error
+                };
+            }
+
             return {
                 data: undefined,
                 responseCode: response.status,
@@ -169,11 +220,13 @@ export default class ApiBaseClient {
                 isSuccess: response.ok
             };
         } catch (e) {
+            const error = parseNetworkError(e);
             return {
                 data: undefined,
                 responseCode: undefined,
-                responseMessage: e instanceof Error ? e.message : String(e),
+                responseMessage: error.message,
                 isSuccess: false,
+                error
             };
         }
     }

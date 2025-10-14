@@ -1,25 +1,29 @@
 ﻿namespace Hermes.SituationRoom.Domain.Services;
 
-using Hermes.SituationRoom.Data.Entities;
-using Hermes.SituationRoom.Data.Interface;
-using Hermes.SituationRoom.Data.Repositories;
-using Hermes.SituationRoom.Shared.BusinessObjects;
+using Data.Interface;
 using Interfaces;
+using Shared.BusinessObjects;
+using Shared.Exceptions;
 
-public class JournalistService(IJournalistRepository journalistRepository, IEncryptionService encryptionService) : IJournalistService
+public class JournalistService(IJournalistRepository journalistRepository, IUserRepository userRepository, IEncryptionService encryptionService) : IJournalistService
 {
     public Task<JournalistBo> GetJournalistAsync(Guid journalistUid) =>
         journalistRepository.GetJournalistBoAsync(journalistUid);
 
     public Task<IReadOnlyList<JournalistBo>> GetJournalistsAsync() => journalistRepository.GetAllJournalistBosAsync();
 
-    public Task<Guid> CreateJournalistAsync(JournalistBo journalistBo) 
+    public async Task<Guid> CreateJournalistAsync(JournalistBo journalistBo) 
     {
+        if (await userRepository.EmailExistsAsync(journalistBo.EmailAddress))
+        {
+            throw new DuplicateResourceException("Journalist", "email", journalistBo.EmailAddress);
+        }
+
         (byte[] hash, byte[] salt) = encryptionService.EncryptPassword(journalistBo.Password);
 
         journalistBo = journalistBo with { PasswordHash = hash, PasswordSalt = salt };
 
-        return journalistRepository.AddAsync(journalistBo);
+        return await journalistRepository.AddAsync(journalistBo);
     }
 
     public Task<JournalistBo> UpdateJournalistAsync(JournalistBo updatedJournalist) =>

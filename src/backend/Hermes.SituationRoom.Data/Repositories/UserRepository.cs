@@ -52,6 +52,16 @@ public sealed class UserRepository(IHermessituationRoomContext context, IPrivacy
         );
     }
 
+    public async Task<bool> EmailExistsAsync(string emailAddress)
+    {
+        if (string.IsNullOrWhiteSpace(emailAddress))
+            return false;
+
+        return await context.Users
+            .AsNoTracking()
+            .AnyAsync(u => u.EmailAddress == emailAddress);
+    }
+
     public async Task<UserBo> GetUserProfileBoAsync(Guid userId, Guid consumerId)
     {
         if (userId == Guid.Empty)

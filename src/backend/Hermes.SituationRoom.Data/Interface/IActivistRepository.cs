@@ -14,6 +14,8 @@ public interface IActivistRepository
 
     Task<ActivistBo> GetActivistBoByUsernameAsync(string username);
 
+    Task<bool> UsernameExistsAsync(string username);
+
     Task<IReadOnlyList<ActivistBo>> GetAllActivistBosAsync();
 
     Task<ActivistBo> UpdateAsync(ActivistBo updatedActivist);

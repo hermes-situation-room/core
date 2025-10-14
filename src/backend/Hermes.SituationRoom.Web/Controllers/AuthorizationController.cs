@@ -15,8 +15,10 @@ public class AuthorizationController(IControllerInfrastructure infra, IAuthoriza
     [HttpPost("internal/authorization/login/activist")]
     [AllowAnonymous]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_AUTHORIZATION])]
-    [ProducesResponseType(typeof(Task<IActionResult>), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(Guid), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<Guid>> LoginActivist(LoginActivistBo loginActivistBo)
     {
         var activistGuid = await authorizationService.LoginActivist(loginActivistBo);
@@ -26,8 +28,10 @@ public class AuthorizationController(IControllerInfrastructure infra, IAuthoriza
     [HttpPost("internal/authorization/login/journalist")]
     [AllowAnonymous]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_AUTHORIZATION])]
-    [ProducesResponseType(typeof(Task<IActionResult>), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(Guid), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<Guid>> LoginJournalist(LoginJournalistBo loginJournalistBo)
     {
         var journalistGuid = await authorizationService.LoginJournalist(loginJournalistBo);
@@ -37,6 +41,8 @@ public class AuthorizationController(IControllerInfrastructure infra, IAuthoriza
     [HttpPost("internal/authorization/logout")]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_AUTHORIZATION])]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Logout()
     {
         await authorizationService.Logout();
@@ -46,7 +52,8 @@ public class AuthorizationController(IControllerInfrastructure infra, IAuthoriza
     [HttpGet("internal/authorization/me")]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_AUTHORIZATION])]
     [ProducesResponseType(typeof(CurrentUserBo), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<CurrentUserBo>> GetCurrentUser()
     {
         var currentUser = await authorizationService.GetCurrentUser();

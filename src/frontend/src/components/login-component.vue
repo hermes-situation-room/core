@@ -3,10 +3,12 @@ import { computed, ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import type { UserType } from '../types/user'
 import { useAuthStore } from '../stores/auth-store'
+import { useErrorStore } from '../stores/error-store'
 import {services} from "../services/api";
 
 const router = useRouter()
 const authStore = useAuthStore()
+const errorStore = useErrorStore()
 
 const selectedUserType = ref<UserType>('activist')
 const loginData = ref({
@@ -14,7 +16,6 @@ const loginData = ref({
     email: '',
     password: ''
 })
-const errorMessage = ref('')
 const isLoading = ref(false)
 
 const isJournalist = computed(() => selectedUserType.value === 'journalist')
@@ -22,7 +23,6 @@ const isActivist = computed(() => selectedUserType.value === 'activist')
 
 function selectUserType(type: UserType) {
     selectedUserType.value = type
-    errorMessage.value = ''
 
     loginData.value = {
         username: '',
@@ -34,7 +34,6 @@ function selectUserType(type: UserType) {
 async function handleLogin() {
     if (isLoading.value) return
     
-    errorMessage.value = ''
     isLoading.value = true
 
     try {
@@ -58,14 +57,20 @@ async function handleLogin() {
             if (authStore.isAuthenticated.value) {
                 await router.push('/')
             } else {
-                errorMessage.value = 'Failed to fetch user data. Please try again.'
+                errorStore.addError({
+                    category: 'authentication',
+                    message: 'Failed to fetch user data. Please try again.'
+                })
             }
-        } else {
-            errorMessage.value = result.responseMessage || 'Login failed. Please check your credentials.'
+        } else if (result.error) {
+            errorStore.addError(result.error)
         }
     } catch (error) {
         console.error('Login error:', error)
-        errorMessage.value = 'An error occurred during login. Please try again.'
+        errorStore.addError({
+            category: 'unknown',
+            message: 'An unexpected error occurred during login. Please try again.'
+        })
     } finally {
         isLoading.value = false
     }
@@ -113,10 +118,6 @@ async function handleLogin() {
                             </div>
 
                             <form @submit.prevent="handleLogin">
-                                <div v-if="errorMessage" class="alert alert-danger" role="alert">
-                                    {{ errorMessage }}
-                                </div>
-
                                 <div v-if="isActivist" class="mb-3">
                                     <label class="form-label">Username</label>
                                     <input

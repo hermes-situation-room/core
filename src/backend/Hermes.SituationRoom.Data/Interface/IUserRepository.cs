@@ -1,10 +1,7 @@
 ﻿#nullable enable
 namespace Hermes.SituationRoom.Data.Interface;
 
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Hermes.SituationRoom.Shared.BusinessObjects;
+using Shared.BusinessObjects;
 
 public interface IUserRepository
 {
@@ -13,6 +10,8 @@ public interface IUserRepository
     Task<UserBo> GetUserBoAsync(Guid userUid);
 
     Task<UserBo> GetUserBoByEmailAsync(string emailAddress);
+
+    Task<bool> EmailExistsAsync(string emailAddress);
 
     Task<UserBo> GetUserProfileBoAsync(Guid userUid, Guid consumerUid);
 

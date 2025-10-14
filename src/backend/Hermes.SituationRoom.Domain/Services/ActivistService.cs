@@ -1,9 +1,9 @@
 ﻿namespace Hermes.SituationRoom.Domain.Services;
 
-using System.Security.Cryptography;
-using Hermes.SituationRoom.Data.Interface;
-using Hermes.SituationRoom.Shared.BusinessObjects;
+using Data.Interface;
 using Interfaces;
+using Shared.BusinessObjects;
+using Shared.Exceptions;
 
 public class ActivistService(IActivistRepository activistRepository, IEncryptionService encryptionService) : IActivistService
 {
@@ -11,13 +11,18 @@ public class ActivistService(IActivistRepository activistRepository, IEncryption
 
     public Task<IReadOnlyList<ActivistBo>> GetActivistsAsync() => activistRepository.GetAllActivistBosAsync();
 
-    public Task<Guid> CreateActivistAsync(ActivistBo activistBo) 
+    public async Task<Guid> CreateActivistAsync(ActivistBo activistBo) 
     {
+        if (await activistRepository.UsernameExistsAsync(activistBo.UserName))
+        {
+            throw new DuplicateResourceException("Activist", "username", activistBo.UserName);
+        }
+
         (byte[] hash, byte[] salt) = encryptionService.EncryptPassword(activistBo.Password);
 
         activistBo = activistBo with { PasswordHash = hash, PasswordSalt = salt };
 
-        return activistRepository.AddAsync(activistBo); 
+        return await activistRepository.AddAsync(activistBo); 
     }
 
     public Task<ActivistBo> UpdateActivistAsync(ActivistBo updatedActivist) =>

@@ -3,10 +3,14 @@ import { computed, ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import type { LoginFormData, UserType } from '../types/user'
 import { useAuthStore } from '../stores/auth-store'
+import { useErrorStore } from '../stores/error-store'
+import { useNotifications } from '../composables/use-notifications'
 import {services} from "../services/api";
 
 const router = useRouter()
 const authStore = useAuthStore()
+const errorStore = useErrorStore()
+const { showRegistrationSuccess } = useNotifications()
 
 const selectedUserType = ref<UserType>('activist')
 const formData = ref<LoginFormData>({
@@ -21,7 +25,6 @@ const formData = ref<LoginFormData>({
     isLastNameVisible: true,
     isEmailVisible: true
 })
-const errorMessage = ref('')
 const isLoading = ref(false)
 
 const isJournalist = computed(() => selectedUserType.value === 'journalist')
@@ -38,7 +41,6 @@ const showPrivacySettings = computed(() => {
 function selectUserType(type: UserType) {
     selectedUserType.value = type
     formData.value.userType = type
-    errorMessage.value = ''
 
     formData.value = {
         userType: type,
@@ -57,7 +59,6 @@ function selectUserType(type: UserType) {
 async function handleRegister() {
     if (isLoading.value) return
     
-    errorMessage.value = ''
     isLoading.value = true
 
     try {
@@ -77,7 +78,10 @@ async function handleRegister() {
         } else {
             if (!formData.value.firstName || !formData.value.lastName || 
                 !formData.value.emailAddress || !formData.value.employer) {
-                errorMessage.value = 'All fields are required for journalist registration.'
+                errorStore.addError({
+                    category: 'validation',
+                    message: 'All fields are required for journalist registration.'
+                })
                 isLoading.value = false
                 return
             }
@@ -92,15 +96,20 @@ async function handleRegister() {
         }
 
         if (result.isSuccess && result.data) {
-            authStore.login()
+            showRegistrationSuccess(isActivist.value ? 'activist' : 'journalist')
             
-            await router.push('/')
-        } else {
-            errorMessage.value = result.responseMessage || 'Registration failed. Please try again.'
+            setTimeout(() => {
+                router.push('/login')
+            }, 1500)
+        } else if (result.error) {
+            errorStore.addError(result.error)
         }
     } catch (error) {
         console.error('Registration error:', error)
-        errorMessage.value = 'An error occurred during registration. Please try again.'
+        errorStore.addError({
+            category: 'unknown',
+            message: 'An unexpected error occurred during registration. Please try again.'
+        })
     } finally {
         isLoading.value = false
     }
@@ -146,10 +155,6 @@ async function handleRegister() {
                             </div>
 
                             <form @submit.prevent="handleRegister">
-                                <div v-if="errorMessage" class="alert alert-danger" role="alert">
-                                    {{ errorMessage }}
-                                </div>
-
                                 <div v-if="isActivist" class="mb-3">
                                     <label class="form-label">Username</label>
                                     <input
