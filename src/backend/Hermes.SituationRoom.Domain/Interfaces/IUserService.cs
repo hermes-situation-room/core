@@ -8,6 +8,8 @@ public interface IUserService
 
     Task<UserProfileBo> GetUserProfileAsync(Guid userUid, Guid consumerUid);
 
+    Task<string> GetDisplayNameAsync(Guid userUid);
+
     Task<IReadOnlyList<UserBo>> GetUsersAsync();
 
     Task<Guid> CreateUserAsync(UserBo userBo);

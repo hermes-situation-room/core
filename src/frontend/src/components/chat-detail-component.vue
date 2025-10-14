@@ -21,6 +21,7 @@ const editingMessageId = ref<string | null>(null);
 const editingContent = ref('');
 const messageInputRef = ref<HTMLInputElement | null>(null);
 const errorMessage = ref('');
+const otherUserDisplayName = ref<string>('');
 
 const clearError = () => {
     errorMessage.value = '';
@@ -46,6 +47,16 @@ const loadChat = async () => {
         const result = await services.chats.getChatById(chatId);
         if (result.isSuccess && result.data) {
             chat.value = result.data;
+            
+            // Load display name for other user
+            const otherUserUid = getOtherUserUid();
+            if (otherUserUid) {
+                const displayNameResult = await services.users.getDisplayName(otherUserUid);
+                if (displayNameResult.isSuccess && displayNameResult.data) {
+                    otherUserDisplayName.value = displayNameResult.data.displayName;
+                }
+            }
+            
             await loadMessages(chatId);
             await sockets.hub.ensureSocketInitialization();
             sockets.hub.joinChat(currentUserUid.value, chatId);
@@ -359,7 +370,7 @@ onUnmounted(() => {
                   <button class="btn btn-link text-decoration-none p-0 me-3" @click="router.push('/chats')">
                     ← Back
                   </button>
-                  <span class="fw-bold">Chat with User: {{ getOtherUserUid() }}</span>
+                  <span class="fw-bold">Chat with: {{ otherUserDisplayName || getOtherUserUid() }}</span>
                 </div>
               </div>
             </div>

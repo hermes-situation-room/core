@@ -14,6 +14,12 @@ export default function usersApi(apiBaseClient: ApiBaseClient) {
             return await apiBaseClient.get<UserProfileBo>('services/api/internal/user/profile', params);
         },
         /**
+         * Get display name for a user (username for activists, firstname + lastname for journalists)
+         */
+        async getDisplayName(userUid: string): Promise<BaseResultBo<{ displayName: string }>> {
+            return await apiBaseClient.get<{ displayName: string }>(`services/api/internal/user/display-name/${userUid}`);
+        },
+        /**
          * Get activist privacy
          */
         async getActivistPrivacy(uid: string): Promise<BaseResultBo<ActivistBo>> {

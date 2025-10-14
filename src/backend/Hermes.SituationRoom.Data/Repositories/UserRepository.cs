@@ -67,6 +67,40 @@ public sealed class UserRepository(IHermessituationRoomContext context) : IUserR
         return userProfileBo;
     }
 
+    public async Task<string> GetDisplayNameAsync(Guid userId)
+    {
+        if (userId == Guid.Empty)
+            throw new ArgumentException("GUID must not be empty.", nameof(userId));
+
+        var user = await context.Users
+                       .AsNoTracking()
+                       .FirstOrDefaultAsync(u => u.Uid == userId)
+                   ?? throw new KeyNotFoundException($"User with UID {userId} was not found.");
+
+        // Check if user is an activist
+        var activist = await context.Activists
+            .AsNoTracking()
+            .FirstOrDefaultAsync(a => a.UserUid == userId);
+
+        if (activist != null)
+        {
+            return activist.Username;
+        }
+
+        // Check if user is a journalist
+        var journalist = await context.Journalists
+            .AsNoTracking()
+            .FirstOrDefaultAsync(j => j.UserUid == userId);
+
+        if (journalist != null)
+        {
+            return $"{user.FirstName} {user.LastName}";
+        }
+
+        // Fallback to first name and last name for regular users
+        return $"{user.FirstName} {user.LastName}";
+    }
+
     public async Task<IReadOnlyList<UserBo>> GetAllUserBosAsync() => await context.Users
         .AsNoTracking()
         .Select(u => MapToBo(u))

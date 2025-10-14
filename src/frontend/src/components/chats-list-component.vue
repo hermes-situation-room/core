@@ -13,6 +13,7 @@ const chatsWithLastMessage = ref<Array<ChatBo & { lastMessageTime?: string, last
 const loading = ref(false);
 const currentUserUid = ref<string>('');
 const errorMessage = ref<string>('');
+const displayNames = ref<Map<string, string>>(new Map());
 
 const clearError = () => {
     errorMessage.value = '';
@@ -37,6 +38,18 @@ const loadChats = async () => {
         const result = await services.chats.getChatsByUser(currentUserUid.value);
         if (result.isSuccess && result.data) {
             chats.value = result.data;
+            
+            // Load display names for all other users in chats
+            const otherUserUids = [...new Set(chats.value.map(chat => getOtherUserUid(chat)))];
+            for (const userUid of otherUserUids) {
+                if (userUid) {
+                    const displayNameResult = await services.users.getDisplayName(userUid);
+                    if (displayNameResult.isSuccess && displayNameResult.data) {
+                        displayNames.value.set(userUid, displayNameResult.data.displayName);
+                    }
+                }
+            }
+            
             await loadChatsWithLastMessage();
         } else {
             showError(result.responseMessage || 'Failed to load chats');
@@ -99,6 +112,11 @@ const viewChat = (chatId: string) => {
 
 const getOtherUserUid = (chat: ChatBo) => {
     return chat.user1Uid === currentUserUid.value ? chat.user2Uid : chat.user1Uid;
+};
+
+const getDisplayName = (chat: ChatBo): string => {
+    const otherUserUid = getOtherUserUid(chat);
+    return displayNames.value.get(otherUserUid) || otherUserUid.substring(0, 8) + '...';
 };
 
 const deleteChat = async (chatId: string, event: Event) => {
@@ -190,7 +208,7 @@ onMounted(() => {
                                 <div class="d-flex justify-content-between align-items-start">
                                     <div class="flex-grow-1">
                                         <div class="d-flex justify-content-between align-items-start mb-2">
-                                            <h5 class="card-title mb-0" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ getOtherUserUid(chat) }}</h5>
+                                            <h5 class="card-title mb-0" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ getDisplayName(chat) }}</h5>
                                             <small v-if="chat.lastMessage !== 'No messages yet'" class="text-muted">{{ formatLastMessageTime(chat.lastMessageTime) }}</small>
                                         </div>
                                         <p class="card-text text-muted small mb-0" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
