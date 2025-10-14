@@ -11,8 +11,6 @@ export default function usersApi(apiBaseClient: ApiBaseClient) {
             const params: Record<string, string> = {};
             params.uid = userUid;
             if (consumerUid.length > 0) { params.consumerUid = consumerUid; }
-            console.log(params)
-            console.log(params.uid == params.consumerUid)
             return await apiBaseClient.get<UserProfileBo>('services/api/internal/user/profile', params);
         },
         /**
