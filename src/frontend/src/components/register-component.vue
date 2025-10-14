@@ -2,13 +2,11 @@
 import { computed, ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import type { LoginFormData, UserType } from '../types/user'
-import { useAuthStore } from '../stores/auth-store'
 import { useErrorStore } from '../stores/error-store'
 import { useNotifications } from '../composables/use-notifications'
 import {services} from "../services/api";
 
 const router = useRouter()
-const authStore = useAuthStore()
 const errorStore = useErrorStore()
 const { showRegistrationSuccess } = useNotifications()
 
