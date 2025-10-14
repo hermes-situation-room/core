@@ -40,7 +40,7 @@ const router = createRouter({
         },
         {
             path: "/post/:id/edit",
-            name: "EditPost",
+            name: "Edit Post",
             component: EditPostComponent,
             meta: { requiresAuth: true },
         },
