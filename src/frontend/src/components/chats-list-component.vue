@@ -208,7 +208,15 @@ onMounted(() => {
                                 <div class="d-flex justify-content-between align-items-start">
                                     <div class="flex-grow-1">
                                         <div class="d-flex justify-content-between align-items-start mb-2">
-                                            <h5 class="card-title mb-0" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ getDisplayName(chat) }}</h5>
+                                            <h5 class="card-title mb-0" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                                <a 
+                                                    href="#" 
+                                                    class="text-primary text-decoration-none"
+                                                    @click.prevent.stop="router.push({ path: '/profile', query: { id: getOtherUserUid(chat) } })"
+                                                >
+                                                    {{ getDisplayName(chat) }}
+                                                </a>
+                                            </h5>
                                             <small v-if="chat.lastMessage !== 'No messages yet'" class="text-muted">{{ formatLastMessageTime(chat.lastMessageTime) }}</small>
                                         </div>
                                         <p class="card-text text-muted small mb-0" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">

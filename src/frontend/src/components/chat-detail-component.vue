@@ -370,7 +370,16 @@ onUnmounted(() => {
                   <button class="btn btn-link text-decoration-none p-0 me-3" @click="router.push('/chats')">
                     ← Back
                   </button>
-                  <span class="fw-bold">Chat with: {{ otherUserDisplayName || getOtherUserUid() }}</span>
+                  <span class="fw-bold">
+                    Chat with: 
+                    <a 
+                      href="#" 
+                      class="text-primary text-decoration-none"
+                      @click.prevent="router.push({ path: '/profile', query: { id: getOtherUserUid() } })"
+                    >
+                      {{ otherUserDisplayName || getOtherUserUid() }}
+                    </a>
+                  </span>
                 </div>
               </div>
             </div>

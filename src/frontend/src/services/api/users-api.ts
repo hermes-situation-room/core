@@ -1,5 +1,5 @@
 import type { BaseResultBo } from "../models/bo/base-result-bo";
-import type { UserProfileBo, ActivistBo, UpdateActivistPrivacy } from "../../types/user";
+import type {UserProfileBo, ActivistBo, JournalistBo} from "../../types/user";
 import ApiBaseClient from "./base/api-base-client";
 
 export default function usersApi(apiBaseClient: ApiBaseClient) {
@@ -26,10 +26,16 @@ export default function usersApi(apiBaseClient: ApiBaseClient) {
             return await apiBaseClient.get<ActivistBo>(`services/api/internal/activist/${uid}`);
         },
         /**
-         * Update activist privacy
+         * Update activist profile (full ActivistBo)
          */
-        async updateActivistPrivacy(uid: string, updateActivistPrivacy: UpdateActivistPrivacy): Promise<BaseResultBo<string>> {
-            return await apiBaseClient.put<UpdateActivistPrivacy>(`services/api/internal/activist/visibilty/${uid}`, updateActivistPrivacy);
+        async updateActivist(uid: string, activistData: ActivistBo): Promise<BaseResultBo<string>> {
+            return await apiBaseClient.put<ActivistBo>(`services/api/internal/activist/${uid}`, activistData);
+        },
+        /**
+         * Update journalist profile
+         */
+        async updateJournalist(uid: string, journalistData: JournalistBo): Promise<BaseResultBo<string>> {
+            return await apiBaseClient.put<JournalistBo>(`services/api/internal/journalist/${uid}`, journalistData);
         }
     };
 }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {computed, onMounted, onUnmounted, ref} from 'vue';
+import {computed, onMounted, ref} from 'vue';
 import {useRoute, useRouter} from 'vue-router';
 import CreatePostModal from './create-post-modal.vue';
 import {services} from '../services/api';
@@ -10,7 +10,6 @@ const route = useRoute();
 const authStore = useAuthStore();
 
 const searchQuery = ref('');
-const isScrolled = ref(false);
 const showCreateModal = ref(false);
 const showFilterModal = ref(false);
 const refreshKey = ref(0);
@@ -63,10 +62,6 @@ const switchTab = (tab: 'journalist' | 'activist') => {
 
 const handleSearch = () => {
     // Is handled in the subcomponent via props
-};
-
-const handleScroll = () => {
-    isScrolled.value = window.scrollY > 50;
 };
 
 const openCreateModal = () => {
@@ -149,7 +144,6 @@ const closeSortDropdown = () => {
 };
 
 onMounted(() => {
-    window.addEventListener('scroll', handleScroll);
     loadTags();
     
     document.addEventListener('click', (e) => {
@@ -159,20 +153,20 @@ onMounted(() => {
         }
     });
 });
-
-onUnmounted(() => {
-    window.removeEventListener('scroll', handleScroll);
-});
 </script>
 
 <template>
-    <div class="container-fluid">
-        <div v-if="errorMessage" class="alert alert-danger alert-dismissible fade show m-3" role="alert">
-            {{ errorMessage }}
-            <button type="button" class="btn-close" @click="clearError" aria-label="Close"></button>
+    <div class="d-flex flex-column" style="height: calc(100vh - 60px); overflow: hidden;">
+        <div v-if="errorMessage" class="position-fixed w-100 px-3 pt-2" style="top: 60px; z-index: 1050;">
+            <div class="container">
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    {{ errorMessage }}
+                    <button type="button" class="btn-close" @click="clearError" aria-label="Close"></button>
+                </div>
+            </div>
         </div>
 
-        <div class="bg-white border-bottom sticky-top" style="z-index: 1000;">
+        <div class="bg-white border-bottom flex-shrink-0" style="z-index: 1000;">
             <div class="container">
                 <div class="d-md-none py-3">
                     <div class="mb-2">
@@ -406,8 +400,8 @@ onUnmounted(() => {
 
             </div>
         </div>
-
-        <div v-if="selectedFilterTags.length > 0" class="bg-light border-bottom">
+            
+        <div v-if="selectedFilterTags.length > 0" class="bg-light border-bottom flex-shrink-0">
             <div class="container py-2">
                 <div class="d-flex align-items-start flex-column flex-sm-row gap-2">
                     <small class="text-muted fw-bold text-nowrap">Active Filters:</small>
@@ -437,13 +431,15 @@ onUnmounted(() => {
             </div>
         </div>
 
-        <div class="container py-3 py-md-4">
-            <router-view 
-                :key="refreshKey" 
-                :search-query="searchQuery"
-                :filter-tags="selectedFilterTags"
-                :sort-by="sortBy"
-            />
+        <div class="flex-grow-1 overflow-auto">
+            <div class="container py-3 py-md-4">
+                <router-view 
+                    :key="refreshKey" 
+                    :search-query="searchQuery"
+                    :filter-tags="selectedFilterTags"
+                    :sort-by="sortBy"
+                />
+            </div>
         </div>
 
         <CreatePostModal 
@@ -536,4 +532,3 @@ onUnmounted(() => {
         </div>
     </div>
 </template>
-
