@@ -1,6 +1,7 @@
 ﻿namespace Hermes.SituationRoom.Api.Controllers;
 
 using Shared.BusinessObjects;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Mime;
 using Base;
@@ -10,6 +11,7 @@ using Domain.Interfaces;
 using Swashbuckle.AspNetCore.Annotations;
 
 [ApiController]
+[Authorize]
 [Produces(MediaTypeNames.Application.Json)]
 public class ChatController(IControllerInfrastructure controllerInfrastructure, IChatService chatService)
     : SituationRoomControllerBase(controllerInfrastructure)
@@ -39,6 +41,17 @@ public class ChatController(IControllerInfrastructure controllerInfrastructure, 
     )
     {
         var chat = await chatService.GetChatByUserPairAsync(user1Id, user2Id);
+        return Ok(chat);
+    }
+
+    [HttpGet("internal/chats/get-or-create-by-user-pair")]
+    [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_CHAT])]
+    [ProducesResponseType(typeof(ChatBo), StatusCodes.Status200OK)]
+    public async Task<ActionResult<ChatBo>> GetOrCreateChatByUserPairAsync([FromQuery] [Required] Guid user1Id,
+        [FromQuery] [Required] Guid user2Id
+    )
+    {
+        var chat = await chatService.GetOrCreateChatByUserPairAsync(user1Id, user2Id);
         return Ok(chat);
     }
 

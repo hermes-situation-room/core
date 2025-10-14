@@ -2,10 +2,13 @@
 import {nextTick, onMounted, onUnmounted, ref} from 'vue';
 import {useRoute, useRouter} from 'vue-router';
 import {services, sockets} from '../services/api';
-import type {ChatBo, CreateMessageRequest, MessageBo} from '../types/chat';
+import type {ChatBo} from '../types/chat';
+import { useAuthStore } from '../stores/auth-store';
+import type {CreateMessageDto, MessageBo} from "../types/message.ts";
 
 const route = useRoute();
 const router = useRouter();
+const authStore = useAuthStore();
 
 const chat = ref<ChatBo | null>(null);
 const messages = ref<MessageBo[]>([]);
@@ -32,9 +35,10 @@ const loadChat = async () => {
     loading.value = true;
     try {
         const chatId = route.params.id as string;
-        currentUserUid.value = localStorage.getItem('userUid') || '';
+        currentUserUid.value = authStore.userId.value || '';
 
         if (!currentUserUid.value) {
+            showError('You must be logged in to view chats');
             router.push('/chats');
             return;
         }
@@ -166,7 +170,7 @@ const sendMessage = async () => {
     editingContent.value = '';
 
     try {
-        const messageData: CreateMessageRequest = {
+        const messageData: CreateMessageDto = {
             content: messageContent,
             senderUid: currentUserUid.value,
             chatUid: chat.value.uid
@@ -185,14 +189,14 @@ const sendMessage = async () => {
             if (!exists) {
                 messages.value.push(message);
             }
-             scrollToBottom();
-         } else {
-             showError('Failed to send message');
-             newMessage.value = messageContent;
-         }
-     } catch (error) {
-         showError('Failed to send message');
-         newMessage.value = messageContent;
+            scrollToBottom();
+        } else {
+            showError('Failed to send message');
+            newMessage.value = messageContent;
+        }
+    } catch (error) {
+        showError('Failed to send message');
+        newMessage.value = messageContent;
     } finally {
         sending.value = false;
     }

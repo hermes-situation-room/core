@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import type { UserType } from '../types/user'
+import { useAuthStore } from '../stores/auth-store'
+import {services} from "../services/api";
+
+const router = useRouter()
+const authStore = useAuthStore()
 
 const selectedUserType = ref<UserType>('activist')
 const loginData = ref({
@@ -9,12 +14,15 @@ const loginData = ref({
     email: '',
     password: ''
 })
+const errorMessage = ref('')
+const isLoading = ref(false)
 
 const isJournalist = computed(() => selectedUserType.value === 'journalist')
 const isActivist = computed(() => selectedUserType.value === 'activist')
 
 function selectUserType(type: UserType) {
     selectedUserType.value = type
+    errorMessage.value = ''
 
     loginData.value = {
         username: '',
@@ -23,8 +31,44 @@ function selectUserType(type: UserType) {
     }
 }
 
-function handleLogin() {
-    // TODO: Implement actual login logic
+async function handleLogin() {
+    if (isLoading.value) return
+    
+    errorMessage.value = ''
+    isLoading.value = true
+
+    try {
+        let result;
+        
+        if (isActivist.value) {
+            result = await services.auth.loginActivist({
+                userName: loginData.value.username,
+                password: loginData.value.password
+            })
+        } else {
+            result = await services.auth.loginJournalist({
+                emailAddress: loginData.value.email,
+                password: loginData.value.password
+            })
+        }
+
+        if (result.isSuccess) {
+            await authStore.login()
+            
+            if (authStore.isAuthenticated.value) {
+                await router.push('/')
+            } else {
+                errorMessage.value = 'Failed to fetch user data. Please try again.'
+            }
+        } else {
+            errorMessage.value = result.responseMessage || 'Login failed. Please check your credentials.'
+        }
+    } catch (error) {
+        console.error('Login error:', error)
+        errorMessage.value = 'An error occurred during login. Please try again.'
+    } finally {
+        isLoading.value = false
+    }
 }
 </script>
 
@@ -69,6 +113,10 @@ function handleLogin() {
                             </div>
 
                             <form @submit.prevent="handleLogin">
+                                <div v-if="errorMessage" class="alert alert-danger" role="alert">
+                                    {{ errorMessage }}
+                                </div>
+
                                 <div v-if="isActivist" class="mb-3">
                                     <label class="form-label">Username</label>
                                     <input
@@ -77,6 +125,7 @@ function handleLogin() {
                                         required
                                         class="form-control"
                                         placeholder="Enter your username"
+                                        :disabled="isLoading"
                                     />
                                 </div>
 
@@ -88,6 +137,7 @@ function handleLogin() {
                                         required
                                         class="form-control"
                                         placeholder="Enter your email address"
+                                        :disabled="isLoading"
                                     />
                                 </div>
 
@@ -99,11 +149,18 @@ function handleLogin() {
                                         required
                                         class="form-control"
                                         placeholder="Enter your password"
+                                        :disabled="isLoading"
                                     />
                                 </div>
 
-                                <button type="submit" class="btn btn-dark w-100 mb-3">
-                                    {{ isJournalist ? 'Login as Journalist' : 'Login as Activist' }}
+                                <button type="submit" class="btn btn-dark w-100 mb-3" :disabled="isLoading">
+                                    <span v-if="isLoading">
+                                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                        Logging in...
+                                    </span>
+                                    <span v-else>
+                                        {{ isJournalist ? 'Login as Journalist' : 'Login as Activist' }}
+                                    </span>
                                 </button>
                             </form>
 

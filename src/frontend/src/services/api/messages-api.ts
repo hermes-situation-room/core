@@ -1,6 +1,6 @@
 import type {BaseResultBo} from "../models/bo/base-result-bo";
-import type {MessageBo, CreateMessageRequest, UpdateMessageRequest} from "../../types/chat";
 import ApiBaseClient from "./base/api-base-client";
+import type {CreateMessageDto, MessageBo, UpdateMessageDto} from "../../types/message.ts";
 
 export default function messagesApi(apiBaseClient: ApiBaseClient) {
     return {
@@ -21,15 +21,15 @@ export default function messagesApi(apiBaseClient: ApiBaseClient) {
         /**
          * Create a new message
          */
-        async createMessage(messageData: CreateMessageRequest): Promise<BaseResultBo<string>> {
-            return await apiBaseClient.post<CreateMessageRequest>(`services/api/internal/message`, messageData);
+        async createMessage(messageData: CreateMessageDto): Promise<BaseResultBo<string>> {
+            return await apiBaseClient.post<CreateMessageDto>(`services/api/internal/message`, messageData);
         },
 
         /**
          * Update an existing message
          */
-        async updateMessage(messageId: string, messageData: UpdateMessageRequest): Promise<BaseResultBo<string>> {
-            return await apiBaseClient.put<UpdateMessageRequest>(`services/api/internal/message/${messageId}`, messageData);
+        async updateMessage(messageId: string, messageData: UpdateMessageDto): Promise<BaseResultBo<string>> {
+            return await apiBaseClient.put<UpdateMessageDto>(`services/api/internal/message/${messageId}`, messageData);
         },
 
         /**

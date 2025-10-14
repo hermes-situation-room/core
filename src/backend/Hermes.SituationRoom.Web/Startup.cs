@@ -1,20 +1,23 @@
 ﻿namespace Hermes.SituationRoom.Api;
 
+using Configurations;
 using Data.Context;
 using Data.Interface;
 using Domain.Hubs;
-using Hermes.SituationRoom.Api.Configurations;
-using Hermes.SituationRoom.Api.Extensions;
-using Hermes.SituationRoom.Api.Middlewares;
+using Extensions;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
+using Middlewares;
 using Serilog;
 
 public class Startup
 {
+    private readonly IWebHostEnvironment _env;
+
     public Startup(IConfiguration configuration, IWebHostEnvironment env)
     {
+        _env = env;
         var builder = new ConfigurationBuilder()
             .SetBasePath(env.ContentRootPath)
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
@@ -40,20 +43,40 @@ public class Startup
         services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
             .AddCookie(options =>
             {
+                options.Cookie.Name = "SituationRoom.Auth";
+                options.Cookie.HttpOnly = true;
+                
+                if (_env.IsDevelopment())
+                {
+                    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+                    options.Cookie.SameSite = SameSiteMode.Lax;
+                }
+                else
+                {
+                    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+                    options.Cookie.SameSite = SameSiteMode.None;
+                }
+                options.ExpireTimeSpan = TimeSpan.FromHours(24);
+                options.SlidingExpiration = true;
                 options.Events.OnRedirectToLogin = ctx =>
                 {
-                    // Return 401 instead of redirect
                     ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
                     return Task.CompletedTask;
                 };
 
                 options.Events.OnRedirectToAccessDenied = ctx =>
                 {
-                    // Return 403 instead of redirect
                     ctx.Response.StatusCode = StatusCodes.Status403Forbidden;
                     return Task.CompletedTask;
                 };
             });
+
+        services.AddAuthorization(options =>
+        {
+            options.DefaultPolicy = new AuthorizationPolicyBuilder()
+                .RequireAuthenticatedUser()
+                .Build();
+        });
 
         services.AddControllers();
 
@@ -63,13 +86,20 @@ public class Startup
         
         services.AddCors(options =>
         {
-            options.AddPolicy("AllowAnyOrigin",
-                builder =>
-                {
-                    builder.AllowAnyOrigin()
-                        .AllowAnyHeader()
-                        .AllowAnyMethod();
-                });
+            options.AddPolicy("AllowCredentials", builder =>
+            {
+                builder
+                    .WithOrigins(
+                        "https://hermes-situation-room.release",
+                        "https://hermes-situation-room.stage",
+                        "http://localhost:13500/swagger",
+                        "http://localhost:5005/swagger",
+                        "http://localhost:4300"
+                    )
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials();
+            });
         });
     }
 
@@ -79,7 +109,7 @@ public class Startup
         app.UseSerilogRequestLogging();
         app.UseHttpsRedirection()
             .UseRouting()
-            .UseCors("AllowAnyOrigin")
+            .UseCors("AllowCredentials")
             .UseRequestLocalization()
             .UseMiddleware<ExceptionMiddleware>()
             .UseAuthentication()

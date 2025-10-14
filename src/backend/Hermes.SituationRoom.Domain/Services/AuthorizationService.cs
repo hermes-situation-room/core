@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
 
-public class AuthorizationService(IHttpContextAccessor httpContextAccessor, IUserRepository userRepository, IActivistRepository activistRepository, IEncryptionService encryptionService) : IAuthorizationService
+public class AuthorizationService(IHttpContextAccessor httpContextAccessor, IUserRepository userRepository, IActivistRepository activistRepository, IJournalistRepository journalistRepository, IEncryptionService encryptionService) : IAuthorizationService
 {
 
     private HttpContext HttpContext => httpContextAccessor.HttpContext;
@@ -25,7 +25,8 @@ public class AuthorizationService(IHttpContextAccessor httpContextAccessor, IUse
         var claims = new List<Claim>
         {
             new Claim(ClaimTypes.Name, activist.UserName),
-            new Claim(ClaimTypes.NameIdentifier, activist.Uid.ToString())
+            new Claim(ClaimTypes.NameIdentifier, activist.Uid.ToString()),
+            new Claim(ClaimTypes.Role, "Activist")
         };
 
         var claimsIdentity = new ClaimsIdentity(
@@ -34,7 +35,7 @@ public class AuthorizationService(IHttpContextAccessor httpContextAccessor, IUse
         var authProperties = new AuthenticationProperties
         {
             AllowRefresh = true,
-            ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(10),
+            ExpiresUtc = DateTimeOffset.UtcNow.AddHours(24),
             IsPersistent = true,
             IssuedUtc = DateTimeOffset.UtcNow,
         };
@@ -60,7 +61,8 @@ public class AuthorizationService(IHttpContextAccessor httpContextAccessor, IUse
         var claims = new List<Claim>
         {
             new Claim(ClaimTypes.Email, journalist.EmailAddress),
-            new Claim(ClaimTypes.NameIdentifier, journalist.Uid.ToString())
+            new Claim(ClaimTypes.NameIdentifier, journalist.Uid.ToString()),
+            new Claim(ClaimTypes.Role, "Journalist")
         };
 
         var claimsIdentity = new ClaimsIdentity(
@@ -69,7 +71,7 @@ public class AuthorizationService(IHttpContextAccessor httpContextAccessor, IUse
         var authProperties = new AuthenticationProperties
         {
             AllowRefresh = true,
-            ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(10),
+            ExpiresUtc = DateTimeOffset.UtcNow.AddHours(24),
             IsPersistent = true,
             IssuedUtc = DateTimeOffset.UtcNow,
         };
@@ -83,5 +85,38 @@ public class AuthorizationService(IHttpContextAccessor httpContextAccessor, IUse
             authProperties);
 
         return journalist.Uid;
+    }
+
+    public async Task Logout()
+    {
+        if (HttpContext == null)
+            throw new InvalidOperationException("No active HttpContext available.");
+
+        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+    }
+
+    public Task<CurrentUserBo?> GetCurrentUser()
+    {
+        if (HttpContext?.User?.Identity?.IsAuthenticated != true)
+            return Task.FromResult<CurrentUserBo?>(null);
+
+        var userIdClaim = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier);
+        var roleClaim = HttpContext.User.FindFirst(ClaimTypes.Role);
+
+        if (userIdClaim == null || roleClaim == null)
+            return Task.FromResult<CurrentUserBo?>(null);
+
+        if (!Guid.TryParse(userIdClaim.Value, out var userId))
+            return Task.FromResult<CurrentUserBo?>(null);
+
+        var userType = roleClaim.Value.ToLower();
+
+        var currentUser = new CurrentUserBo
+        {
+            UserId = userId,
+            UserType = userType
+        };
+
+        return Task.FromResult<CurrentUserBo?>(currentUser);
     }
 }

@@ -8,7 +8,7 @@
     tags: string[];
 }
 
-export interface CreatePostRequest {
+export interface CreatePostDto {
     title: string;
     description: string;
     content: string;
@@ -16,7 +16,7 @@ export interface CreatePostRequest {
     tags: string[];
 }
 
-export interface UpdatePostRequest {
+export interface UpdatePostDto {
     uid: string;
     timestamp: string;
     title: string;

@@ -1,7 +1,25 @@
-import type { BaseResultBo } from "../../models/bo/base-result-bo";
+import type {BaseResultBo} from "../../models/bo/base-result-bo";
+import {useAuthStore} from "../../../stores/auth-store";
+import router from "../../../router";
 
 export default class ApiBaseClient {
     apiBaseUrl: string = import.meta.env.VITE_APP_BACKEND;
+
+    /**
+     * Handle 401 Unauthorized responses by redirecting to login
+     * Clears auth state locally without calling logout API (session already expired)
+     * Uses dynamic imports to avoid circular dependency
+     */
+    private async handleUnauthorized(status: number) {
+        if (status === 401) {
+            const authStore = useAuthStore();
+            authStore.clearAuthState();
+
+            if (router.currentRoute.value.path !== '/login') {
+                router.push('/login');
+            }
+        }
+    }
 
     /**
      * GET functionality which handels errors, no try-catch needed for the caller
@@ -16,10 +34,13 @@ export default class ApiBaseClient {
         try {
             const response = await fetch(url, {
                 method: "GET",
+                credentials: "include",
                 headers: {
                     "Accept": "application/json, text/plain, */*",
                 },
             });
+
+            void this.handleUnauthorized(response.status);
 
             const contentType = response.headers.get("content-type");
             let data: any;
@@ -32,13 +53,12 @@ export default class ApiBaseClient {
                 data = await response.blob();
             }
 
-            const resObj: BaseResultBo<T> = {
+            return {
                 data: data as T,
                 responseCode: response.status,
                 responseMessage: response.statusText,
                 isSuccess: response.ok,
             };
-            return resObj;
         } catch (e) {
             return {
                 data: undefined,
@@ -50,8 +70,8 @@ export default class ApiBaseClient {
     }
 
     /**
-     * POST functionality which handels errors, no try-catch needed for the caller 
-     * @param route Route which should be called by the cliend - Route-Parameters must be included into the route by the caller
+     * POST functionality which handels errors, no try-catch needed for the caller
+     * @param route Route which should be called by the client - Route-Parameters must be included into the route by the caller
      * @param input Object which is sent to the API. Object will not be validated, must be done by the caller
      * @returns Always returns a BaseResultBo of type string which contains the uid of the created object
      */
@@ -60,24 +80,25 @@ export default class ApiBaseClient {
         try {
             const response = await fetch(url, {
                 method: 'POST',
+                credentials: "include",
                 headers: {
                     "Content-Type": "application/json",
-                    "Accept": "application/json, text/plain, */*"
+                    "Accept": "application/json, text/plain, */*",
                 },
                 body: JSON.stringify(input)
             });
 
-            const uid = await response.text();
+            void this.handleUnauthorized(response.status);
 
-            const resObj: BaseResultBo<string> = {
+            const uid = (await response.text()).replace(/"/g, '');
+
+            return {
                 data: uid,
                 responseCode: response.status,
                 responseMessage: response.statusText,
                 isSuccess: response.ok,
             };
-            return resObj;
-        }
-        catch (e) {
+        } catch (e) {
             return {
                 data: undefined,
                 responseCode: undefined,
@@ -88,7 +109,7 @@ export default class ApiBaseClient {
     }
 
     /**
-     * PUT functionality which handels errors, no try-catch needed for the caller 
+     * PUT functionality which handels errors, no try-catch needed for the caller
      * @param route Route which should be called by the cliend - Route-Parameters must be included into the route by the caller
      * @param input Object which is sent to the API. Object will not be validated, must be done by the caller
      * @returns Always returns a BaseResultBo of type string which contains the uid of the created object
@@ -98,24 +119,25 @@ export default class ApiBaseClient {
         try {
             const response = await fetch(url, {
                 method: 'PUT',
+                credentials: "include",
                 headers: {
                     "Content-Type": "application/json",
-                    "Accept": "application/json, text/plain, */*"
+                    "Accept": "application/json, text/plain, */*",
                 },
                 body: JSON.stringify(input)
             });
 
+            void this.handleUnauthorized(response.status);
+
             const uid = await response.text();
 
-            const resObj: BaseResultBo<string> = {
+            return {
                 data: uid,
                 responseCode: response.status,
                 responseMessage: response.statusText,
                 isSuccess: response.ok,
             };
-            return resObj;
-        }
-        catch (e) {
+        } catch (e) {
             return {
                 data: undefined,
                 responseCode: undefined,
@@ -126,7 +148,7 @@ export default class ApiBaseClient {
     }
 
     /**
-     * 
+     * DELETE functionality which handels errors, no try-catch needed for the caller
      * @param route The route called, the id of the deletion-item must be included in the url by the caller
      * @returns Always returns a BaseResultBo of type undefined which only contains the response message and code
      */
@@ -135,15 +157,17 @@ export default class ApiBaseClient {
         try {
             const response = await fetch(url, {
                 method: 'DELETE',
+                credentials: "include",
             });
 
-            const resObj: BaseResultBo<undefined> = {
+            void this.handleUnauthorized(response.status);
+
+            return {
                 data: undefined,
                 responseCode: response.status,
                 responseMessage: response.statusText,
                 isSuccess: response.ok
-            }
-            return resObj;
+            };
         } catch (e) {
             return {
                 data: undefined,

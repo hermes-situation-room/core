@@ -3,17 +3,18 @@ import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { services } from '../services/api';
 import type { PostBo } from '../types/post';
-import type { CreateChatRequest } from '../types/chat';
+import { useAuthStore } from '../stores/auth-store';
 
 const route = useRoute();
 const router = useRouter();
+const authStore = useAuthStore();
 
 const post = ref<PostBo | null>(null);
 const loading = ref(false);
 const error = ref<string | null>(null);
 const creatingChat = ref(false);
 
-const currentUserUid = computed(() => localStorage.getItem('userUid') || '');
+const currentUserUid = computed(() => authStore.userId.value || '');
 
 const canSendMessage = computed(() => {
     return post.value && currentUserUid.value && post.value.creatorUid !== currentUserUid.value;
@@ -58,31 +59,18 @@ const sendDirectMessage = async () => {
     creatingChat.value = true;
 
     try {
-        const existingChatResult = await services.chats.getChatByUserPair(
+        const chatResult = await services.chats.getOrCreateChatByUserPair(
             currentUserUid.value,
             post.value.creatorUid
         );
 
-        if (existingChatResult.isSuccess && existingChatResult.data) {
-            router.push(`/chat/${existingChatResult.data.uid}`);
-            return;
-        }
-
-        const chatData: CreateChatRequest = {
-            user1Uid: currentUserUid.value,
-            user2Uid: post.value.creatorUid
-        };
-
-        const createResult = await services.chats.createChat(chatData);
-        
-        if (createResult.isSuccess && createResult.data) {
-            const chatId = JSON.parse(createResult.data);
-            router.push(`/chat/${chatId}`);
+        if (chatResult.isSuccess && chatResult.data) {
+            router.push(`/chat/${chatResult.data.uid}`);
         } else {
-            error.value = createResult.responseMessage || 'Failed to create chat';
+            error.value = chatResult.responseMessage || 'Failed to open chat';
         }
     } catch (err) {
-        error.value = 'An error occurred while creating the chat';
+        error.value = 'An error occurred while opening the chat';
     } finally {
         creatingChat.value = false;
     }
@@ -178,9 +166,17 @@ onMounted(() => {
                                 <i v-else class="fas fa-comment me-1"></i>
                                 Direct Message
                             </button>
-                            <span v-else-if="post.creatorUid === currentUserUid" class="badge bg-secondary">
+                            <span v-else-if="currentUserUid && post.creatorUid === currentUserUid" class="badge bg-secondary">
                                 Your Post
                             </span>
+                            <RouterLink 
+                                v-else-if="!currentUserUid"
+                                to="/login"
+                                class="btn btn-outline-primary btn-sm"
+                            >
+                                <i class="fas fa-sign-in-alt me-1"></i>
+                                Login to Message
+                            </RouterLink>
                         </div>
                     </div>
                 </div>

@@ -3,10 +3,12 @@
 using Base;
 using Configurations;
 using Domain.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Shared.BusinessObjects;
 using Swashbuckle.AspNetCore.Annotations;
 
+[Authorize]
 public class ActivistController(IControllerInfrastructure infra, IActivistService activistService)
     : SituationRoomControllerBase(infra)
 {
@@ -24,6 +26,7 @@ public class ActivistController(IControllerInfrastructure infra, IActivistServic
         Ok(await activistService.GetActivistsAsync());
 
     [HttpPost("internal/activist/")]
+    [AllowAnonymous]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_ACTIVIST])]
     [ProducesResponseType(typeof(Guid), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]

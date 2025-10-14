@@ -23,6 +23,8 @@ import "@fontsource/roboto/500-italic.css";
 import "@fontsource/roboto/700-italic.css";
 import "@fontsource/roboto/900-italic.css";
 
+import { useAuthStore } from "./stores/auth-store";
+
 const vuetify = createVuetify({
     components,
     directives,
@@ -31,5 +33,9 @@ const vuetify = createVuetify({
 const app = createApp(App);
 app.use(router);
 app.use(vuetify);
-app.mount("#app");
+
+const authStore = useAuthStore();
+authStore.initAuth().then(() => {
+    app.mount("#app");
+});
 

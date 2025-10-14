@@ -3,11 +3,12 @@
 using Base;
 using Configurations;
 using Domain.Interfaces;
-using Domain.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Shared.BusinessObjects;
 using Swashbuckle.AspNetCore.Annotations;
 
+[Authorize]
 public class JournalistController(IControllerInfrastructure infra, IJournalistService journalistService)
     : SituationRoomControllerBase(infra)
 {
@@ -25,6 +26,7 @@ public class JournalistController(IControllerInfrastructure infra, IJournalistSe
         Ok(await journalistService.GetJournalistsAsync());
 
     [HttpPost("internal/journalist/")]
+    [AllowAnonymous]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_JOURNALIST])]
     [ProducesResponseType(typeof(Guid), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]

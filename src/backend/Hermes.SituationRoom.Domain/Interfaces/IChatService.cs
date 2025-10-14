@@ -10,6 +10,8 @@ public interface IChatService
 
     Task<ChatBo> GetChatByUserPairAsync(Guid user1Id, Guid user2Id);
 
+    Task<ChatBo> GetOrCreateChatByUserPairAsync(Guid user1Id, Guid user2Id);
+
     Task<IReadOnlyList<ChatBo>> GetChatsByUserAsync(Guid userId);
     
     Task DeleteAsync(Guid chatId);

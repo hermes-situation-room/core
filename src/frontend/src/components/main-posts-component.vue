@@ -3,9 +3,11 @@ import {computed, onMounted, onUnmounted, ref} from 'vue';
 import {useRoute, useRouter} from 'vue-router';
 import CreatePostModal from './create-post-modal.vue';
 import {services} from '../services/api';
+import { useAuthStore } from '../stores/auth-store';
 
 const router = useRouter();
 const route = useRoute();
+const authStore = useAuthStore();
 
 const searchQuery = ref('');
 const isScrolled = ref(false);
@@ -68,6 +70,10 @@ const handleScroll = () => {
 };
 
 const openCreateModal = () => {
+    if (!authStore.isAuthenticated.value) {
+        router.push('/login');
+        return;
+    }
     showCreateModal.value = true;
 };
 
@@ -77,6 +83,9 @@ const closeCreateModal = () => {
 
 const handlePostCreated = () => {
     refreshKey.value++;
+    if (authStore.userType.value) {
+        router.push('/' + authStore.userType.value);
+    }
 };
 
 const loadTags = async () => {
@@ -273,20 +282,21 @@ onUnmounted(() => {
                             class="btn btn-primary flex-fill py-2"
                             @click="openCreateModal"
                         >
-                            <i class="fas fa-plus me-1"></i>
-                            <span class="d-none d-sm-inline">Create</span>
+                            <i :class="authStore.isAuthenticated.value ? 'fas fa-plus' : 'fas fa-sign-in-alt'" class="me-1"></i>
+                            <span class="d-none d-sm-inline">{{ authStore.isAuthenticated.value ? 'Create Post' : 'Login to Post' }}</span>
+                            <span class="d-sm-none">{{ authStore.isAuthenticated.value ? 'Create' : 'Login' }}</span>
                         </button>
                     </div>
                 </div>
 
-                <div class="row align-items-center py-3 d-none d-md-flex g-3">
-                    <div class="col-auto">
+                <div class="d-none d-md-flex py-3">
+                    <div class="d-flex gap-2 w-100 align-items-center">
                         <button 
-                            class="btn btn-outline-secondary position-relative"
+                            class="btn btn-outline-secondary position-relative flex-shrink-0"
                             @click="openFilterModal"
                         >
                             <i class="fas fa-filter me-1"></i>
-                            <span class="d-none d-xl-inline">Filter</span>
+                            <span class="d-none d-lg-inline">Filter</span>
                             <span 
                                 v-if="selectedFilterTags.length > 0" 
                                 class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary"
@@ -294,10 +304,8 @@ onUnmounted(() => {
                                 {{ selectedFilterTags.length }}
                             </span>
                         </button>
-                    </div>
-
-                    <div class="col-md-5 col-lg-4">
-                        <div class="input-group">
+                        
+                        <div class="input-group flex-grow-1" style="min-width: 200px;">
                             <span class="input-group-text bg-white border-end-0">
                                 <i class="fas fa-search text-muted"></i>
                             </span>
@@ -309,42 +317,33 @@ onUnmounted(() => {
                                 placeholder="Search posts..."
                             />
                         </div>
-                    </div>
-
-                    <div class="col-auto">
-                        <div class="btn-group" role="group">
+                        
+                        <div class="btn-group flex-shrink-0" role="group">
                             <button
                                 @click="switchTab('journalist')"
                                 :class="['btn', currentTab === 'journalist' ? 'btn-dark' : 'btn-outline-dark']"
                             >
-                                Journalist
+                                <span class="d-none d-lg-inline">Journalist</span>
+                                <span class="d-lg-none">J</span>
                             </button>
                             <button
                                 @click="switchTab('activist')"
                                 :class="['btn', currentTab === 'activist' ? 'btn-dark' : 'btn-outline-dark']"
                             >
-                                Activist
+                                <span class="d-none d-lg-inline">Activist</span>
+                                <span class="d-lg-none">A</span>
                             </button>
                         </div>
-                    </div>
-
-                    <div class="col-auto ms-auto">
-                        <button 
-                            class="btn btn-primary me-2"
-                            @click="openCreateModal"
-                        >
-                            <i class="fas fa-plus me-1"></i>
-                            <span class="d-none d-xl-inline">Create Post</span>
-                            <span class="d-xl-none">Create</span>
-                        </button>
-                        <div class="dropdown d-inline-block">
+                        
+                        <div class="dropdown flex-shrink-0">
                             <button 
                                 class="btn btn-outline-secondary dropdown-toggle"
                                 type="button"
                                 @click="toggleSortDropdown"
                             >
                                 <i class="fas fa-sort me-1"></i>
-                                <span class="d-none d-xl-inline">{{ sortLabel }}</span>
+                                <span class="d-none d-lg-inline">{{ sortLabel }}</span>
+                                <span class="d-lg-none">Sort</span>
                             </button>
                             <ul 
                                 :class="['dropdown-menu', 'dropdown-menu-end', { 'show': showSortDropdown }]"
@@ -393,8 +392,18 @@ onUnmounted(() => {
                                 </li>
                             </ul>
                         </div>
+                        
+                        <button 
+                            class="btn btn-primary flex-shrink-0"
+                            @click="openCreateModal"
+                        >
+                            <i :class="authStore.isAuthenticated.value ? 'fas fa-plus' : 'fas fa-sign-in-alt'" class="me-1"></i>
+                            <span class="d-none d-lg-inline">{{ authStore.isAuthenticated.value ? 'Create Post' : 'Login to Post' }}</span>
+                            <span class="d-lg-none">{{ authStore.isAuthenticated.value ? 'Create' : 'Login' }}</span>
+                        </button>
                     </div>
                 </div>
+
             </div>
         </div>
 
@@ -439,7 +448,6 @@ onUnmounted(() => {
 
         <CreatePostModal 
             :show="showCreateModal"
-            :post-type="currentTab"
             @close="closeCreateModal"
             @post-created="handlePostCreated"
         />
