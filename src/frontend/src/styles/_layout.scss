@@ -7,11 +7,11 @@
 @import 'mixins';
 
 // --------------------------------------------
-// Container System
+// Container System (Compact)
 // --------------------------------------------
 
 .container {
-  @include make-container($space-4);
+  @include make-container($space-2);
   max-width: $container-xl;
   
   @include respond-to('sm') {
@@ -36,7 +36,7 @@
 }
 
 .container-fluid {
-  @include make-container($space-4);
+  @include make-container($space-2);
   width: 100%;
 }
 

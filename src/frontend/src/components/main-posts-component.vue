@@ -174,24 +174,7 @@ onUnmounted(() => {
 
         <div class="bg-white border-bottom sticky-top" style="z-index: 1000;">
             <div class="container">
-                <div class="d-md-none py-3">
-                    <div class="mb-2">
-                        <div class="btn-group w-100" role="group">
-                            <button
-                                @click="switchTab('journalist')"
-                                :class="['btn', 'py-2', currentTab === 'journalist' ? 'btn-dark' : 'btn-outline-dark']"
-                            >
-                                Journalist
-                            </button>
-                            <button
-                                @click="switchTab('activist')"
-                                :class="['btn', 'py-2', currentTab === 'activist' ? 'btn-dark' : 'btn-outline-dark']"
-                            >
-                                Activist
-                            </button>
-                        </div>
-                    </div>
-                    
+                <div class="d-md-none pb-3">
                     <div class="mb-2">
                         <div class="input-group">
                             <span class="input-group-text bg-white border-end-0">

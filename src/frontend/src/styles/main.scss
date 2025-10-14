@@ -33,10 +33,10 @@ main {
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: $space-4;
+  padding: 0 $space-2 $space-2 $space-2;
   
   @include respond-to('md') {
-    padding: $space-6;
+    padding: $space-4;
   }
 }
 
@@ -44,31 +44,38 @@ main {
 // Custom Component Overrides
 // ============================================
 
-// Enhanced Navbar with iOS Glass Effect
+// Enhanced Navbar with iOS Glass Effect (Minimalist)
 .navbar {
-  @include ios-glass(0.85);
+  @include ios-glass(0.9);
   border: none;
-  border-bottom: 1px solid $ios-glass-border;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  position: relative;
   
   .logo {
-    transition: transform $transition-base $ease-out;
+    transition: transform $transition-base;
+    filter: drop-shadow(0 2px 6px rgba($color-primary-600, 0.15));
     
     &:hover {
       transform: scale(1.05);
+      filter: drop-shadow(0 4px 12px rgba($color-primary-600, 0.25));
     }
+  }
+  
+  .btn {
+    @include smooth-transition(all);
   }
 }
 
-// Bottom Navigation (iOS Style)
+// Bottom Navigation (iOS Style - Minimalist)
 .bottom-nav {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
   height: $bottom-nav-height;
-  @include ios-glass(0.85);
-  border-top: 1px solid $ios-glass-border;
-  padding: 0 $space-4 env(safe-area-inset-bottom, 0);
+  @include ios-glass(0.95);
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  padding: 0 $space-2 env(safe-area-inset-bottom, 0);
   z-index: $z-index-fixed;
   display: flex;
   align-items: center;
@@ -82,38 +89,63 @@ main {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: $space-1;
-    padding: $space-2;
+    gap: 3px;
+    padding: $space-2 $space-3;
     color: $text-tertiary;
     text-decoration: none;
-    border-radius: $radius-lg;
-    min-width: 60px;
+    border-radius: $radius-xl;
+    min-width: 64px;
+    position: relative;
     @include smooth-transition(all);
     
     i {
-      font-size: $font-size-lg;
+      font-size: 22px;
+      @include smooth-transition(all);
     }
     
     span {
-      font-size: $font-size-xs;
+      font-size: 11px;
       font-weight: $font-weight-medium;
+      @include smooth-transition(all);
     }
     
     &:active {
-      transform: scale(0.9);
+      transform: scale(0.92);
     }
     
     &.active {
-      color: $color-primary-600;
-      background: rgba($color-primary-500, 0.1);
+      color: $color-primary-700;
+      background: rgba($color-primary-600, 0.12);
+      
+      i {
+        transform: scale(1.05);
+      }
     }
   }
 }
 
-// Enhanced Cards with iOS glass style
+// Enhanced Cards with iOS glass style (Minimalist)
 .card {
   @include ios-glass-card;
   border: 1px solid $ios-glass-border;
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: $color-primary-600;
+    opacity: 0;
+    transition: opacity $transition-base $ease-out;
+  }
+  
+  &:hover::before {
+    opacity: 0.6;
+  }
 }
 
 // Smooth scrolling container
@@ -131,23 +163,36 @@ main {
   }
 }
 
-// Chat message bubbles
+// Chat message bubbles (Minimalist & Clean)
 .chat-message {
   &.sent {
     .message-bubble {
-      background: linear-gradient(135deg, $color-primary-600, $color-primary-500);
+      background: $color-primary-600;
       color: $text-inverse;
       border-radius: $radius-2xl $radius-2xl $radius-sm $radius-2xl;
-      @include elevation(1);
+      box-shadow: 0 2px 8px 0 rgba($color-primary-600, 0.2);
+      @include smooth-transition(all);
+      
+      &:hover {
+        box-shadow: 0 4px 12px 0 rgba($color-primary-600, 0.3);
+        transform: translateY(-1px);
+      }
     }
   }
   
   &.received {
     .message-bubble {
-      background: $bg-elevated;
+      @include ios-glass(0.85);
       color: $text-primary;
       border-radius: $radius-2xl $radius-2xl $radius-2xl $radius-sm;
-      border: 1px solid $border-light;
+      border: 1px solid $ios-glass-border;
+      box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.06);
+      @include smooth-transition(all);
+      
+      &:hover {
+        box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.1);
+        transform: translateY(-1px);
+      }
     }
   }
 }
@@ -169,24 +214,32 @@ main {
   }
 }
 
-// Tag pills
+// Tag pills (Minimalist & Clean)
 .tag-pill {
-  @include badge($color-primary-100, $color-primary-700);
   padding: $space-2 $space-4;
   font-weight: $font-weight-medium;
   cursor: pointer;
   @include smooth-transition(all);
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid $ios-glass-border;
+  color: $color-primary-700;
+  box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.06);
   
   &:hover {
-    background: $color-primary-200;
+    background: rgba(255, 255, 255, 0.9);
+    border-color: $color-primary-500;
+    color: $color-primary-800;
     transform: translateY(-2px);
-    @include elevation(1);
+    box-shadow: 0 4px 12px 0 rgba($color-primary-600, 0.15);
   }
   
   &.active {
     background: $color-primary-600;
+    border-color: $color-primary-600;
     color: $text-inverse;
-    @include glow($color-primary-500, 0.2);
+    box-shadow: 0 2px 8px 0 rgba($color-primary-600, 0.3);
   }
 }
 
@@ -203,26 +256,34 @@ main {
   }
 }
 
-// Filter modal enhancements
+// Filter modal enhancements (Minimalist)
 .filter-tag {
-  @include badge($bg-secondary, $text-primary);
   padding: $space-3 $space-5;
   font-size: $font-size-base;
+  font-weight: $font-weight-medium;
   cursor: pointer;
-  border: 2px solid transparent;
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid $ios-glass-border;
+  border-radius: $radius-full;
+  color: $text-primary;
+  box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.06);
   @include smooth-transition(all);
   
   &:hover {
-    background: $color-primary-100;
-    border-color: $color-primary-300;
+    background: rgba(255, 255, 255, 0.9);
+    border-color: $color-primary-500;
+    color: $color-primary-700;
     transform: translateY(-2px);
+    box-shadow: 0 4px 12px 0 rgba($color-primary-600, 0.15);
   }
   
   &.selected {
     background: $color-primary-600;
     color: $text-inverse;
-    border-color: $color-primary-700;
-    @include glow($color-primary-500, 0.15);
+    border-color: $color-primary-600;
+    box-shadow: 0 2px 8px 0 rgba($color-primary-600, 0.3);
   }
 }
 
@@ -238,26 +299,28 @@ main {
   }
 }
 
-// Empty states
+// Empty states (Minimalist & Clean)
 .empty-state {
   @include flex-column;
   @include flex-center;
-  padding: $space-12 $space-6;
+  padding: $space-8 $space-4;
   text-align: center;
   
   i {
     font-size: 4rem;
-    color: $color-neutral-300;
-    margin-bottom: $space-6;
+    color: $color-primary-500;
+    opacity: 0.5;
+    margin-bottom: $space-4;
   }
   
   h5 {
-    color: $text-secondary;
+    color: $text-primary;
+    font-weight: $font-weight-semibold;
     margin-bottom: $space-2;
   }
   
   p {
-    color: $text-tertiary;
+    color: $text-secondary;
     max-width: 400px;
   }
 }
@@ -431,20 +494,24 @@ main {
   }
 }
 
-// Progress bars
+// Progress bars (Minimalist & Clean)
 .progress {
   height: 8px;
-  background: $bg-tertiary;
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   border-radius: $radius-full;
   overflow: hidden;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.08);
   
   &-bar {
     height: 100%;
-    background: linear-gradient(90deg, $color-primary-600, $color-accent-500);
+    background: $color-primary-600;
     border-radius: $radius-full;
-    @include smooth-transition(width);
+    @include smooth-transition(width, $transition-slow);
     position: relative;
     overflow: hidden;
+    box-shadow: 0 1px 4px rgba($color-primary-600, 0.25);
     
     &::after {
       content: '';

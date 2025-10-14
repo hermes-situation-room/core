@@ -16,22 +16,43 @@
   
   // Variants
   &-primary {
-    @include button-variant($color-primary-600, $text-inverse);
+    background: $color-primary-600;
+    color: $text-inverse;
+    box-shadow: 0 2px 12px 0 rgba($color-primary-600, 0.2);
     
     &:hover:not(:disabled) {
-      @include glow($color-primary-500, 0.2);
+      background: $color-primary-700;
+      box-shadow: 0 4px 20px 0 rgba($color-primary-600, 0.3);
+      transform: translateY(-2px);
+    }
+    
+    &:active:not(:disabled) {
+      transform: translateY(0) scale(0.97);
+      box-shadow: 0 1px 8px 0 rgba($color-primary-600, 0.2);
     }
   }
   
   &-secondary {
-    @include button-variant($color-neutral-600, $text-inverse);
+    background: $color-secondary-600;
+    color: $text-inverse;
+    box-shadow: 0 2px 12px 0 rgba($color-secondary-600, 0.2);
+    
+    &:hover:not(:disabled) {
+      background: $color-secondary-700;
+      box-shadow: 0 4px 20px 0 rgba($color-secondary-600, 0.3);
+      transform: translateY(-2px);
+    }
   }
   
   &-accent {
-    @include button-variant($color-accent-500, $text-inverse);
+    background: $color-accent-600;
+    color: $text-inverse;
+    box-shadow: 0 2px 12px 0 rgba($color-accent-600, 0.2);
     
     &:hover:not(:disabled) {
-      @include glow($color-accent-500, 0.2);
+      background: $color-accent-700;
+      box-shadow: 0 4px 20px 0 rgba($color-accent-600, 0.3);
+      transform: translateY(-2px);
     }
   }
   
@@ -312,40 +333,48 @@ select.form-control {
 }
 
 // --------------------------------------------
-// Badges & Tags
+// Badges & Tags (Minimalist & Professional)
 // --------------------------------------------
 
 .badge {
-  @include badge($color-primary-500, $text-inverse);
+  @include badge($color-primary-600, $text-inverse);
+  box-shadow: 0 1px 4px 0 rgba($color-primary-600, 0.2);
   
   &-primary {
-    background: $color-primary-500;
+    background: $color-primary-600;
+    box-shadow: 0 1px 4px 0 rgba($color-primary-600, 0.2);
   }
   
   &-secondary {
-    background: $color-neutral-500;
+    background: $color-secondary-600;
+    box-shadow: 0 1px 4px 0 rgba($color-secondary-600, 0.2);
   }
   
   &-success {
     background: $color-success;
+    box-shadow: 0 1px 4px 0 rgba($color-success, 0.2);
   }
   
   &-warning {
     background: $color-warning;
     color: $color-neutral-900;
+    box-shadow: 0 1px 4px 0 rgba($color-warning, 0.2);
   }
   
   &-error, &-danger {
     background: $color-error;
+    box-shadow: 0 1px 4px 0 rgba($color-error, 0.2);
   }
   
   &-light {
     background: $color-neutral-200;
     color: $text-primary;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.08);
   }
   
   &-dark {
-    background: $color-neutral-900;
+    background: $color-neutral-800;
+    box-shadow: 0 1px 4px 0 rgba($color-neutral-900, 0.3);
   }
   
   // Outline variant
@@ -369,7 +398,7 @@ select.form-control {
 }
 
 // --------------------------------------------
-// Alerts
+// Alerts (Minimalist & Clean)
 // --------------------------------------------
 
 .alert {
@@ -378,31 +407,37 @@ select.form-control {
   gap: $space-3;
   padding: $alert-padding;
   border-radius: $alert-border-radius;
-  margin-bottom: $space-4;
-  @include elevation(1);
+  margin-bottom: $space-3;
+  @include ios-glass(0.9);
+  border: 1px solid transparent;
+  box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.08);
   
   &-success {
-    background: $color-success-light;
+    background: rgba($color-success, 0.08);
     color: $color-success-dark;
-    border-left: 4px solid $color-success;
+    border-left: 3px solid $color-success;
+    box-shadow: 0 2px 8px 0 rgba($color-success, 0.15);
   }
   
   &-warning {
-    background: $color-warning-light;
+    background: rgba($color-warning, 0.08);
     color: $color-warning-dark;
-    border-left: 4px solid $color-warning;
+    border-left: 3px solid $color-warning;
+    box-shadow: 0 2px 8px 0 rgba($color-warning, 0.15);
   }
   
   &-error, &-danger {
-    background: $color-error-light;
+    background: rgba($color-error, 0.08);
     color: $color-error-dark;
-    border-left: 4px solid $color-error;
+    border-left: 3px solid $color-error;
+    box-shadow: 0 2px 8px 0 rgba($color-error, 0.15);
   }
   
   &-info {
-    background: $color-info-light;
+    background: rgba($color-info, 0.08);
     color: $color-info-dark;
-    border-left: 4px solid $color-info;
+    border-left: 3px solid $color-info;
+    box-shadow: 0 2px 8px 0 rgba($color-info, 0.15);
   }
   
   &-dismissible {
@@ -662,24 +697,24 @@ select.form-control {
 }
 
 // --------------------------------------------
-// Spinner / Loading
+// Spinner / Loading (Minimalist)
 // --------------------------------------------
 
 .spinner-border {
-  @include spinner(2rem, 3px, $color-primary-500);
+  @include spinner(2rem, 3px, $color-primary-600);
   
   &-sm {
-    @include spinner(1rem, 2px, $color-primary-500);
+    @include spinner(1rem, 2px, $color-primary-600);
   }
   
   &-lg {
-    @include spinner(3rem, 4px, $color-primary-500);
+    @include spinner(3rem, 4px, $color-primary-600);
   }
 }
 
 .loading-spinner {
   @include flex-center;
-  padding: $space-8;
+  padding: $space-4;
 }
 
 // --------------------------------------------

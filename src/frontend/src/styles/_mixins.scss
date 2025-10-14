@@ -251,19 +251,19 @@
 }
 
 @mixin button-variant($bg-color, $text-color: $text-inverse, $hover-scale: 1.02) {
-  background: linear-gradient(135deg, $bg-color, darken($bg-color, 5%));
+  background: $bg-color;
   color: $text-color;
-  box-shadow: 0 4px 16px 0 rgba($bg-color, 0.25);
+  box-shadow: 0 2px 12px 0 rgba($bg-color, 0.2);
   
   &:hover:not(:disabled) {
-    background: linear-gradient(135deg, lighten($bg-color, 3%), $bg-color);
-    transform: translateY(-2px) scale($hover-scale);
-    box-shadow: 0 8px 24px 0 rgba($bg-color, 0.35);
+    background: darken($bg-color, 5%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px 0 rgba($bg-color, 0.3);
   }
   
   &:active:not(:disabled) {
-    transform: translateY(0) scale(0.96);
-    box-shadow: 0 2px 8px 0 rgba($bg-color, 0.2);
+    transform: translateY(0) scale(0.97);
+    box-shadow: 0 1px 8px 0 rgba($bg-color, 0.2);
   }
 }
 

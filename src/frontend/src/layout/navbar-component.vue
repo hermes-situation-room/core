@@ -32,7 +32,7 @@ const handleLogout = async () => {
 
 <template>
     <div class="sticky-top" style="z-index: 1030;">
-        <nav class="navbar py-2 px-3">
+        <nav class="navbar" style="padding: 0.5rem 1rem;">
             <div class="container-fluid d-none d-md-flex">
                 <div class="d-flex align-items-center justify-content-between w-100">
                     <RouterLink to="/" class="navbar-brand d-flex align-items-center me-3">

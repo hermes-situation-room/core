@@ -13,14 +13,6 @@ const isActive = (path: string) => {
 <template>
   <nav class="bottom-nav">
     <RouterLink 
-      to="/" 
-      :class="['nav-item', { active: isActive('/') && !isActive('/chats') }]"
-    >
-      <i class="fas fa-home"></i>
-      <span>Home</span>
-    </RouterLink>
-    
-    <RouterLink 
       to="/journalist" 
       :class="['nav-item', { active: isActive('/journalist') }]"
     >
