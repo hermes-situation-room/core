@@ -98,7 +98,7 @@ const handleLogout = async () => {
                                 @click="viewUser"
                                 class="btn btn-outline-secondary btn-sm d-flex align-items-center"
                             >
-                                <i class="fas fa-user"></i>
+                                <i class="fas fa-circle-user"></i>
                                 <span class="d-none d-xl-inline ms-1">Profile</span>
                             </button>
                             <span class="badge bg-dark text-white px-2 py-1 d-none d-lg-inline">
