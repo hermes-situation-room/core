@@ -1,4 +1,4 @@
-namespace Hermes.SituationRoom.Api.Controllers;
+﻿namespace Hermes.SituationRoom.Api.Controllers;
 
 using Base;
 using Configurations;
@@ -17,45 +17,35 @@ public class PostController(IControllerInfrastructure infra, IPostService postSe
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<PostWithTagsBo>> GetPost(Guid uid) => Ok(await postService.GetPostAsync(uid));
 
-    [HttpGet("internal/post/by-tags")]
-    [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_POST])]
-    [ProducesResponseType(typeof(IReadOnlyList<PostBo>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<PostBo>> GetPostsByTags([FromQuery] string tags) =>
-        Ok(await postService.GetPostsByTagsAsync(tags));
-
     [HttpGet("internal/post/activist/by-tags")]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_POST])]
-    [ProducesResponseType(typeof(IReadOnlyList<PostBo>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<PostBo>> GetActivistPostsByTags([FromQuery] string tags) =>
-        Ok(await postService.GetActivistPostsByTagsAsync(tags));
+    [ProducesResponseType(typeof(IReadOnlyList<PostWithTagsBo>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<PostWithTagsBo>> GetActivistPostsByTags([FromQuery] string tags, [FromQuery] int? limit, [FromQuery] int? offset) =>
+        Ok(await postService.GetActivistPostsByTagsAsync(tags, limit ?? 12, offset ?? 0));
 
     [HttpGet("internal/post/journalist/by-tags")]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_POST])]
-    [ProducesResponseType(typeof(IReadOnlyList<PostBo>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<PostBo>> GetJournalistPostsByTags([FromQuery] string tags) =>
-        Ok(await postService.GetJournalistPostsByTagsAsync(tags));
+    [ProducesResponseType(typeof(IReadOnlyList<PostWithTagsBo>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<PostWithTagsBo>> GetJournalistPostsByTags([FromQuery] string tags, [FromQuery] int? limit, [FromQuery] int? offset) =>
+        Ok(await postService.GetJournalistPostsByTagsAsync(tags, limit ?? 12, offset ?? 0));
 
     [HttpGet("internal/post/user/{userUid:guid}")]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_POST])]
-    [ProducesResponseType(typeof(IReadOnlyList<PostBo>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<PostBo>> GetUserPosts(Guid userUid) =>
-        Ok(await postService.GetUserPostsAsync(userUid));
+    [ProducesResponseType(typeof(IReadOnlyList<PostWithTagsBo>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<PostWithTagsBo>> GetUserPosts(Guid userUid, [FromQuery] int? limit, [FromQuery] int? offset) =>
+        Ok(await postService.GetUserPostsAsync(userUid, limit ?? 12, offset ?? 0));
 
     [HttpGet("internal/post/activist")]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_POST])]
-    [ProducesResponseType(typeof(IReadOnlyList<PostBo>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<PostBo>> GetAllActivistPosts() => Ok(await postService.GetAllActivistPostsAsync());
+    [ProducesResponseType(typeof(IReadOnlyList<PostWithTagsBo>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<PostWithTagsBo>> GetAllActivistPosts([FromQuery] int? limit, [FromQuery] int? offset) => 
+        Ok(await postService.GetAllActivistPostsAsync(limit ?? 12, offset ?? 0));
 
     [HttpGet("internal/post/journalist")]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_POST])]
-    [ProducesResponseType(typeof(IReadOnlyList<PostBo>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<PostBo>> GetAllAJournalistPosts() =>
-        Ok(await postService.GetAllJournalistPostsAsync());
-
-    [HttpGet("internal/post/")]
-    [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_POST])]
-    [ProducesResponseType(typeof(IReadOnlyList<PostBo>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<IReadOnlyList<PostBo>>> GetPosts() => Ok(await postService.GetPostsAsync());
+    [ProducesResponseType(typeof(IReadOnlyList<PostWithTagsBo>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<PostWithTagsBo>> GetAllJournalistPosts([FromQuery] int? limit, [FromQuery] int? offset) =>
+        Ok(await postService.GetAllJournalistPostsAsync(limit ?? 12, offset ?? 0));
 
     [HttpPost("internal/post/")]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_POST])]
