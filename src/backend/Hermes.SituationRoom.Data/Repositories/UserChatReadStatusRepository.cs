@@ -61,14 +61,34 @@ public class UserChatReadStatusRepository(IHermessituationRoomContext context) :
         await context.SaveChangesAsync();
     }
 
-    public async Task<int> GetUnreadMessagesCountAsync(Guid readStatusId)
+    public async Task<int> GetUnreadMessagesCountAsync(Guid userId)
     {
-        return 3;
+        return await context.Chats
+            .Where(chat => chat.User1Uid == userId || chat.User2Uid == userId)
+            .Select(chat =>
+                context.Messages.Count(message =>
+                        message.ChatUid == chat.Uid &&
+                        message.SenderUid != userId &&
+                        message.Timestamp > (context.UserChatReadStatuses
+                            .Where(rs => rs.UserId == userId && rs.ChatId == chat.Uid)
+                            .Select(rs => rs.ReadTime)
+                            .FirstOrDefault())
+                )
+            )
+            .SumAsync();
     }
     
     public async Task<int> GetUnreadMessagesCountAsync(Guid userId, Guid chatId)
     {
-        return 3;
+        return await context.Messages
+            .CountAsync(m => 
+                m.ChatUid == chatId && 
+                m.SenderUid != userId &&
+                m.Timestamp > (context.UserChatReadStatuses
+                    .Where(rs => rs.UserId == userId && rs.ChatId == chatId)
+                    .Select(rs => rs.ReadTime)
+                    .FirstOrDefault())
+            );
     }
 
     private static UserChatReadStatus CreateReadStatus(UserChatReadStatusBo readStatusBo) => new()
