@@ -15,7 +15,8 @@ public sealed class UserRepository(IHermessituationRoomContext context, IPrivacy
         var newUser = new User
         {
             Uid = Guid.NewGuid(),
-            Password = userBo.Password,
+            PasswordHash = userBo.PasswordHash,
+            PasswordSalt = userBo.PasswordSalt,
             FirstName = userBo.FirstName,
             LastName = userBo.LastName,
             EmailAddress = userBo.EmailAddress
@@ -80,7 +81,6 @@ public sealed class UserRepository(IHermessituationRoomContext context, IPrivacy
         var user = await context.Users.AsTracking().FirstOrDefaultAsync(u => u.Uid == updatedUser.Uid)
                    ?? throw new KeyNotFoundException($"User with UID {updatedUser.Uid} was not found.");
 
-        user.Password = updatedUser.Password;
         user.FirstName = updatedUser.FirstName;
         user.LastName = updatedUser.LastName;
         user.EmailAddress = updatedUser.EmailAddress;
@@ -106,7 +106,9 @@ public sealed class UserRepository(IHermessituationRoomContext context, IPrivacy
     }
 
     private static UserBo MapToBo(User user) => new(user.Uid,
-        user.Password,
+        null,
+        user.PasswordHash,
+        user.PasswordSalt,
         user.FirstName,
         user.LastName,
         user.EmailAddress
