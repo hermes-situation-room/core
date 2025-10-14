@@ -27,6 +27,7 @@ const currentUserUid = computed(() => authStore.userId.value || '');
 const posts = ref<PostBo[]>([]);
 const loading = ref(false);
 const errorMessage = ref<string>('');
+const displayNames = ref<Map<string, string>>(new Map());
 
 const clearError = () => {
     errorMessage.value = '';
@@ -79,6 +80,17 @@ const loadPosts = async () => {
         const result = await services.posts.getPostsWithFilter(filter);
         if (result.isSuccess && result.data) {
             posts.value = result.data;
+            
+            // Load display names for all unique creators
+            const uniqueCreators = [...new Set(posts.value.map(p => p.creatorUid))];
+            for (const creatorUid of uniqueCreators) {
+                if (creatorUid && creatorUid !== currentUserUid.value) {
+                    const displayNameResult = await services.users.getDisplayName(creatorUid);
+                    if (displayNameResult.isSuccess && displayNameResult.data) {
+                        displayNames.value.set(creatorUid, displayNameResult.data.displayName);
+                    }
+                }
+            }
         } else {
             showError(result.responseMessage || 'Failed to load posts');
         }
@@ -87,6 +99,13 @@ const loadPosts = async () => {
     } finally {
         loading.value = false;
     }
+};
+
+const getDisplayName = (creatorUid: string): string => {
+    if (currentUserUid.value && creatorUid === currentUserUid.value) {
+        return 'You';
+    }
+    return displayNames.value.get(creatorUid) || creatorUid.substring(0, 8) + '...';
 };
 
 const viewPost = (postId: string) => {
@@ -182,7 +201,7 @@ watch([() => props.searchQuery, () => props.filterTags, () => props.sortBy], () 
                         <div class="d-flex justify-content-between align-items-center">
                             <small class="text-muted">
                                 <i class="fas fa-user me-1"></i>
-                                {{ currentUserUid && post.creatorUid === currentUserUid ? 'You' : post.creatorUid.substring(0, 8) + '...' }}
+                                {{ getDisplayName(post.creatorUid) }}
                             </small>
                             <button 
                                 v-if="post.creatorUid !== currentUserUid && currentUserUid"
