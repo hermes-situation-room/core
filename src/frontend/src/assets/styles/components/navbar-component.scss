@@ -1,0 +1,25 @@
+.navbar.desktop {
+    z-index: 1010;
+    min-width: 100vw;
+    padding: 0.5rem 1rem;
+    position: sticky;
+    top: 0;
+    left: 0;
+
+    .image-wrapper {
+        padding-left: 20px;
+    }
+
+    .page-title {
+        align-items: center;
+        justify-content: center;
+        display: flex;
+        font-weight: bold;
+    }
+
+    .user-actions {
+        display: flex;
+        justify-content: end;
+        align-items: center;
+    }
+}

@@ -1,0 +1,41 @@
+#app {
+    min-height: 100vh;
+    min-width: 100vw;
+    position: relative;
+}
+
+// Container base styles
+.container {
+  width: 100%;
+  padding-right: 15px;
+  padding-left: 15px;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+// Row base styles
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  margin-right: -15px;
+  margin-left: -15px;
+}
+
+// Column base styles
+@each $breakpoint, $value in $breakpoints {
+  @media (min-width: $value) {
+    .col-#{$breakpoint} {
+      position: relative;
+      width: 100%;
+      padding-right: 15px;
+      padding-left: 15px;
+    }
+
+    @for $i from 1 through 12 {
+      .col-#{$breakpoint}-#{$i} {
+        flex: 0 0 calc($i * 100% / 12);
+        max-width: calc($i * 100% / 12);
+      }
+    }
+  }
+}

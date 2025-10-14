@@ -2,6 +2,7 @@ import {createApp} from "vue";
 import router from "./router";
 import App from "./App.vue";
 import "./styles/main.scss";
+import "./assets/styles/main.scss";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import "@mdi/font/css/materialdesignicons.css";
 

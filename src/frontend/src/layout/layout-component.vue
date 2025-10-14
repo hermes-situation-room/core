@@ -4,7 +4,7 @@ import BottomNavComponent from "./bottom-nav-component.vue";
 </script>
 
 <template>
-    <div id="app">
+    <div class="container-fluid">
         <NavbarComponent />
         <main>
             <router-view />

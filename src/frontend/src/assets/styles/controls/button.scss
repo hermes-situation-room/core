@@ -1,0 +1,25 @@
+.btn {
+    padding: 2px 5px;
+    border-radius: 15px;
+
+    &.primary {
+        background-color: $color-primary;
+    }
+
+    &.secondary {
+        background-color: $color-secondary;
+    }
+
+    &.decent-primary {
+        border: 1px solid $color-primary;
+        background-color: lighten($color: $color-primary, $amount: 20%);
+    }
+
+    &.plain-primary {
+        border: none;
+        color: $color-primary;
+        :hover {
+            color: darken($color-primary, 20%);
+        }
+    }
+}
