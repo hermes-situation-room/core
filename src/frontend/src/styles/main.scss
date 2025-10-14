@@ -1,0 +1,485 @@
+// ============================================
+// MAIN STYLES
+// iOS 26-inspired Design System
+// Modern, Clean, Smooth, Futuristic
+// ============================================
+
+// Core Files (in order)
+@import 'variables';
+@import 'mixins';
+@import 'base';
+@import 'animations';
+@import 'layout';
+@import 'components';
+
+// ============================================
+// Application-Specific Styles
+// ============================================
+
+// Main App Container
+#app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: $bg-secondary;
+}
+
+main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+// ============================================
+// Custom Component Overrides
+// ============================================
+
+// Enhanced Navbar with Glass Effect
+.navbar {
+  @include glass(0.9, 12px);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+  
+  .logo {
+    transition: transform $transition-base $ease-out;
+    
+    &:hover {
+      transform: scale(1.05);
+    }
+  }
+}
+
+// Enhanced Cards with better hover effects
+.card {
+  background: $bg-elevated;
+  border: 1px solid $border-light;
+  
+  &:hover {
+    border-color: rgba($color-primary-500, 0.3);
+  }
+}
+
+// Smooth scrolling container
+.scroll-smooth {
+  scroll-behavior: smooth;
+  @include custom-scrollbar;
+}
+
+// Messages container (Chat)
+#messages-container {
+  @include custom-scrollbar(8px);
+  
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+// Chat message bubbles
+.chat-message {
+  &.sent {
+    .message-bubble {
+      background: linear-gradient(135deg, $color-primary-600, $color-primary-500);
+      color: $text-inverse;
+      border-radius: $radius-2xl $radius-2xl $radius-sm $radius-2xl;
+      @include elevation(1);
+    }
+  }
+  
+  &.received {
+    .message-bubble {
+      background: $bg-elevated;
+      color: $text-primary;
+      border-radius: $radius-2xl $radius-2xl $radius-2xl $radius-sm;
+      border: 1px solid $border-light;
+    }
+  }
+}
+
+// Post cards enhancement
+.post-card {
+  @include card-interactive;
+  border-radius: $radius-2xl;
+  overflow: hidden;
+  
+  &:hover {
+    .post-image {
+      transform: scale(1.05);
+    }
+  }
+  
+  .post-image {
+    transition: transform $transition-slower $ease-out;
+  }
+}
+
+// Tag pills
+.tag-pill {
+  @include badge($color-primary-100, $color-primary-700);
+  padding: $space-2 $space-4;
+  font-weight: $font-weight-medium;
+  cursor: pointer;
+  @include smooth-transition(all);
+  
+  &:hover {
+    background: $color-primary-200;
+    transform: translateY(-2px);
+    @include elevation(1);
+  }
+  
+  &.active {
+    background: $color-primary-600;
+    color: $text-inverse;
+    @include glow($color-primary-500, 0.2);
+  }
+}
+
+// Search input enhancement
+.search-input {
+  @include input-base;
+  padding-left: $space-10;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: $space-3 center;
+  
+  &:focus {
+    padding-left: $space-10;
+  }
+}
+
+// Filter modal enhancements
+.filter-tag {
+  @include badge($bg-secondary, $text-primary);
+  padding: $space-3 $space-5;
+  font-size: $font-size-base;
+  cursor: pointer;
+  border: 2px solid transparent;
+  @include smooth-transition(all);
+  
+  &:hover {
+    background: $color-primary-100;
+    border-color: $color-primary-300;
+    transform: translateY(-2px);
+  }
+  
+  &.selected {
+    background: $color-primary-600;
+    color: $text-inverse;
+    border-color: $color-primary-700;
+    @include glow($color-primary-500, 0.15);
+  }
+}
+
+// Loading states
+.loading-container {
+  @include flex-center;
+  min-height: 400px;
+  
+  .loading-text {
+    margin-top: $space-4;
+    color: $text-tertiary;
+    font-weight: $font-weight-medium;
+  }
+}
+
+// Empty states
+.empty-state {
+  @include flex-column;
+  @include flex-center;
+  padding: $space-12 $space-6;
+  text-align: center;
+  
+  i {
+    font-size: 4rem;
+    color: $color-neutral-300;
+    margin-bottom: $space-6;
+  }
+  
+  h5 {
+    color: $text-secondary;
+    margin-bottom: $space-2;
+  }
+  
+  p {
+    color: $text-tertiary;
+    max-width: 400px;
+  }
+}
+
+// Form enhancements
+.form-floating {
+  position: relative;
+  
+  .form-control {
+    padding: $space-5 $space-4 $space-2;
+    
+    &::placeholder {
+      color: transparent;
+    }
+    
+    &:focus,
+    &:not(:placeholder-shown) {
+      ~ label {
+        transform: scale(0.85) translateY(-0.5rem) translateX(0.15rem);
+        color: $color-primary-600;
+      }
+    }
+  }
+  
+  label {
+    position: absolute;
+    top: $space-4;
+    left: $space-4;
+    color: $text-tertiary;
+    pointer-events: none;
+    transform-origin: 0 0;
+    transition: all $transition-base $ease-out;
+  }
+}
+
+// Tabs enhancement
+.tabs {
+  display: flex;
+  gap: $space-2;
+  padding: $space-2;
+  background: $bg-secondary;
+  border-radius: $radius-xl;
+  
+  .tab {
+    flex: 1;
+    padding: $space-3 $space-4;
+    border: none;
+    background: transparent;
+    color: $text-secondary;
+    font-weight: $font-weight-medium;
+    border-radius: $radius-lg;
+    cursor: pointer;
+    @include smooth-transition(all);
+    
+    &:hover {
+      background: $bg-tertiary;
+      color: $text-primary;
+    }
+    
+    &.active {
+      background: $bg-elevated;
+      color: $color-primary-600;
+      @include elevation(1);
+    }
+  }
+}
+
+// Pagination
+.pagination {
+  display: flex;
+  gap: $space-2;
+  align-items: center;
+  
+  .page-item {
+    .page-link {
+      @include button-base;
+      @include button-size('sm');
+      background: $bg-elevated;
+      color: $text-primary;
+      border: 1px solid $border-light;
+      min-width: 40px;
+      
+      &:hover {
+        background: $color-primary-100;
+        border-color: $color-primary-300;
+        color: $color-primary-700;
+      }
+    }
+    
+    &.active .page-link {
+      background: $color-primary-600;
+      color: $text-inverse;
+      border-color: $color-primary-600;
+      @include glow($color-primary-500, 0.15);
+    }
+    
+    &.disabled .page-link {
+      opacity: 0.5;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+  }
+}
+
+// Toast notifications
+.toast-container {
+  position: fixed;
+  top: $space-6;
+  right: $space-6;
+  z-index: $z-index-toast;
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+  max-width: 400px;
+}
+
+.toast {
+  @include glass(0.95);
+  padding: $space-4;
+  border-radius: $radius-xl;
+  @include elevation(3);
+  animation: slideInRight $transition-slow $ease-out;
+  
+  &.toast-success {
+    border-left: 4px solid $color-success;
+  }
+  
+  &.toast-error {
+    border-left: 4px solid $color-error;
+  }
+  
+  &.toast-warning {
+    border-left: 4px solid $color-warning;
+  }
+  
+  &.toast-info {
+    border-left: 4px solid $color-info;
+  }
+}
+
+// Avatars
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: $radius-full;
+  background: linear-gradient(135deg, $color-primary-500, $color-accent-500);
+  color: $text-inverse;
+  font-weight: $font-weight-bold;
+  overflow: hidden;
+  @include elevation(1);
+  
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  &-sm {
+    width: 32px;
+    height: 32px;
+    font-size: $font-size-sm;
+  }
+  
+  &-lg {
+    width: 56px;
+    height: 56px;
+    font-size: $font-size-lg;
+  }
+}
+
+// Progress bars
+.progress {
+  height: 8px;
+  background: $bg-tertiary;
+  border-radius: $radius-full;
+  overflow: hidden;
+  
+  &-bar {
+    height: 100%;
+    background: linear-gradient(90deg, $color-primary-600, $color-accent-500);
+    border-radius: $radius-full;
+    @include smooth-transition(width);
+    position: relative;
+    overflow: hidden;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      right: 0;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.3),
+        transparent
+      );
+      animation: shimmer 2s infinite;
+    }
+  }
+}
+
+// Tooltips
+.tooltip {
+  position: absolute;
+  z-index: $z-index-tooltip;
+  padding: $space-2 $space-3;
+  background: $color-neutral-900;
+  color: $text-inverse;
+  font-size: $font-size-sm;
+  border-radius: $radius-md;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  @include smooth-transition(opacity);
+  @include elevation(2);
+  
+  &.show {
+    opacity: 1;
+  }
+}
+
+// Dividers
+.divider {
+  height: 1px;
+  background: $border-light;
+  margin: $space-6 0;
+  
+  &-vertical {
+    width: 1px;
+    height: auto;
+    margin: 0 $space-4;
+  }
+}
+
+// Image optimization
+img {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+
+// Accessibility improvements
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+// Print styles
+@media print {
+  .navbar,
+  .btn,
+  .modal,
+  .offcanvas {
+    display: none !important;
+  }
+  
+  .card {
+    box-shadow: none;
+    border: 1px solid $border-light;
+  }
+}
+
+// Dark mode support (prepared for future implementation)
+@media (prefers-color-scheme: dark) {
+  // Dark mode styles can be added here in the future
+  // body {
+  //   background: $color-neutral-950;
+  //   color: $text-inverse;
+  // }
+}
+

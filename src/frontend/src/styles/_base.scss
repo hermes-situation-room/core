@@ -1,0 +1,292 @@
+// ============================================
+// BASE STYLES
+// Core foundational styles
+// ============================================
+
+@import 'variables';
+@import 'mixins';
+
+// --------------------------------------------
+// CSS Reset & Normalization
+// --------------------------------------------
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-size: 16px;
+  line-height: $line-height-normal;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: $font-primary;
+  font-size: $font-size-base;
+  font-weight: $font-weight-regular;
+  line-height: $line-height-normal;
+  color: $text-primary;
+  background: $bg-secondary;
+  overflow-x: hidden;
+  min-height: 100vh;
+  @include smooth-transition(background-color, $transition-slow);
+}
+
+// --------------------------------------------
+// Typography
+// --------------------------------------------
+
+h1, h2, h3, h4, h5, h6 {
+  margin: 0 0 $space-4;
+  font-family: $font-primary;
+  font-weight: $font-weight-bold;
+  line-height: $line-height-tight;
+  letter-spacing: $letter-spacing-tight;
+  color: $text-primary;
+}
+
+h1 {
+  font-size: $font-size-3xl;
+  font-weight: $font-weight-black;
+  margin-bottom: $space-6;
+}
+
+h2 {
+  font-size: $font-size-2xl;
+  font-weight: $font-weight-bold;
+}
+
+h3 {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+}
+
+h4 {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+}
+
+h5 {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+}
+
+h6 {
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+}
+
+p {
+  margin: 0 0 $space-4;
+  line-height: $line-height-relaxed;
+}
+
+a {
+  color: $color-primary-600;
+  text-decoration: none;
+  @include smooth-transition(color);
+  
+  &:hover {
+    color: $color-primary-700;
+    text-decoration: none;
+  }
+  
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+strong, b {
+  font-weight: $font-weight-bold;
+}
+
+em, i {
+  font-style: italic;
+}
+
+small {
+  font-size: $font-size-sm;
+}
+
+// --------------------------------------------
+// Lists
+// --------------------------------------------
+
+ul, ol {
+  margin: 0 0 $space-4;
+  padding-left: $space-6;
+}
+
+li {
+  margin-bottom: $space-2;
+}
+
+// --------------------------------------------
+// Code & Pre
+// --------------------------------------------
+
+code {
+  font-family: $font-mono;
+  font-size: 0.875em;
+  padding: $space-1 $space-2;
+  background: $bg-tertiary;
+  border-radius: $radius-sm;
+  color: $color-primary-700;
+}
+
+pre {
+  font-family: $font-mono;
+  font-size: $font-size-sm;
+  padding: $space-4;
+  margin-bottom: $space-4;
+  background: $bg-tertiary;
+  border-radius: $radius-lg;
+  overflow-x: auto;
+  
+  code {
+    padding: 0;
+    background: transparent;
+  }
+}
+
+// --------------------------------------------
+// Images & Media
+// --------------------------------------------
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+svg {
+  max-width: 100%;
+  height: auto;
+  fill: currentColor;
+}
+
+// --------------------------------------------
+// Buttons & Inputs (Reset)
+// --------------------------------------------
+
+button, input, textarea, select {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+button {
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+input, textarea, select {
+  &:focus {
+    outline: none;
+  }
+}
+
+// --------------------------------------------
+// Tables
+// --------------------------------------------
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: $space-4;
+}
+
+th, td {
+  padding: $space-3;
+  text-align: left;
+  border-bottom: 1px solid $border-light;
+}
+
+th {
+  font-weight: $font-weight-semibold;
+  color: $text-secondary;
+}
+
+// --------------------------------------------
+// Selection
+// --------------------------------------------
+
+::selection {
+  background: rgba($color-primary-500, 0.2);
+  color: $text-primary;
+}
+
+::-moz-selection {
+  background: rgba($color-primary-500, 0.2);
+  color: $text-primary;
+}
+
+// --------------------------------------------
+// Scrollbar
+// --------------------------------------------
+
+body {
+  @include custom-scrollbar(10px, $bg-tertiary, $color-neutral-300);
+}
+
+// --------------------------------------------
+// Focus Styles
+// --------------------------------------------
+
+:focus-visible {
+  outline: $input-focus-ring-width solid $input-focus-ring-color;
+  outline-offset: 2px;
+}
+
+// --------------------------------------------
+// Disabled State
+// --------------------------------------------
+
+[disabled], .disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+// --------------------------------------------
+// Hidden Elements
+// --------------------------------------------
+
+[hidden] {
+  display: none !important;
+}
+
+.visually-hidden {
+  @include visually-hidden;
+}
+
+// --------------------------------------------
+// Print Styles
+// --------------------------------------------
+
+@media print {
+  body {
+    background: white;
+    color: black;
+  }
+  
+  a {
+    text-decoration: underline;
+  }
+  
+  @page {
+    margin: 2cm;
+  }
+}
+

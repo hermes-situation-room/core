@@ -1,8 +1,8 @@
 import {createApp} from "vue";
 import router from "./router";
 import App from "./App.vue";
-import 'bootstrap/dist/css/bootstrap.min.css';
-import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+import "./styles/main.scss";
+import "@fortawesome/fontawesome-free/css/all.min.css";
 import "@mdi/font/css/materialdesignicons.css";
 
 import {createVuetify} from "vuetify";

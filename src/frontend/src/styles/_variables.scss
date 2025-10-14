@@ -1,0 +1,296 @@
+// ============================================
+// DESIGN SYSTEM VARIABLES
+// iOS 26 Inspired - Futuristic & Modern
+// ============================================
+
+// --------------------------------------------
+// Color System - Dark & Light Mode Ready
+// --------------------------------------------
+
+// Primary Palette - Futuristic Blue/Purple
+$color-primary-100: #E8E3FF;
+$color-primary-200: #D1C7FF;
+$color-primary-300: #B9ABFF;
+$color-primary-400: #A28FFF;
+$color-primary-500: #8B73FF; // Main primary
+$color-primary-600: #7357FF;
+$color-primary-700: #5C3BFF;
+$color-primary-800: #4520E6;
+$color-primary-900: #3215B3;
+
+// Accent Palette - Vibrant Cyan
+$color-accent-100: #E0F7FF;
+$color-accent-200: #B3ECFF;
+$color-accent-300: #80E0FF;
+$color-accent-400: #4DD4FF;
+$color-accent-500: #1AC8FF; // Main accent
+$color-accent-600: #00B8F5;
+$color-accent-700: #009FD9;
+$color-accent-800: #0085BD;
+$color-accent-900: #006BA1;
+
+// Neutral Palette - Modern Grays
+$color-neutral-0: #FFFFFF;
+$color-neutral-50: #FAFBFC;
+$color-neutral-100: #F5F6F8;
+$color-neutral-200: #E8EAED;
+$color-neutral-300: #D1D5DB;
+$color-neutral-400: #9CA3AF;
+$color-neutral-500: #6B7280;
+$color-neutral-600: #4B5563;
+$color-neutral-700: #374151;
+$color-neutral-800: #1F2937;
+$color-neutral-900: #111827;
+$color-neutral-950: #0A0E14;
+
+// Semantic Colors
+$color-success-light: #D4F4DD;
+$color-success: #34D399;
+$color-success-dark: #10B981;
+
+$color-warning-light: #FEF3C7;
+$color-warning: #FBBF24;
+$color-warning-dark: #F59E0B;
+
+$color-error-light: #FEE2E2;
+$color-error: #EF4444;
+$color-error-dark: #DC2626;
+
+$color-info-light: #DBEAFE;
+$color-info: #3B82F6;
+$color-info-dark: #2563EB;
+
+// Background Colors
+$bg-primary: $color-neutral-0;
+$bg-secondary: $color-neutral-50;
+$bg-tertiary: $color-neutral-100;
+$bg-dark: $color-neutral-900;
+$bg-elevated: $color-neutral-0;
+
+// Text Colors
+$text-primary: $color-neutral-900;
+$text-secondary: $color-neutral-600;
+$text-tertiary: $color-neutral-400;
+$text-inverse: $color-neutral-0;
+$text-muted: $color-neutral-500;
+
+// Border Colors
+$border-light: $color-neutral-200;
+$border-medium: $color-neutral-300;
+$border-heavy: $color-neutral-400;
+
+// Shadow Colors (with transparency)
+$shadow-color: rgba(17, 24, 39, 0.08);
+$shadow-color-medium: rgba(17, 24, 39, 0.12);
+$shadow-color-heavy: rgba(17, 24, 39, 0.16);
+
+// --------------------------------------------
+// Typography System
+// --------------------------------------------
+
+// Font Families
+$font-primary: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', 
+               Roboto, 'Helvetica Neue', Arial, sans-serif;
+$font-secondary: 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', 
+                 Roboto, sans-serif;
+$font-mono: 'SF Mono', 'Fira Code', 'Courier New', monospace;
+
+// Font Weights
+$font-weight-light: 300;
+$font-weight-regular: 400;
+$font-weight-medium: 500;
+$font-weight-semibold: 600;
+$font-weight-bold: 700;
+$font-weight-black: 900;
+
+// Font Sizes (Fluid Typography)
+$font-size-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);      // 12-14px
+$font-size-sm: clamp(0.875rem, 0.825rem + 0.25vw, 1rem);       // 14-16px
+$font-size-base: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);      // 16-18px
+$font-size-md: clamp(1.125rem, 1.05rem + 0.375vw, 1.25rem);    // 18-20px
+$font-size-lg: clamp(1.25rem, 1.15rem + 0.5vw, 1.5rem);        // 20-24px
+$font-size-xl: clamp(1.5rem, 1.35rem + 0.75vw, 2rem);          // 24-32px
+$font-size-2xl: clamp(2rem, 1.75rem + 1.25vw, 3rem);           // 32-48px
+$font-size-3xl: clamp(2.5rem, 2rem + 2.5vw, 4rem);             // 40-64px
+
+// Line Heights
+$line-height-tight: 1.25;
+$line-height-normal: 1.5;
+$line-height-relaxed: 1.75;
+$line-height-loose: 2;
+
+// Letter Spacing
+$letter-spacing-tight: -0.025em;
+$letter-spacing-normal: 0em;
+$letter-spacing-wide: 0.025em;
+$letter-spacing-wider: 0.05em;
+
+// --------------------------------------------
+// Spacing System (8px base)
+// --------------------------------------------
+
+$space-0: 0;
+$space-1: 0.25rem;   // 4px
+$space-2: 0.5rem;    // 8px
+$space-3: 0.75rem;   // 12px
+$space-4: 1rem;      // 16px
+$space-5: 1.25rem;   // 20px
+$space-6: 1.5rem;    // 24px
+$space-8: 2rem;      // 32px
+$space-10: 2.5rem;   // 40px
+$space-12: 3rem;     // 48px
+$space-16: 4rem;     // 64px
+$space-20: 5rem;     // 80px
+$space-24: 6rem;     // 96px
+
+// --------------------------------------------
+// Border Radius (iOS-inspired smooth curves)
+// --------------------------------------------
+
+$radius-xs: 0.25rem;   // 4px
+$radius-sm: 0.5rem;    // 8px
+$radius-md: 0.75rem;   // 12px
+$radius-lg: 1rem;      // 16px
+$radius-xl: 1.25rem;   // 20px
+$radius-2xl: 1.5rem;   // 24px
+$radius-3xl: 2rem;     // 32px
+$radius-full: 9999px;  // Pill shape
+
+// --------------------------------------------
+// Shadows (Elevated iOS-style)
+// --------------------------------------------
+
+$shadow-xs: 0 1px 2px 0 $shadow-color;
+$shadow-sm: 0 1px 3px 0 $shadow-color, 
+            0 1px 2px -1px $shadow-color;
+$shadow-md: 0 4px 6px -1px $shadow-color, 
+            0 2px 4px -2px $shadow-color;
+$shadow-lg: 0 10px 15px -3px $shadow-color, 
+            0 4px 6px -4px $shadow-color;
+$shadow-xl: 0 20px 25px -5px $shadow-color, 
+            0 8px 10px -6px $shadow-color;
+$shadow-2xl: 0 25px 50px -12px $shadow-color-heavy;
+$shadow-inner: inset 0 2px 4px 0 $shadow-color;
+
+// Glow Effects (for primary elements)
+$glow-primary: 0 0 20px rgba($color-primary-500, 0.3),
+               0 0 40px rgba($color-primary-500, 0.15);
+$glow-accent: 0 0 20px rgba($color-accent-500, 0.3),
+              0 0 40px rgba($color-accent-500, 0.15);
+
+// --------------------------------------------
+// Transitions & Animations
+// --------------------------------------------
+
+$transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+$transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+$transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+$transition-slower: 500ms cubic-bezier(0.4, 0, 0.2, 1);
+
+// iOS-inspired spring animation
+$transition-spring: 400ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
+$transition-bounce: 600ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+// Easing functions
+$ease-in: cubic-bezier(0.4, 0, 1, 1);
+$ease-out: cubic-bezier(0, 0, 0.2, 1);
+$ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+$ease-sharp: cubic-bezier(0.4, 0, 0.6, 1);
+
+// --------------------------------------------
+// Glassmorphism Effects
+// --------------------------------------------
+
+$glass-background: rgba(255, 255, 255, 0.7);
+$glass-background-dark: rgba(255, 255, 255, 0.1);
+$glass-border: rgba(255, 255, 255, 0.18);
+$glass-blur: 16px;
+$glass-blur-heavy: 24px;
+
+// --------------------------------------------
+// Z-Index System
+// --------------------------------------------
+
+$z-index-base: 1;
+$z-index-dropdown: 1000;
+$z-index-sticky: 1020;
+$z-index-fixed: 1030;
+$z-index-modal-backdrop: 1040;
+$z-index-modal: 1050;
+$z-index-popover: 1060;
+$z-index-tooltip: 1070;
+$z-index-toast: 1080;
+
+// --------------------------------------------
+// Breakpoints (Mobile-first)
+// --------------------------------------------
+
+$breakpoint-xs: 0;
+$breakpoint-sm: 576px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 992px;
+$breakpoint-xl: 1200px;
+$breakpoint-2xl: 1400px;
+
+// --------------------------------------------
+// Container Widths
+// --------------------------------------------
+
+$container-sm: 540px;
+$container-md: 720px;
+$container-lg: 960px;
+$container-xl: 1140px;
+$container-2xl: 1320px;
+
+// --------------------------------------------
+// Grid System
+// --------------------------------------------
+
+$grid-columns: 12;
+$grid-gutter-width: $space-6;
+
+// --------------------------------------------
+// Component Specific Variables
+// --------------------------------------------
+
+// Buttons
+$button-height-sm: 2rem;
+$button-height-md: 2.5rem;
+$button-height-lg: 3rem;
+$button-padding-x-sm: $space-3;
+$button-padding-x-md: $space-4;
+$button-padding-x-lg: $space-6;
+
+// Inputs
+$input-height-sm: 2rem;
+$input-height-md: 2.75rem;
+$input-height-lg: 3.25rem;
+$input-padding-x: $space-4;
+$input-border-width: 1px;
+$input-focus-ring-width: 3px;
+$input-focus-ring-color: rgba($color-primary-500, 0.25);
+
+// Cards
+$card-padding: $space-6;
+$card-padding-sm: $space-4;
+$card-padding-lg: $space-8;
+
+// Navbar
+$navbar-height: 4rem;
+$navbar-padding-y: $space-3;
+$navbar-padding-x: $space-4;
+
+// Modal
+$modal-padding: $space-6;
+$modal-border-radius: $radius-2xl;
+$modal-backdrop-opacity: 0.5;
+
+// Badges
+$badge-padding-x: $space-3;
+$badge-padding-y: $space-1;
+$badge-font-size: $font-size-xs;
+
+// Alerts
+$alert-padding: $space-4;
+$alert-border-radius: $radius-lg;
+

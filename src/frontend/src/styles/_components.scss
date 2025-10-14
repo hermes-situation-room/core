@@ -1,0 +1,885 @@
+// ============================================
+// COMPONENT STYLES
+// iOS 26-inspired component designs
+// ============================================
+
+@import 'variables';
+@import 'mixins';
+
+// --------------------------------------------
+// Buttons
+// --------------------------------------------
+
+.btn {
+  @include button-base;
+  @include button-size('md');
+  
+  // Variants
+  &-primary {
+    @include button-variant($color-primary-600, $text-inverse);
+    
+    &:hover:not(:disabled) {
+      @include glow($color-primary-500, 0.2);
+    }
+  }
+  
+  &-secondary {
+    @include button-variant($color-neutral-600, $text-inverse);
+  }
+  
+  &-accent {
+    @include button-variant($color-accent-500, $text-inverse);
+    
+    &:hover:not(:disabled) {
+      @include glow($color-accent-500, 0.2);
+    }
+  }
+  
+  &-success {
+    @include button-variant($color-success, $text-inverse);
+  }
+  
+  &-warning {
+    @include button-variant($color-warning, $color-neutral-900);
+  }
+  
+  &-error, &-danger {
+    @include button-variant($color-error, $text-inverse);
+  }
+  
+  &-light {
+    @include button-variant($color-neutral-100, $text-primary);
+  }
+  
+  &-dark {
+    @include button-variant($color-neutral-900, $text-inverse);
+  }
+  
+  // Outline variants
+  &-outline-primary {
+    @include button-outline($color-primary-600, $color-primary-600, $color-primary-600);
+  }
+  
+  &-outline-secondary {
+    @include button-outline($color-neutral-400, $color-neutral-600, $color-neutral-600);
+  }
+  
+  &-outline-danger {
+    @include button-outline($color-error, $color-error, $color-error);
+  }
+  
+  // Sizes
+  &-sm {
+    @include button-size('sm');
+  }
+  
+  &-lg {
+    @include button-size('lg');
+  }
+  
+  // States
+  &-link {
+    background: transparent;
+    color: $color-primary-600;
+    padding: 0;
+    height: auto;
+    
+    &:hover:not(:disabled) {
+      color: $color-primary-700;
+      background: transparent;
+      transform: none;
+      text-decoration: underline;
+    }
+  }
+  
+  &-glass {
+    @include glass(0.7);
+    color: $text-primary;
+    border: 1px solid $glass-border;
+    
+    &:hover:not(:disabled) {
+      @include glass(0.9);
+      transform: translateY(-2px);
+    }
+  }
+}
+
+// Button group
+.btn-group {
+  display: inline-flex;
+  border-radius: $radius-lg;
+  overflow: hidden;
+  
+  .btn {
+    border-radius: 0;
+    
+    &:first-child {
+      border-top-left-radius: $radius-lg;
+      border-bottom-left-radius: $radius-lg;
+    }
+    
+    &:last-child {
+      border-top-right-radius: $radius-lg;
+      border-bottom-right-radius: $radius-lg;
+    }
+    
+    &:not(:last-child) {
+      border-right: 1px solid rgba(255, 255, 255, 0.2);
+    }
+  }
+}
+
+// --------------------------------------------
+// Forms & Inputs
+// --------------------------------------------
+
+.form-control {
+  @include input-base;
+  @include input-size('md');
+}
+
+.form-control-sm {
+  @include input-size('sm');
+}
+
+.form-control-lg {
+  @include input-size('lg');
+}
+
+textarea.form-control {
+  min-height: 120px;
+  padding: $space-3 $input-padding-x;
+  resize: vertical;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: $space-2;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $text-secondary;
+}
+
+.form-group {
+  margin-bottom: $space-5;
+}
+
+// Input group (with icons)
+.input-group {
+  display: flex;
+  width: 100%;
+  
+  .input-group-text {
+    @include flex-center;
+    padding: 0 $space-3;
+    background: $bg-elevated;
+    border: $input-border-width solid $border-light;
+    border-right: 0;
+    border-radius: $radius-lg 0 0 $radius-lg;
+    color: $text-tertiary;
+    @include smooth-transition(all);
+  }
+  
+  .form-control {
+    border-radius: 0 $radius-lg $radius-lg 0;
+    border-left: 0;
+    
+    &:focus {
+      & + .input-group-text {
+        border-color: $color-primary-500;
+      }
+    }
+  }
+  
+  &:focus-within {
+    .input-group-text {
+      border-color: $color-primary-500;
+      color: $color-primary-600;
+    }
+  }
+}
+
+// Select
+select.form-control {
+  padding-right: $space-8;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right $space-3 center;
+  background-size: 16px 12px;
+}
+
+// Checkbox & Radio
+.form-check {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  margin-bottom: $space-3;
+  
+  input[type="checkbox"],
+  input[type="radio"] {
+    width: 20px;
+    height: 20px;
+    border: 2px solid $border-medium;
+    border-radius: $radius-sm;
+    appearance: none;
+    cursor: pointer;
+    @include smooth-transition(all);
+    
+    &:checked {
+      background: $color-primary-600;
+      border-color: $color-primary-600;
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='M6 10l3 3l6-6'/%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: 100% 100%;
+    }
+    
+    &:focus-visible {
+      @include focus-ring;
+    }
+  }
+  
+  input[type="radio"] {
+    border-radius: $radius-full;
+    
+    &:checked {
+      background-image: none;
+      box-shadow: inset 0 0 0 4px white;
+    }
+  }
+  
+  label {
+    cursor: pointer;
+    user-select: none;
+  }
+}
+
+// --------------------------------------------
+// Cards
+// --------------------------------------------
+
+.card {
+  @include card;
+  
+  &-interactive {
+    @include card-interactive;
+  }
+  
+  &-glass {
+    @include glass(0.7);
+    @include elevation(1);
+    border-radius: $radius-2xl;
+    
+    &:hover {
+      @include glass(0.9);
+      @include elevation(2);
+    }
+  }
+  
+  &-body {
+    padding: $card-padding;
+  }
+  
+  &-header {
+    padding: $card-padding-sm $card-padding;
+    border-bottom: 1px solid $border-light;
+    font-weight: $font-weight-semibold;
+    color: $text-secondary;
+  }
+  
+  &-footer {
+    padding: $card-padding-sm $card-padding;
+    border-top: 1px solid $border-light;
+    background: $bg-secondary;
+  }
+  
+  &-title {
+    margin: 0 0 $space-2;
+    font-size: $font-size-lg;
+    font-weight: $font-weight-bold;
+  }
+  
+  &-text {
+    color: $text-secondary;
+    line-height: $line-height-relaxed;
+  }
+}
+
+// --------------------------------------------
+// Badges & Tags
+// --------------------------------------------
+
+.badge {
+  @include badge($color-primary-500, $text-inverse);
+  
+  &-primary {
+    background: $color-primary-500;
+  }
+  
+  &-secondary {
+    background: $color-neutral-500;
+  }
+  
+  &-success {
+    background: $color-success;
+  }
+  
+  &-warning {
+    background: $color-warning;
+    color: $color-neutral-900;
+  }
+  
+  &-error, &-danger {
+    background: $color-error;
+  }
+  
+  &-light {
+    background: $color-neutral-200;
+    color: $text-primary;
+  }
+  
+  &-dark {
+    background: $color-neutral-900;
+  }
+  
+  // Outline variant
+  &-outline {
+    background: transparent;
+    border: 2px solid currentColor;
+  }
+  
+  // Dot indicator
+  &-dot {
+    &::before {
+      content: '';
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+      margin-right: $space-1;
+    }
+  }
+}
+
+// --------------------------------------------
+// Alerts
+// --------------------------------------------
+
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: $space-3;
+  padding: $alert-padding;
+  border-radius: $alert-border-radius;
+  margin-bottom: $space-4;
+  @include elevation(1);
+  
+  &-success {
+    background: $color-success-light;
+    color: $color-success-dark;
+    border-left: 4px solid $color-success;
+  }
+  
+  &-warning {
+    background: $color-warning-light;
+    color: $color-warning-dark;
+    border-left: 4px solid $color-warning;
+  }
+  
+  &-error, &-danger {
+    background: $color-error-light;
+    color: $color-error-dark;
+    border-left: 4px solid $color-error;
+  }
+  
+  &-info {
+    background: $color-info-light;
+    color: $color-info-dark;
+    border-left: 4px solid $color-info;
+  }
+  
+  &-dismissible {
+    padding-right: $space-10;
+    position: relative;
+    
+    .btn-close {
+      position: absolute;
+      top: $space-4;
+      right: $space-4;
+    }
+  }
+}
+
+// --------------------------------------------
+// Modals
+// --------------------------------------------
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: $z-index-modal;
+  @include flex-center;
+  padding: $space-4;
+  
+  &-backdrop {
+    @include absolute-cover;
+    background: rgba($color-neutral-950, $modal-backdrop-opacity);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: $z-index-modal-backdrop;
+  }
+  
+  &-dialog {
+    position: relative;
+    max-width: 90vw;
+    max-height: 90vh;
+    width: 100%;
+    z-index: $z-index-modal;
+    
+    &-centered {
+      @include flex-center;
+    }
+    
+    &-scrollable {
+      .modal-body {
+        overflow-y: auto;
+        @include custom-scrollbar;
+      }
+    }
+  }
+  
+  &-content {
+    background: $bg-elevated;
+    border-radius: $modal-border-radius;
+    @include elevation(4);
+    overflow: hidden;
+    animation: scaleIn $transition-slow $ease-out;
+  }
+  
+  &-header {
+    @include flex-between;
+    padding: $modal-padding;
+    border-bottom: 1px solid $border-light;
+  }
+  
+  &-title {
+    margin: 0;
+    font-size: $font-size-lg;
+    font-weight: $font-weight-bold;
+  }
+  
+  &-body {
+    padding: $modal-padding;
+  }
+  
+  &-footer {
+    @include flex-end;
+    gap: $space-3;
+    padding: $modal-padding;
+    border-top: 1px solid $border-light;
+    background: $bg-secondary;
+  }
+  
+  // Sizes
+  &-sm .modal-dialog {
+    max-width: 400px;
+  }
+  
+  &-lg .modal-dialog {
+    max-width: 800px;
+  }
+  
+  &-xl .modal-dialog {
+    max-width: 1140px;
+  }
+  
+  &-fullscreen {
+    .modal-dialog {
+      max-width: 100vw;
+      max-height: 100vh;
+      margin: 0;
+    }
+    
+    .modal-content {
+      height: 100vh;
+      border-radius: 0;
+    }
+  }
+}
+
+// --------------------------------------------
+// Dropdown
+// --------------------------------------------
+
+.dropdown {
+  position: relative;
+  display: inline-block;
+  
+  &-toggle {
+    @include flex-center;
+    gap: $space-2;
+    
+    &::after {
+      content: '';
+      display: inline-block;
+      width: 0;
+      height: 0;
+      margin-left: $space-1;
+      vertical-align: middle;
+      border-top: 4px solid;
+      border-right: 4px solid transparent;
+      border-left: 4px solid transparent;
+      @include smooth-transition(transform);
+    }
+    
+    &[aria-expanded="true"]::after {
+      transform: rotate(180deg);
+    }
+  }
+  
+  &-menu {
+    position: absolute;
+    top: calc(100% + $space-2);
+    left: 0;
+    z-index: $z-index-dropdown;
+    min-width: 200px;
+    padding: $space-2;
+    background: $bg-elevated;
+    border-radius: $radius-xl;
+    @include elevation(3);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    @include smooth-transition(all);
+    
+    &.show {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+    
+    &-end {
+      left: auto;
+      right: 0;
+    }
+  }
+  
+  &-item {
+    display: block;
+    width: 100%;
+    padding: $space-3;
+    color: $text-primary;
+    text-decoration: none;
+    border-radius: $radius-md;
+    @include smooth-transition(all);
+    
+    &:hover {
+      background: $bg-secondary;
+      color: $color-primary-600;
+    }
+    
+    &.active {
+      background: rgba($color-primary-500, 0.1);
+      color: $color-primary-600;
+      font-weight: $font-weight-medium;
+    }
+  }
+  
+  &-divider {
+    height: 1px;
+    margin: $space-2 0;
+    background: $border-light;
+  }
+}
+
+// --------------------------------------------
+// Navbar
+// --------------------------------------------
+
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $navbar-padding-y $navbar-padding-x;
+  background: $bg-elevated;
+  border-bottom: 1px solid $border-light;
+  @include elevation(1);
+  
+  &-brand {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    font-size: $font-size-lg;
+    font-weight: $font-weight-bold;
+    color: $text-primary;
+    text-decoration: none;
+    
+    img {
+      height: 2.5rem;
+      width: auto;
+    }
+  }
+  
+  &-nav {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  
+  &-item {
+    a {
+      display: flex;
+      align-items: center;
+      gap: $space-2;
+      padding: $space-2 $space-4;
+      color: $text-secondary;
+      text-decoration: none;
+      border-radius: $radius-lg;
+      @include smooth-transition(all);
+      
+      &:hover, &.active {
+        background: $bg-secondary;
+        color: $color-primary-600;
+      }
+    }
+  }
+}
+
+.sticky-top {
+  position: sticky;
+  top: 0;
+  z-index: $z-index-sticky;
+}
+
+// --------------------------------------------
+// Spinner / Loading
+// --------------------------------------------
+
+.spinner-border {
+  @include spinner(2rem, 3px, $color-primary-500);
+  
+  &-sm {
+    @include spinner(1rem, 2px, $color-primary-500);
+  }
+  
+  &-lg {
+    @include spinner(3rem, 4px, $color-primary-500);
+  }
+}
+
+.loading-spinner {
+  @include flex-center;
+  padding: $space-8;
+}
+
+// --------------------------------------------
+// List Groups
+// --------------------------------------------
+
+.list-group {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  
+  &-item {
+    padding: $space-4;
+    background: $bg-elevated;
+    border: 1px solid $border-light;
+    border-radius: $radius-lg;
+    @include smooth-transition(all);
+    
+    &-action {
+      cursor: pointer;
+      
+      &:hover {
+        background: $bg-secondary;
+        transform: translateX(4px);
+      }
+      
+      &:active {
+        transform: translateX(2px) scale(0.98);
+      }
+    }
+  }
+  
+  &-flush {
+    .list-group-item {
+      border-radius: 0;
+      border-left: 0;
+      border-right: 0;
+      
+      &:first-child {
+        border-top: 0;
+      }
+      
+      &:last-child {
+        border-bottom: 0;
+      }
+    }
+  }
+}
+
+// --------------------------------------------
+// Offcanvas (Sidebar)
+// --------------------------------------------
+
+.offcanvas {
+  position: fixed;
+  top: 0;
+  height: 100vh;
+  max-width: 320px;
+  width: 100%;
+  background: $bg-elevated;
+  @include elevation(4);
+  z-index: $z-index-modal;
+  transform: translateX(-100%);
+  @include smooth-transition(transform, $transition-slow);
+  
+  &.show {
+    transform: translateX(0);
+  }
+  
+  &-end {
+    left: auto;
+    right: 0;
+    transform: translateX(100%);
+    
+    &.show {
+      transform: translateX(0);
+    }
+  }
+  
+  &-header {
+    @include flex-between;
+    padding: $space-6;
+    border-bottom: 1px solid $border-light;
+  }
+  
+  &-title {
+    margin: 0;
+    font-size: $font-size-lg;
+    font-weight: $font-weight-bold;
+  }
+  
+  &-body {
+    padding: $space-6;
+    overflow-y: auto;
+    @include custom-scrollbar;
+  }
+  
+  &-backdrop {
+    @include absolute-cover;
+    position: fixed;
+    background: rgba($color-neutral-950, 0.5);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: $z-index-modal-backdrop;
+    opacity: 0;
+    @include smooth-transition(opacity);
+    
+    &.show {
+      opacity: 1;
+    }
+  }
+}
+
+// --------------------------------------------
+// Close Button
+// --------------------------------------------
+
+.btn-close {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: $radius-md;
+  cursor: pointer;
+  @include smooth-transition(all);
+  position: relative;
+  
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 16px;
+    height: 2px;
+    background: $text-secondary;
+    border-radius: 1px;
+  }
+  
+  &::before {
+    transform: translate(-50%, -50%) rotate(45deg);
+  }
+  
+  &::after {
+    transform: translate(-50%, -50%) rotate(-45deg);
+  }
+  
+  &:hover {
+    background: $bg-secondary;
+    
+    &::before,
+    &::after {
+      background: $text-primary;
+    }
+  }
+  
+  &-white {
+    &::before,
+    &::after {
+      background: $text-inverse;
+    }
+  }
+}
+
+// --------------------------------------------
+// Utilities
+// --------------------------------------------
+
+.shadow-sm { @include elevation(1); }
+.shadow { @include elevation(2); }
+.shadow-md { @include elevation(2); }
+.shadow-lg { @include elevation(3); }
+.shadow-xl { @include elevation(4); }
+.shadow-2xl { @include elevation(5); }
+
+.rounded-sm { border-radius: $radius-sm; }
+.rounded { border-radius: $radius-md; }
+.rounded-md { border-radius: $radius-md; }
+.rounded-lg { border-radius: $radius-lg; }
+.rounded-xl { border-radius: $radius-xl; }
+.rounded-2xl { border-radius: $radius-2xl; }
+.rounded-full { border-radius: $radius-full; }
+
+.text-primary { color: $text-primary; }
+.text-secondary { color: $text-secondary; }
+.text-tertiary { color: $text-tertiary; }
+.text-muted { color: $text-muted; }
+.text-inverse { color: $text-inverse; }
+
+.bg-primary { background-color: $bg-primary; }
+.bg-secondary { background-color: $bg-secondary; }
+.bg-tertiary { background-color: $bg-tertiary; }
+.bg-dark { background-color: $bg-dark; }
+.bg-elevated { background-color: $bg-elevated; }
+
+.fw-light { font-weight: $font-weight-light; }
+.fw-normal { font-weight: $font-weight-regular; }
+.fw-medium { font-weight: $font-weight-medium; }
+.fw-semibold { font-weight: $font-weight-semibold; }
+.fw-bold { font-weight: $font-weight-bold; }
+.fw-black { font-weight: $font-weight-black; }
+

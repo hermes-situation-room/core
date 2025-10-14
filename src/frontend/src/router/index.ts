@@ -9,6 +9,7 @@ import ChatsListComponent from "../components/chats-list-component.vue";
 import ChatDetailComponent from "../components/chat-detail-component.vue";
 import CreateChatComponent from "../components/create-chat-component.vue";
 import { useAuthStore } from "../stores/auth-store";
+import StyleGuideComponent from "../components/style-guide-component.vue";
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -40,6 +41,12 @@ const router = createRouter({
             path: "/login",
             name: "Login",
             component: LoginComponent,
+            meta: { guestOnly: true },
+        },
+        {
+            path: "/styleguide",
+            name: "StyleGuide",
+            component: StyleGuideComponent,
             meta: { guestOnly: true },
         },
         {
