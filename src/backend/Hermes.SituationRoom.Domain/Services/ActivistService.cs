@@ -1,6 +1,10 @@
 ﻿namespace Hermes.SituationRoom.Domain.Services;
 
 using Data.Interface;
+using System.Security.Cryptography;
+using Hermes.SituationRoom.Data.Interface;
+using Hermes.SituationRoom.Shared.BusinessObjects;
+using Hermes.SituationRoom.Shared.DataTransferObjects; 
 using Interfaces;
 using Shared.BusinessObjects;
 using Shared.Exceptions;
@@ -27,6 +31,9 @@ public class ActivistService(IActivistRepository activistRepository, IEncryption
 
     public Task<ActivistBo> UpdateActivistAsync(ActivistBo updatedActivist) =>
         activistRepository.UpdateAsync(updatedActivist);
+
+    public Task<ActivistBo> UpdateActivistVisibilityAsync(Guid activistUid, UpdateActivistPrivacyLevelDto updateActivistPrivacyLevelDto) =>
+        activistRepository.UpdateActivistVisibilityAsync(activistUid, updateActivistPrivacyLevelDto);
 
     public Task DeleteActivistAsync(Guid activistUid) => activistRepository.DeleteAsync(activistUid);
 }

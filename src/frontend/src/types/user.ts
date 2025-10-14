@@ -1,3 +1,20 @@
+export interface UserBo {
+    uid: string;
+    password: string;
+    firstName?: string;
+    lastName?: string;
+    emailAddress?: string;
+}
+
+export interface UserProfileBo {
+    uid: string;
+    firstName?: string;
+    lastName?: string;
+    emailAddress?: string;
+    userName?: string;
+    employer?: string;
+}
+
 export interface ActivistBo {
     uid: string;
     password: string;
@@ -29,6 +46,12 @@ export interface LoginFormData {
     lastName?: string;
     emailAddress?: string;
     employer?: string;
+    isFirstNameVisible?: boolean;
+    isLastNameVisible?: boolean;
+    isEmailVisible?: boolean;
+}
+
+export interface UpdateActivistPrivacy {
     isFirstNameVisible?: boolean;
     isLastNameVisible?: boolean;
     isEmailVisible?: boolean;

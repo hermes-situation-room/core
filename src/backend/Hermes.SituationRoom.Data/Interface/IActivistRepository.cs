@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Hermes.SituationRoom.Shared.BusinessObjects;
+using Hermes.SituationRoom.Shared.DataTransferObjects;
 
 public interface IActivistRepository
 {
@@ -19,6 +20,8 @@ public interface IActivistRepository
     Task<IReadOnlyList<ActivistBo>> GetAllActivistBosAsync();
 
     Task<ActivistBo> UpdateAsync(ActivistBo updatedActivist);
+
+    Task<ActivistBo> UpdateActivistVisibilityAsync(Guid activistUid, UpdateActivistPrivacyLevelDto updateActivistPrivacyLevelDto);
 
     Task DeleteAsync(Guid activistUid);
 }

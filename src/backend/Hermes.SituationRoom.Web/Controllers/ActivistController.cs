@@ -4,6 +4,7 @@ using Base;
 using Configurations;
 using Domain.Interfaces;
 using Microsoft.AspNetCore.Authorization;
+using Hermes.SituationRoom.Shared.DataTransferObjects;
 using Microsoft.AspNetCore.Mvc;
 using Shared.BusinessObjects;
 using Swashbuckle.AspNetCore.Annotations;
@@ -42,6 +43,19 @@ public class ActivistController(IControllerInfrastructure infra, IActivistServic
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ActivistBo>> UpdateActivist([FromBody] ActivistBo activistBo, Guid uid) =>
         Ok(await activistService.UpdateActivistAsync(activistBo with { Uid = uid, }));
+
+    [HttpPut("internal/activist/visibilty/{uid:guid}")]
+    [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_ACTIVIST])]
+    [ProducesResponseType(typeof(ActivistBo), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> UpdateActivistVisibility(
+        [FromRoute] Guid uid,
+        [FromBody] UpdateActivistPrivacyLevelDto updateDto)
+    {
+        await activistService.UpdateActivistVisibilityAsync(uid, updateDto);
+        return NoContent();
+    }
 
     [HttpDelete("internal/activist/{uid:guid}")]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_ACTIVIST])]

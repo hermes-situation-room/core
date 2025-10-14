@@ -13,7 +13,7 @@ public interface IUserRepository
 
     Task<bool> EmailExistsAsync(string emailAddress);
 
-    Task<UserBo> GetUserProfileBoAsync(Guid userUid, Guid consumerUid);
+    Task<UserProfileBo> GetUserProfileBoAsync(Guid userUid, Guid consumerUid);
 
     Task<IReadOnlyList<UserBo>> GetAllUserBosAsync();
 

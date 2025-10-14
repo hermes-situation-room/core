@@ -6,6 +6,7 @@ import messagesApi from "./messages-api";
 import ApiBaseClient from "./base/api-base-client";
 import SocketBaseClient from "./base/socket-base-client";
 import authApi from "./auth-api.ts";
+import usersApi from "./users-api";
 
 const apiBaseClient = new ApiBaseClient();
 
@@ -15,7 +16,8 @@ export const services = {
     tags: tagsApi(apiBaseClient),
     chats: chatsApi(apiBaseClient),
     messages: messagesApi(apiBaseClient),
-    auth: authApi(apiBaseClient)
+    auth: authApi(apiBaseClient),
+    users: usersApi(apiBaseClient)
 }
 
 const socketBaseClient = new SocketBaseClient();

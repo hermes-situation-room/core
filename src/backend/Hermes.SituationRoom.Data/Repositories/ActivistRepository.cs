@@ -5,6 +5,7 @@ using Entities;
 using Interface;
 using Microsoft.EntityFrameworkCore;
 using Shared.BusinessObjects;
+using Shared.DataTransferObjects;
 using Shared.Exceptions;
 
 public sealed class ActivistRepository(IHermessituationRoomContext context, IUserRepository userRepository)
@@ -93,6 +94,27 @@ public sealed class ActivistRepository(IHermessituationRoomContext context, IUse
         activist.IsFirstNameVisible = updatedActivist.IsFirstNameVisible;
         activist.IsLastNameVisible = updatedActivist.IsLastNameVisible;
         activist.IsEmailVisible = updatedActivist.IsEmailVisible;
+
+        await context.SaveChangesAsync();
+
+        return MapToBo(activist);
+    }
+
+    public async Task<ActivistBo> UpdateActivistVisibilityAsync(Guid activistUid, UpdateActivistPrivacyLevelDto updateActivistPrivacyLevelDto)
+    {
+        ArgumentNullException.ThrowIfNull(updateActivistPrivacyLevelDto);
+        if (activistUid == Guid.Empty)
+            throw new ArgumentException("UID required.", nameof(activistUid));
+
+        var activist = await context.Activists
+                           .AsTracking()
+                           .Include(a => a.UserU)
+                           .FirstOrDefaultAsync(a => a.UserUid == activistUid)
+                       ?? throw new KeyNotFoundException($"Activist with UID {activistUid} was not found.");
+
+        activist.IsFirstNameVisible = updateActivistPrivacyLevelDto.IsFirstNameVisible;
+        activist.IsLastNameVisible = updateActivistPrivacyLevelDto.IsLastNameVisible;
+        activist.IsEmailVisible = updateActivistPrivacyLevelDto.IsEmailVisible;
 
         await context.SaveChangesAsync();
 
