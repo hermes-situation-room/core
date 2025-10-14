@@ -24,6 +24,8 @@ public partial class HermessituationRoomContext : DbContext
 
     public virtual DbSet<Post> Posts { get; set; }
 
+    public virtual DbSet<PostTag> PostTags { get; set; }
+
     public virtual DbSet<PrivacyLevelPersonal> PrivacyLevelPersonals { get; set; }
 
     public virtual DbSet<User> Users { get; set; }
@@ -32,11 +34,11 @@ public partial class HermessituationRoomContext : DbContext
     {
         modelBuilder.Entity<Activist>(entity =>
         {
-            entity.HasKey(e => e.UserUid).HasName("PK__Activist__A1F26A8A381D2675");
+            entity.HasKey(e => e.UserUid).HasName("PK__Activist__A1F26A8A1F9F0448");
 
             entity.ToTable("Activist");
 
-            entity.HasIndex(e => e.Username, "UQ__Activist__536C85E4DC6E4AE6").IsUnique();
+            entity.HasIndex(e => e.Username, "UQ__Activist__536C85E489AA5F70").IsUnique();
 
             entity.Property(e => e.UserUid)
                 .ValueGeneratedNever()
@@ -52,7 +54,7 @@ public partial class HermessituationRoomContext : DbContext
 
         modelBuilder.Entity<Chat>(entity =>
         {
-            entity.HasKey(e => e.Uid).HasName("PK__Chat__C5B196028EBCFCFE");
+            entity.HasKey(e => e.Uid).HasName("PK__Chat__C5B19602A25D3669");
 
             entity.ToTable("Chat");
 
@@ -79,7 +81,7 @@ public partial class HermessituationRoomContext : DbContext
 
         modelBuilder.Entity<Comment>(entity =>
         {
-            entity.HasKey(e => e.Uid).HasName("PK__Comment__C5B19602EC6426F9");
+            entity.HasKey(e => e.Uid).HasName("PK__Comment__C5B19602AB6E7305");
 
             entity.ToTable("Comment");
 
@@ -105,7 +107,7 @@ public partial class HermessituationRoomContext : DbContext
 
         modelBuilder.Entity<Journalist>(entity =>
         {
-            entity.HasKey(e => e.UserUid).HasName("PK__Journali__A1F26A8A43E233D0");
+            entity.HasKey(e => e.UserUid).HasName("PK__Journali__A1F26A8A5C90512A");
 
             entity.ToTable("Journalist");
 
@@ -123,7 +125,7 @@ public partial class HermessituationRoomContext : DbContext
 
         modelBuilder.Entity<Message>(entity =>
         {
-            entity.HasKey(e => e.Uid).HasName("PK__Message__C5B19602BFB59381");
+            entity.HasKey(e => e.Uid).HasName("PK__Message__C5B19602DA16F4FA");
 
             entity.ToTable("Message");
 
@@ -151,7 +153,7 @@ public partial class HermessituationRoomContext : DbContext
 
         modelBuilder.Entity<Post>(entity =>
         {
-            entity.HasKey(e => e.Uid).HasName("PK__Post__C5B19602891F63A6");
+            entity.HasKey(e => e.Uid).HasName("PK__Post__C5B19602C31AFA3D");
 
             entity.ToTable("Post");
 
@@ -173,9 +175,25 @@ public partial class HermessituationRoomContext : DbContext
                 .HasConstraintName("FK_Post_User");
         });
 
+        modelBuilder.Entity<PostTag>(entity =>
+        {
+            entity.HasKey(e => new { e.PostUid, e.Tag });
+
+            entity.ToTable("PostTag");
+
+            entity.HasIndex(e => e.Tag, "IX_PostTag_Tag");
+
+            entity.Property(e => e.PostUid).HasColumnName("PostUID");
+            entity.Property(e => e.Tag).HasMaxLength(64);
+
+            entity.HasOne(d => d.PostU).WithMany(p => p.PostTags)
+                .HasForeignKey(d => d.PostUid)
+                .HasConstraintName("FK_PostTag_Post");
+        });
+
         modelBuilder.Entity<PrivacyLevelPersonal>(entity =>
         {
-            entity.HasKey(e => e.Uid).HasName("PK__PrivacyL__C5B19602B94549C6");
+            entity.HasKey(e => e.Uid).HasName("PK__PrivacyL__C5B1960248B13C3D");
 
             entity.ToTable("PrivacyLevelPersonal");
 
@@ -202,11 +220,11 @@ public partial class HermessituationRoomContext : DbContext
 
         modelBuilder.Entity<User>(entity =>
         {
-            entity.HasKey(e => e.Uid).HasName("PK__User__C5B19602787B1651");
+            entity.HasKey(e => e.Uid).HasName("PK__User__C5B196021E1C9545");
 
             entity.ToTable("User");
 
-            entity.HasIndex(e => e.EmailAddress, "UQ__User__49A147404BE99ECC").IsUnique();
+            entity.HasIndex(e => e.EmailAddress, "UQ__User__49A147402D729153").IsUnique();
 
             entity.Property(e => e.Uid)
                 .ValueGeneratedNever()
@@ -214,9 +232,12 @@ public partial class HermessituationRoomContext : DbContext
             entity.Property(e => e.EmailAddress).HasMaxLength(255);
             entity.Property(e => e.FirstName).HasMaxLength(255);
             entity.Property(e => e.LastName).HasMaxLength(255);
-            entity.Property(e => e.Password)
+            entity.Property(e => e.PasswordHash)
                 .IsRequired()
-                .HasMaxLength(255);
+                .HasMaxLength(32);
+            entity.Property(e => e.PasswordSalt)
+                .IsRequired()
+                .HasMaxLength(16);
         });
 
         OnModelCreatingPartial(modelBuilder);
