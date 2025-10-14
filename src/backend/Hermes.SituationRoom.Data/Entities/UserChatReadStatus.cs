@@ -5,7 +5,7 @@ namespace Hermes.SituationRoom.Data.Entities;
 
 public partial class UserChatReadStatus
 {
-    public Guid UserChatReadStatusId { get; set; }
+    public Guid Uid { get; set; }
 
     public Guid UserId { get; set; }
 
