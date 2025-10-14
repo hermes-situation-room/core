@@ -59,7 +59,7 @@ const loadChat = async () => {
             
             await loadMessages(chatId);
             await sockets.hub.ensureSocketInitialization();
-            sockets.hub.joinChat(currentUserUid.value, chatId);
+            sockets.hub.joinChat(chatId);
             sockets.hub.registerToEvent('ReceiveMessage', handleIncomingMessage);
             sockets.hub.registerToEvent('UpdateMessage', handleMessageUpdate);
             sockets.hub.registerToEvent('DeleteMessage', handleMessageDelete);

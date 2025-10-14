@@ -44,11 +44,10 @@ export const sockets = {
         },
         /**
          * Send a JoinChat event over the socket to the backend
-         * @param userId Guid (string) with the userId
          * @param chatId Guid (string) with the chatId
          */
-        joinChat: (userId: string, chatId: string) => {
-            socketBaseClient.sendEvent("JoinChat", [userId, chatId]);
+        joinChat: (chatId: string) => {
+            socketBaseClient.sendEvent("JoinChat", [chatId]);
         },
         /**
          * Send a LeaveChat event over the socket to the backend to unsubscribe to chat messages
