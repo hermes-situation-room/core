@@ -68,8 +68,22 @@ public class PostController(IControllerInfrastructure infra, IPostService postSe
     [ProducesResponseType(typeof(PostWithTagsBo), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<PostWithTagsBo>> UpdatePost([FromBody] PostWithTagsBo postBo, Guid uid) =>
-        Ok(await postService.UpdatePostAsync(postBo with { Uid = uid, }));
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<PostWithTagsBo>> UpdatePost([FromBody] PostWithTagsBo postBo, Guid uid)
+    {
+        var existingPost = await postService.GetPostAsync(uid);
+        if (existingPost == null)
+            return NotFound();
+
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+        if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
+            return Unauthorized();
+
+        if (existingPost.CreatorUid != userId)
+            return Forbid();
+
+        return Ok(await postService.UpdatePostAsync(postBo with { Uid = uid, }));
+    }
 
     [HttpDelete("internal/post/{uid:guid}")]
     [Authorize]

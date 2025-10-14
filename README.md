@@ -13,7 +13,7 @@ This repository contains the core components of the **Hermes Situation Room** pr
    - [Prerequisites](#prerequisites)  
    - [Backend Development](#backend-development)  
    - [Frontend Development](#frontend-development)  
-4. [Docker Setup](#docker-setup)  
+4. [Full Local Docker For Stage Testing Purposes](#docker-setup)  
    - [Services](#services)  
    - [Running the Services](#running-the-services)  
    - [Pulling the Latest Images](#pulling-the-latest-images)  
@@ -25,7 +25,7 @@ This repository contains the core components of the **Hermes Situation Room** pr
 
 ## 🛰️ Project Overview
 
-The **Hermes Situation Room** is a platform designed to provide **real-time situational awareness** and support **decision-making** capabilities.  
+**Hermes Situation Room** is a secure platform that **connects activists with journalists**, enabling the **anonymous**, **trusted**, and **safe exchange** of **sensitive information**.
 
 It consists of:
 - **Frontend** — a user-friendly web interface for interacting with the platform.  
@@ -115,7 +115,7 @@ Before starting, make sure you have the following installed:
 
 ---
 
-## 🐳 Docker Setup
+## 🐳 Full Local Docker For Stage Testing Purposes
 
 The project uses **Docker** for both development and production environments.  
 The Docker Compose configuration is located in:
