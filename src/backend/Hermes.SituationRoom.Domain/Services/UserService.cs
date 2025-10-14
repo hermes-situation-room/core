@@ -1,10 +1,12 @@
 ﻿namespace Hermes.SituationRoom.Domain.Services;
 
-using Hermes.SituationRoom.Shared.BusinessObjects;
+using Hermes.SituationRoom.Data.Entities;
 using Hermes.SituationRoom.Data.Interface;
+using Hermes.SituationRoom.Data.Repositories;
+using Hermes.SituationRoom.Shared.BusinessObjects;
 using Interfaces;
 
-public class UserService(IUserRepository userRepository) : IUserService
+public class UserService(IUserRepository userRepository, IEncryptionService encryptionService) : IUserService
 {
     public Task<UserBo> GetUserAsync(Guid userUid) => userRepository.GetUserBoAsync(userUid);
 
@@ -12,7 +14,14 @@ public class UserService(IUserRepository userRepository) : IUserService
 
     public Task<IReadOnlyList<UserBo>> GetUsersAsync() => userRepository.GetAllUserBosAsync();
 
-    public Task<Guid> CreateUserAsync(UserBo userBo) => userRepository.AddAsync(userBo);
+    public Task<Guid> CreateUserAsync(UserBo userBo) 
+    {
+        (byte[] hash, byte[] salt) = encryptionService.EncryptPassword(userBo.Password);
+
+        userBo = userBo with { PasswordHash = hash, PasswordSalt = salt };
+
+        return userRepository.AddAsync(userBo);
+    }
 
     public Task<UserBo> UpdateUserAsync(UserBo updatedUser) => userRepository.Update(updatedUser);
 

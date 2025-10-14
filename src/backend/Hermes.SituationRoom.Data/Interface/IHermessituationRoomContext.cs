@@ -19,7 +19,7 @@ public interface IHermessituationRoomContext : ICurrentDbContext
     DbSet<Message> Messages { get; set; }
 
     DbSet<Post> Posts { get; set; }
-    
+
     DbSet<PostTag> PostTags { get; set; }
 
     DbSet<PrivacyLevelPersonal> PrivacyLevelPersonals { get; set; }
