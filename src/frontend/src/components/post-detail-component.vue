@@ -280,9 +280,8 @@ onMounted(() => {
 
                 <div class="comment-list d-flex flex-column">
                     <div v-for="comment in comments" :key="comment.commentUid" class="comment border mb-1 p-2 rounded d-flex flex-column flex-wrap">
-                        <strong><small>{{ comment.displayName }}</small></strong>
+                        <small class="d-flex justify-content-between"><strong>{{ comment.displayName }}</strong>{{ comment.timestamp }}</small>
                         <div class="text-break width-100">{{ comment.content }}</div>
-                        <div>{{ comment.timeStamp }}</div>
                     </div>
                 </div>
             </div>
