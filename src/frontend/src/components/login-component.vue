@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { RouterLink, useRouter } from 'vue-router'
+import { computed, ref, onMounted } from 'vue'
+import { RouterLink, useRouter, useRoute } from 'vue-router'
 import type { UserType } from '../types/user'
 import { useAuthStore } from '../stores/auth-store'
 import {services} from "../services/api";
 import { useNotification } from '../composables/useNotification';
 
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 const notification = useNotification()
 
@@ -30,6 +31,13 @@ function selectUserType(type: UserType) {
         password: ''
     }
 }
+
+onMounted(() => {
+    const typeParam = (route.query.type as string | undefined)?.toLowerCase()
+    if (typeParam === 'journalist' || typeParam === 'activist') {
+        selectedUserType.value = typeParam as UserType
+    }
+})
 
 async function handleLogin() {
     if (isLoading.value) return

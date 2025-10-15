@@ -26,6 +26,7 @@ const createChat = async () => {
         if (!currentUserUid) {
             notification.error('You must be logged in to create a chat');
             creating.value = false;
+            router.push('/login');
             return;
         }
 

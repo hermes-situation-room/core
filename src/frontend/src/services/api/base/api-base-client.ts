@@ -1,23 +1,17 @@
 import type {BaseResultBo} from "../../models/bo/base-result-bo";
 import {useAuthStore} from "../../../stores/auth-store";
-import router from "../../../router";
 
 export default class ApiBaseClient {
     apiBaseUrl: string = import.meta.env.VITE_APP_BACKEND;
 
     /**
-     * Handle 401 Unauthorized responses by redirecting to posts page
-     * Clears auth state locally without calling logout API (session already expired)
-     * Uses dynamic imports to avoid circular dependency
+     * Handle 401 Unauthorized responses without forcing navigation
+     * Clears auth state locally; routing guards will handle protected routes
      */
     private async handleUnauthorized(status: number) {
         if (status === 401) {
             const authStore = useAuthStore();
             authStore.clearAuthState();
-
-            if (router.currentRoute.value.path !== '/') {
-                router.push('/');
-            }
         }
     }
 

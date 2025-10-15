@@ -93,7 +93,11 @@ async function handleRegister() {
         if (result.isSuccess && result.data) {
             authStore.login()
             notification.success('Registration successful!');
-            await router.push('/')
+            if (isJournalist.value) {
+                await router.push('/login?type=journalist')
+            } else {
+                await router.push('/login?type=activist')
+            }
         } else {
             notification.error(result.responseMessage || 'Registration failed. Please try again.')
         }

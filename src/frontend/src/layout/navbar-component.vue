@@ -124,6 +124,13 @@ const handleLogout = async () => {
                             </button>
                         </template>
                         <template v-else>
+                            <button 
+                                @click="goToPosts"
+                                class="btn btn-outline-secondary btn-sm d-flex align-items-center"
+                            >
+                                <i class="fas fa-newspaper"></i>
+                                <span class="d-none d-xl-inline ms-1">Posts</span>
+                            </button>
                             <RouterLink 
                                 to="/login" 
                                 class="btn btn-outline-secondary btn-sm d-flex align-items-center"
@@ -213,6 +220,13 @@ const handleLogout = async () => {
                         </button>
                     </template>
                     <template v-else>
+                        <button 
+                            @click="goToPosts(); closeMobileMenu()"
+                            class="list-group-item list-group-item-action d-flex align-items-center gap-3"
+                        >
+                            <i class="fas fa-newspaper fs-5"></i>
+                            <span>Posts</span>
+                        </button>
                         <RouterLink 
                             to="/login" 
                             class="list-group-item list-group-item-action d-flex align-items-center gap-3"
