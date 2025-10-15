@@ -5,12 +5,22 @@ import { services } from '../services/api';
 import type { PostBo } from '../types/post';
 import { useAuthStore } from '../stores/auth-store';
 import { useNotification } from '../composables/use-notification.ts';
+import { useContextMenu } from '../composables/use-context-menu';
 import type { CommentBo, CreateCommentDto, UpdateCommentDto } from '../types/comment';
 
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
 const notification = useNotification();
+const { 
+    contextMenuItemId: contextMenuPostId,
+    contextMenuPosition,
+    showContextMenu,
+    showMobileMenu, 
+    handleRightClick,
+    toggleMobileMenu, 
+    closeAllMenus 
+} = useContextMenu();
 
 const post = ref<PostBo | null>(null);
 const loading = ref(false);
@@ -33,8 +43,33 @@ const isPostOwner = computed(() => {
 });
 
 const editPost = () => {
+    closeAllMenus();
     if (post.value) {
         router.push(`/post/${post.value.uid}/edit`);
+    }
+};
+
+const deletePost = async () => {
+    closeAllMenus();
+    
+    if (!post.value) {
+        return;
+    }
+    
+    if (!confirm('Are you sure you want to delete this post?')) {
+        return;
+    }
+    
+    try {
+        const result = await services.posts.deletePost(post.value.uid);
+        if (result.isSuccess) {
+            notification.deleted('Post deleted successfully');
+            router.push('/');
+        } else {
+            notification.error(result.responseMessage || 'Failed to delete post');
+        }
+    } catch (error) {
+        notification.error('Error deleting post');
     }
 };
 
@@ -244,8 +279,53 @@ onMounted(() => {
 
                 <div v-else-if="post" class="card">
                     <div class="card-header bg-dark text-white">
-                        <h1 class="h3 mb-2">{{ post.title }}</h1>
-                        <small class="text-light">{{ formatDate(post.timestamp) }}</small>
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div 
+                                class="flex-grow-1"
+                                v-if="isPostOwner"
+                                @contextmenu="handleRightClick($event, post.uid)"
+                            >
+                                <h1 class="h3 mb-2">{{ post.title }}</h1>
+                                <small class="text-light">{{ formatDate(post.timestamp) }}</small>
+                            </div>
+                            <div 
+                                v-else
+                                class="flex-grow-1"
+                            >
+                                <h1 class="h3 mb-2">{{ post.title }}</h1>
+                                <small class="text-light">{{ formatDate(post.timestamp) }}</small>
+                            </div>
+                            <!-- Three-dot menu button -->
+                            <div v-if="isPostOwner" class="position-relative">
+                                <button 
+                                    class="btn btn-link text-white p-0 ms-2" 
+                                    @click="toggleMobileMenu($event, post.uid)"
+                                    style="line-height: 1;"
+                                >
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                                <!-- Dropdown menu -->
+                                <div 
+                                    v-if="showMobileMenu === post.uid"
+                                    class="dropdown-menu show position-absolute"
+                                    style="right: 0; top: 100%;"
+                                >
+                                    <button 
+                                        class="dropdown-item"
+                                        @click="editPost()"
+                                    >
+                                        <i class="fas fa-edit me-2"></i>Edit
+                                    </button>
+                                    <div class="dropdown-divider"></div>
+                                    <button 
+                                        class="dropdown-item text-danger"
+                                        @click="deletePost()"
+                                    >
+                                        <i class="fas fa-trash me-2"></i>Delete
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="card-body">
@@ -290,26 +370,16 @@ onMounted(() => {
                                 </a>
                             </span>
                             </div>
-                                                        <div class="d-flex gap-2">
-                                <button 
-                                    v-if="canSendMessage"
-                                    class="btn btn-primary btn-sm"
-                                    :disabled="creatingChat"
-                                    @click="sendDirectMessage"
-                                >
-                                    <span v-if="creatingChat" class="spinner-border spinner-border-sm me-1"></span>
-                                    <i v-else class="fas fa-comment me-1"></i>
-                                    Direct Message
-                                </button>
-                                <button
-                                    v-if="isPostOwner"
-                                    class="btn btn-warning btn-sm"
-                                    @click="editPost"
-                                >
-                                    <i class="fas fa-edit me-1"></i>
-                                    Edit Post
-                                </button>
-                            </div>
+                            <button 
+                                v-if="canSendMessage"
+                                class="btn btn-primary btn-sm"
+                                :disabled="creatingChat"
+                                @click="sendDirectMessage"
+                            >
+                                <span v-if="creatingChat" class="spinner-border spinner-border-sm me-1"></span>
+                                <i v-else class="fas fa-comment me-1"></i>
+                                Direct Message
+                            </button>
                             <RouterLink 
                                 v-if="!currentUserUid"
                                 to="/login"
@@ -321,6 +391,30 @@ onMounted(() => {
                         </div>
                     </div>
 
+                </div>
+                
+                <!-- Right-click context menu -->
+                <div 
+                    v-if="showContextMenu && contextMenuPostId && isPostOwner"
+                    class="dropdown-menu show position-fixed"
+                    :style="{ 
+                        left: contextMenuPosition.x + 'px', 
+                        top: contextMenuPosition.y + 'px' 
+                    }"
+                >
+                    <button 
+                        class="dropdown-item"
+                        @click="editPost()"
+                    >
+                        <i class="fas fa-edit me-2"></i>Edit Post
+                    </button>
+                    <div class="dropdown-divider"></div>
+                    <button 
+                        class="dropdown-item text-danger"
+                        @click="deletePost()"
+                    >
+                        <i class="fas fa-trash me-2"></i>Delete Post
+                    </button>
                 </div>
 
                 <div class="comment-input mt-3 mb-2 d-flex gap-2">

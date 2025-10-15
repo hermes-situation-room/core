@@ -5,10 +5,20 @@ import {services, sockets} from '../services/api';
 import type {ChatBo} from '../types/chat';
 import { useAuthStore } from '../stores/auth-store';
 import { useNotification } from '../composables/use-notification.ts';
+import { useContextMenu } from '../composables/use-context-menu';
 
 const router = useRouter();
 const authStore = useAuthStore();
 const notification = useNotification();
+const {
+    contextMenuItemId: contextMenuChatId,
+    contextMenuPosition,
+    showContextMenu,
+    showMobileMenu,
+    handleRightClick,
+    toggleMobileMenu,
+    closeAllMenus
+} = useContextMenu();
 
 const chats = ref<ChatBo[]>([]);
 const chatsWithLastMessage = ref<Array<ChatBo & { lastMessageTime?: string, lastMessage?: string }>>([]);
@@ -16,10 +26,6 @@ const unreadCounts = ref<Record<string, number>>({});
 const loading = ref(false);
 const currentUserUid = ref<string>('');
 const displayNames = ref<Map<string, string>>(new Map());
-const contextMenuChatId = ref<string | null>(null);
-const contextMenuPosition = ref({ x: 0, y: 0 });
-const showContextMenu = ref(false);
-const showMobileMenu = ref<string | null>(null);
 
 const loadChats = async () => {
     loading.value = true;
@@ -146,50 +152,12 @@ const getDisplayName = (chat: ChatBo): string => {
     return displayNames.value.get(otherUserUid) || otherUserUid.substring(0, 8) + '...';
 };
 
-const handleRightClick = (event: MouseEvent, chatId: string) => {
-    event.preventDefault();
-    event.stopPropagation();
-    
-    showMobileMenu.value = null;
-    
-    contextMenuChatId.value = chatId;
-    contextMenuPosition.value = { x: event.clientX, y: event.clientY };
-    showContextMenu.value = true;
-    
-    const closeMenu = () => {
-        showContextMenu.value = false;
-        document.removeEventListener('click', closeMenu);
-    };
-    setTimeout(() => document.addEventListener('click', closeMenu), 0);
-};
-
-const toggleMobileMenu = (event: Event, chatId: string) => {
-    event.stopPropagation();
-    
-    showContextMenu.value = false;
-    
-    if (showMobileMenu.value === chatId) {
-        showMobileMenu.value = null;
-    } else {
-        showMobileMenu.value = chatId;
-        const closeMenu = (e: MouseEvent) => {
-            const target = e.target as HTMLElement;
-            if (!target.closest('.position-relative')) {
-                showMobileMenu.value = null;
-                document.removeEventListener('click', closeMenu);
-            }
-        };
-        setTimeout(() => document.addEventListener('click', closeMenu), 0);
-    }
-};
-
 const markChatAsRead = async (chatId: string, event?: Event) => {
     if (event) {
         event.stopPropagation();
     }
     
-    showContextMenu.value = false;
-    showMobileMenu.value = null;
+    closeAllMenus();
     
     try {
         await sockets.hub.updateReadChat(chatId);
@@ -206,8 +174,7 @@ const viewProfile = (chatId: string, event?: Event) => {
         event.stopPropagation();
     }
     
-    showContextMenu.value = false;
-    showMobileMenu.value = null;
+    closeAllMenus();
     
     const chat = chatsWithLastMessage.value.find(c => c.uid === chatId);
     if (chat) {
@@ -221,8 +188,7 @@ const deleteChat = async (chatId: string, event?: Event) => {
         event.stopPropagation();
     }
     
-    showContextMenu.value = false;
-    showMobileMenu.value = null;
+    closeAllMenus();
     
     if (!confirm('Are you sure you want to delete this chat?')) {
         return;
