@@ -311,40 +311,11 @@ const shouldShowEditMode = (message: MessageBo) => {
 };
 
 const formatTime = (timestamp: string) => {
-    if (!timestamp || timestamp.trim() === '') {
-        return new Date().toLocaleTimeString('en-US', {
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    }
-
-    try {
-        let date: Date;
-        if (timestamp.includes('T')) {
-            date = new Date(timestamp);
-        } else if (/^\d+$/.test(timestamp)) {
-            date = new Date(parseInt(timestamp));
-        } else {
-            date = new Date(timestamp);
-        }
-
-        if (isNaN(date.getTime())) {
-            return new Date().toLocaleTimeString('en-US', {
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-        }
-
-        return date.toLocaleTimeString('en-US', {
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    } catch (error) {
-        return new Date().toLocaleTimeString('en-US', {
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    }
+    const date = new Date(timestamp + 'Z') || new Date().toISOString();
+    return date.toLocaleTimeString(navigator.language || 'en-US', {
+        hour: '2-digit',
+        minute: '2-digit'
+    });
 };
 
 onMounted(() => {
