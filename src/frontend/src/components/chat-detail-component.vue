@@ -24,6 +24,7 @@ const currentUserUid = ref<string>('');
 const editingMessageId = ref<string | null>(null);
 const editingContent = ref('');
 const messageInputRef = ref<HTMLInputElement | null>(null);
+const otherUserDisplayName = ref<string>('');
 
 const loadChat = async () => {
     loading.value = true;
@@ -43,6 +44,15 @@ const loadChat = async () => {
         const result = await services.chats.getChatById(chatId);
         if (result.isSuccess && result.data) {
             chat.value = result.data;
+            
+            const otherUserUid = getOtherUserUid();
+            if (otherUserUid) {
+                const displayNameResult = await services.users.getDisplayName(otherUserUid);
+                if (displayNameResult.isSuccess && displayNameResult.data) {
+                    otherUserDisplayName.value = displayNameResult.data;
+                }
+            }
+            
             await loadMessages(chatId);
             await sockets.hub.ensureSocketInitialization();
             sockets.hub.joinChat(currentUserUid.value, chatId);
@@ -370,7 +380,16 @@ onUnmounted(() => {
                   <button class="btn btn-link text-decoration-none p-0 me-3" @click="router.push('/chats')">
                     ← Back
                   </button>
-                  <span class="fw-bold">Chat with User: {{ getOtherUserUid() }}</span>
+                  <span class="fw-bold">
+                    Chat with: 
+                    <a 
+                      href="#" 
+                      class="text-primary text-decoration-none"
+                      @click.prevent="router.push({ path: '/profile', query: { id: getOtherUserUid() } })"
+                    >
+                      {{ otherUserDisplayName || getOtherUserUid() }}
+                    </a>
+                  </span>
                 </div>
               </div>
             </div>

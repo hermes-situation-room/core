@@ -15,6 +15,8 @@ public interface IUserRepository
 
     Task<UserProfileBo> GetUserProfileBoAsync(Guid userUid, Guid consumerUid);
 
+    Task<string> GetDisplayNameAsync(Guid userUid);
+
     Task<IReadOnlyList<UserBo>> GetAllUserBosAsync();
 
     Task<UserBo> Update(UserBo updatedUser);

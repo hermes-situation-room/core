@@ -47,6 +47,10 @@ const viewUser = () => {
     });
 };
 
+const goToPosts = () => {
+    router.push('/');
+};
+
 const handleLogout = async () => {
     await authStore.logout()
     await router.push('/login')
@@ -76,6 +80,13 @@ const handleLogout = async () => {
 
                     <div class="d-none d-md-flex align-items-center gap-1 gap-lg-2">
                         <template v-if="authStore.isAuthenticated.value">
+                            <button 
+                                @click="goToPosts"
+                                class="btn btn-outline-secondary btn-sm d-flex align-items-center"
+                            >
+                                <i class="fas fa-newspaper"></i>
+                                <span class="d-none d-xl-inline ms-1">Posts</span>
+                            </button>
                             <RouterLink 
                                 to="/chats" 
                                 class="btn btn-outline-secondary btn-sm d-flex align-items-center"
@@ -83,16 +94,16 @@ const handleLogout = async () => {
                                 <i class="fas fa-comments"></i>
                                 <span class="d-none d-xl-inline ms-1">Messages</span>
                             </RouterLink>
-                            <span class="badge bg-dark text-white px-2 py-1 d-none d-lg-inline">
-                                {{ authStore.userType.value === 'journalist' ? 'Journalist' : 'Activist' }}
-                            </span>
                             <button 
                                 @click="viewUser"
                                 class="btn btn-outline-secondary btn-sm d-flex align-items-center"
                             >
-                                <i class="fas fa-circle-user"></i>
-                                <span class="d-none d-xl-inline ms-1">Logout</span>
+                                <i class="fas fa-user"></i>
+                                <span class="d-none d-xl-inline ms-1">Profile</span>
                             </button>
+                            <span class="badge bg-dark text-white px-2 py-1 d-none d-lg-inline">
+                                {{ authStore.userType.value === 'journalist' ? 'Journalist' : 'Activist' }}
+                            </span>
                             <button 
                                 @click="handleLogout"
                                 class="btn btn-outline-danger btn-sm d-flex align-items-center"
@@ -155,6 +166,13 @@ const handleLogout = async () => {
                                 </span>
                             </div>
                         </div>
+                        <button 
+                            @click="goToPosts(); closeMobileMenu()"
+                            class="list-group-item list-group-item-action d-flex align-items-center gap-3"
+                        >
+                            <i class="fas fa-newspaper fs-5"></i>
+                            <span>Posts</span>
+                        </button>
                         <RouterLink 
                             to="/chats" 
                             class="list-group-item list-group-item-action d-flex align-items-center gap-3"
@@ -163,6 +181,13 @@ const handleLogout = async () => {
                             <i class="fas fa-comments fs-5"></i>
                             <span>Messages</span>
                         </RouterLink>
+                        <button 
+                            @click="viewUser(); closeMobileMenu()"
+                            class="list-group-item list-group-item-action d-flex align-items-center gap-3"
+                        >
+                            <i class="fas fa-user fs-5"></i>
+                            <span>Profile</span>
+                        </button>
                         <button 
                             @click="handleLogout"
                             class="list-group-item list-group-item-action d-flex align-items-center gap-3 text-danger"
