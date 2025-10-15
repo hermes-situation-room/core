@@ -76,6 +76,12 @@ const loadComments = async () => {
     try {
         const result = await services.comments.getCommentsByPost(postId);
         if (result.isSuccess && result.data) {
+            for (const comment of result.data) {
+                const displayName = await services.users.getDisplayName(comment.creatorUid);
+                if (displayName.isSuccess && displayName.data) {
+                    comment.displayName = displayName.data
+                }
+            };
             comments.value = result.data;
         } else {
             error.value = result.responseMessage || 'Failed to load comments';
@@ -288,15 +294,15 @@ onMounted(() => {
 
                 </div>
 
-                <div class="comment-input mt-2 d-flex gap-2">
-                    <input v-model="commentContent" type="text" class="rounded w-100" placeholder="Comment...">
-                    <button class="w-25 rounded" @click="postComment">Comment</button>
+                <div class="comment-input mt-3 mb-2 d-flex gap-2">
+                    <input v-model="commentContent" maxlength="255" type="text" class="rounded w-100 form-control" placeholder="Comment...">
+                    <button class="w-25 rounded btn btn-primary" @click="postComment">Comment</button>
                 </div>
 
                 <div class="comment-list d-flex flex-column">
-                    <div v-for="comment in comments" :key="comment.commentUid" class="comments">
-                        <div>{{ comment.creatorUid }}</div>
-                        <div>{{ comment.content }}</div>
+                    <div v-for="comment in comments" :key="comment.commentUid" class="comment border mb-1 p-2 rounded d-flex flex-column flex-wrap">
+                        <strong><small>{{ comment.displayName }}</small></strong>
+                        <div class="text-break width-100">{{ comment.content }}</div>
                         <div>{{ comment.timeStamp }}</div>
                     </div>
                 </div>
