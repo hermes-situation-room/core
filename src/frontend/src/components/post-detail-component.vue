@@ -332,7 +332,7 @@ onMounted(() => {
                         class="btn btn-outline-primary btn-sm"
                     >
                         <i class="fas fa-sign-in-alt me-1"></i>
-                        Login to Message
+                        Login to Comment
                     </RouterLink>
                 </div>
                 <div class="comment-list d-flex flex-column">
