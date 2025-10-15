@@ -1,6 +1,6 @@
 ﻿export interface CommentBo {
     uid: string;
-    timestamp: Date;
+    timestamp: string;
     creatorUid: string;
     postUid: string;
     content: string;

@@ -352,7 +352,7 @@ onMounted(() => {
                                     {{ comment.displayName }}
                                 </a>
                             </strong>
-                            {{ comment.timestamp }}
+                            {{ formatDate(comment.timestamp) }}
                         </small>
                         <div>
                             <div v-if="!comment.inEdit" class="d-flex justify-content-between flex-nowrap gap-2">
