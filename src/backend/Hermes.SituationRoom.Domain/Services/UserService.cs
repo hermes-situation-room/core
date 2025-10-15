@@ -51,13 +51,13 @@ public class UserService(IUserRepository userRepository, IActivistRepository act
 
     public async Task<UserBo> UpdateUserAsync(UserBo updatedUser)
     {
-        var user = await userRepository.Update(updatedUser);
+        var user = await userRepository.UpdateAsync(updatedUser);
         return user with { Password = null, PasswordHash = null, PasswordSalt = null };
     }
 
     public Task DeleteUserAsync(Guid userUid)
     {
-        userRepository.Delete(userUid);
+        userRepository.DeleteAsync(userUid);
         return Task.CompletedTask;
     }
 }

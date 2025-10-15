@@ -49,19 +49,19 @@ public sealed class CommentRepository(IHermessituationRoomContext context) : ICo
         return MapToBo(comment);
     }
 
-    public Task DeleteAsync(Guid commentId)
+    public async Task DeleteAsync(Guid commentId)
     {
         if (commentId == Guid.Empty)
             throw new ArgumentException("GUID must not be empty.", nameof(commentId));
 
-        var comment = context.Comments.FirstOrDefault(u => u.Uid == commentId);
+        var comment = await context.Comments
+            .AsTracking()
+            .FirstOrDefaultAsync(u => u.Uid == commentId);
         if (comment is null)
             throw new KeyNotFoundException($"Comment with GUID {commentId} was not found.");
 
         context.Comments.Remove(comment);
-        context.SaveChanges();
-
-        return Task.CompletedTask;
+        await context.SaveChangesAsync();
     }
 
     private static CommentBo MapToBo(Comment comment) => new(comment.Uid,

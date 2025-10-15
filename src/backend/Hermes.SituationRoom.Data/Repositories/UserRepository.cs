@@ -104,7 +104,7 @@ public sealed class UserRepository(IHermessituationRoomContext context) : IUserR
         .Select(u => MapToBo(u))
         .ToListAsync();
 
-    public async Task<UserBo> Update(UserBo updatedUser)
+    public async Task<UserBo> UpdateAsync(UserBo updatedUser)
     {
         ArgumentNullException.ThrowIfNull(updatedUser);
         if (updatedUser.Uid == Guid.Empty)
@@ -121,20 +121,21 @@ public sealed class UserRepository(IHermessituationRoomContext context) : IUserR
 
         return MapToBo(user);
     }
-
-    public Task Delete(Guid userId)
+    
+    public async Task DeleteAsync(Guid userId)
     {
         if (userId == Guid.Empty)
             throw new ArgumentException("GUID must not be empty.", nameof(userId));
 
-        var user = context.Users.FirstOrDefault(u => u.Uid == userId);
-        if (user is null)
-            return Task.CompletedTask;
+        var user = await context.Users
+            .AsTracking()
+            .FirstOrDefaultAsync(u => u.Uid == userId);
 
-        context.Users.Remove(user);
-        context.SaveChanges();
-
-        return Task.CompletedTask;
+        if (user is not null)
+        {
+            context.Users.Remove(user);
+            await context.SaveChangesAsync();
+        }
     }
 
     private static UserBo MapToBo(User user) => new(user.Uid,

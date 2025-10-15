@@ -71,19 +71,20 @@ public sealed class PrivacyLevelPersonalRepository(IHermessituationRoomContext c
         return MapToBo(privacyLevelPersonal);
     }
 
-    public Task DeleteAsync(Guid privacyLevelPersonalId)
+    public async Task DeleteAsync(Guid privacyLevelPersonalId)
     {
         if (privacyLevelPersonalId == Guid.Empty)
             throw new ArgumentException("GUID must not be empty.", nameof(privacyLevelPersonalId));
 
-        var privacyLevelPersonal = context.PrivacyLevelPersonals.FirstOrDefault(p => p.Uid == privacyLevelPersonalId);
-        if (privacyLevelPersonal is null)
-            return Task.CompletedTask;
-
-        context.PrivacyLevelPersonals.Remove(privacyLevelPersonal);
-        context.SaveChanges();
-
-        return Task.CompletedTask;
+        var privacyLevelPersonal = await context.PrivacyLevelPersonals
+            .AsTracking()
+            .FirstOrDefaultAsync(p => p.Uid == privacyLevelPersonalId);
+        
+        if (privacyLevelPersonal is not null)
+        {
+            context.PrivacyLevelPersonals.Remove(privacyLevelPersonal);
+            await context.SaveChangesAsync();
+        }
     }
 
     private static PrivacyLevelPersonalBo MapToBo(PrivacyLevelPersonal privacyLevelPersonal) => new(privacyLevelPersonal.Uid,
