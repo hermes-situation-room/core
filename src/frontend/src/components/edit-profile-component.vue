@@ -82,9 +82,11 @@ const saveProfile = async () => {
         return;
     }
 
-    if (!firstName.value.trim() || !lastName.value.trim() || !emailAddress.value.trim()) {
-        error.value = 'First Name, Last Name, and Email are required';
-        return;
+    if (isJournalist.value) {
+        if (!firstName.value.trim() || !lastName.value.trim() || !emailAddress.value.trim()) {
+            error.value = 'First Name, Last Name, and Email are required for journalists';
+            return;
+        }
     }
 
     saving.value = true;
@@ -98,9 +100,9 @@ const saveProfile = async () => {
             const activistData: ActivistBo = {
                 uid: userId,
                 password: '',
-                firstName: firstName.value.trim(),
-                lastName: lastName.value.trim(),
-                emailAddress: emailAddress.value.trim(),
+                firstName: firstName.value.trim() || undefined,
+                lastName: lastName.value.trim() || undefined,
+                emailAddress: emailAddress.value.trim() || undefined,
                 userName: userName.value,
                 isFirstNameVisible: isFirstNameVisible.value,
                 isLastNameVisible: isLastNameVisible.value,
@@ -168,7 +170,6 @@ onMounted(() => {
                 </div>
 
                 <div v-else class="card shadow">
-                    <!-- Header -->
                     <div class="card-header bg-primary text-white">
                         <h4 class="mb-0">
                             <i class="fas fa-user-edit me-2"></i>
@@ -177,21 +178,18 @@ onMounted(() => {
                     </div>
 
                     <div class="card-body p-4">
-                        <!-- Success Message -->
                         <div v-if="successMessage" class="alert alert-success alert-dismissible fade show" role="alert">
                             <i class="fas fa-check-circle me-2"></i>
                             {{ successMessage }}
                             <button type="button" class="btn-close" @click="successMessage = null"></button>
                         </div>
 
-                        <!-- Error Message -->
                         <div v-if="error" class="alert alert-danger alert-dismissible fade show" role="alert">
                             <i class="fas fa-exclamation-triangle me-2"></i>
                             {{ error }}
                             <button type="button" class="btn-close" @click="error = null"></button>
                         </div>
 
-                        <!-- User Type Badge -->
                         <div class="text-center mb-4">
                             <span v-if="isActivist" class="badge border border-dark text-dark fs-6 px-3 py-2">
                                 <i class="fas fa-bullhorn me-2"></i>
@@ -204,7 +202,6 @@ onMounted(() => {
                         </div>
 
                         <form @submit.prevent="saveProfile">
-                            <!-- Basic Information -->
                             <div class="mb-4">
                                 <h5 class="border-bottom pb-2 mb-3">Basic Information</h5>
                                 
@@ -221,34 +218,46 @@ onMounted(() => {
 
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
-                                        <label class="form-label">First Name <span class="text-danger">*</span></label>
+                                        <label class="form-label">
+                                            First Name 
+                                            <span v-if="isJournalist" class="text-danger">*</span>
+                                            <span v-if="isActivist" class="text-muted">(optional)</span>
+                                        </label>
                                         <input 
                                             type="text" 
                                             class="form-control" 
                                             v-model="firstName"
-                                            required
+                                            :required="isJournalist"
                                             maxlength="100"
                                         />
                                     </div>
                                     <div class="col-md-6 mb-3">
-                                        <label class="form-label">Last Name <span class="text-danger">*</span></label>
+                                        <label class="form-label">
+                                            Last Name 
+                                            <span v-if="isJournalist" class="text-danger">*</span>
+                                            <span v-if="isActivist" class="text-muted">(optional)</span>
+                                        </label>
                                         <input 
                                             type="text" 
                                             class="form-control" 
                                             v-model="lastName"
-                                            required
+                                            :required="isJournalist"
                                             maxlength="100"
                                         />
                                     </div>
                                 </div>
 
                                 <div class="mb-3">
-                                    <label class="form-label">Email <span class="text-danger">*</span></label>
+                                    <label class="form-label">
+                                        Email 
+                                        <span v-if="isJournalist" class="text-danger">*</span>
+                                        <span v-if="isActivist" class="text-muted">(optional)</span>
+                                    </label>
                                     <input 
                                         type="email" 
                                         class="form-control" 
                                         v-model="emailAddress"
-                                        required
+                                        :required="isJournalist"
                                         maxlength="200"
                                     />
                                 </div>
@@ -264,12 +273,11 @@ onMounted(() => {
                                 </div>
                             </div>
 
-                            <!-- Privacy Settings (Activists only) -->
                             <div v-if="isActivist" class="mb-4">
                                 <h5 class="border-bottom pb-2 mb-3">Privacy Settings</h5>
                                 <p class="text-muted small mb-3">
                                     <i class="fas fa-shield-alt me-1"></i>
-                                    Control what information is visible to other users
+                                    Control what information is visible to other users. Note: First Name, Last Name, and Email are optional for activists.
                                 </p>
 
                                 <div class="mb-3">
@@ -320,7 +328,6 @@ onMounted(() => {
                                 </div>
                             </div>
 
-                            <!-- Action Buttons -->
                             <div class="d-flex gap-2 justify-content-end">
                                 <button 
                                     type="button" 

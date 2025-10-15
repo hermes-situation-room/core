@@ -154,10 +154,7 @@ public sealed class UserRepository(IHermessituationRoomContext context) : IUserR
                 .AsNoTracking()
                 .FirstOrDefaultAsync(j => j.UserUid == userId);
 
-            if (journalist is not null)
-            {
-                userProfileBo = userProfileBo with { Employer = journalist.Employer };
-            }
+            if (journalist is not null) { userProfileBo = userProfileBo with { Employer = journalist.Employer }; }
 
             return userProfileBo;
         }

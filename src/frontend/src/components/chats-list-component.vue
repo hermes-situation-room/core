@@ -45,7 +45,7 @@ const loadChats = async () => {
                 if (userUid) {
                     const displayNameResult = await services.users.getDisplayName(userUid);
                     if (displayNameResult.isSuccess && displayNameResult.data) {
-                        displayNames.value.set(userUid, displayNameResult.data.displayName);
+                        displayNames.value.set(userUid, displayNameResult.data);
                     }
                 }
             }
