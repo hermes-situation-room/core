@@ -1,5 +1,5 @@
 ﻿<script setup lang="ts">
-import {onMounted, onUnmounted, ref} from 'vue';
+import {onMounted, ref} from 'vue';
 import {useRouter} from 'vue-router';
 import {services, sockets} from '../services/api';
 import type {ChatBo} from '../types/chat';
