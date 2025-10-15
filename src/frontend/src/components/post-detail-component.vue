@@ -96,8 +96,8 @@ const sendDirectMessage = async () => {
 };
 
 const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-GB', { 
+    const date = new Date(dateString + 'Z') || new Date().toISOString();
+    return date.toLocaleDateString(navigator.language || 'en-US', { 
         day: 'numeric', 
         month: 'long', 
         year: 'numeric',
