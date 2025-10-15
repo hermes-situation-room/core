@@ -97,8 +97,8 @@ const viewPost = (postId: string) => {
 };
 
 const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-GB', {
+    const date = new Date(dateString + 'Z');
+    return date.toLocaleDateString(navigator.language || 'en-US', {
         day: 'numeric',
         month: 'short',
         year: 'numeric'

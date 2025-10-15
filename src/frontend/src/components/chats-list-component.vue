@@ -125,14 +125,14 @@ const formatLastMessageTime = (timestamp?: string) => {
     if (!timestamp) return '';
     
     try {
-        const date = new Date(timestamp);
+        const date = new Date(timestamp + 'Z');
         const now = new Date();
         const diffMs = now.getTime() - date.getTime();
         const diffHours = diffMs / (1000 * 60 * 60);
         const diffDays = diffMs / (1000 * 60 * 60 * 24);
         
         if (diffHours < 24) {
-            return date.toLocaleTimeString('en-US', {
+            return date.toLocaleTimeString(navigator.language || 'en-US', {
                 hour: '2-digit',
                 minute: '2-digit'
             });
