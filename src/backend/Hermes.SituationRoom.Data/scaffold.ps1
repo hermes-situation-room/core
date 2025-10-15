@@ -12,5 +12,6 @@ Microsoft.EntityFrameworkCore.SqlServer `
 --table "dbo.PrivacyLevelPersonal" `
 --table "dbo.User" `
 --table "dbo.PostTag" `
+--table "dbo.UserChatReadStatus" `
 --no-onconfiguring `
 -f

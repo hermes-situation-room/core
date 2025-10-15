@@ -26,6 +26,7 @@ public static class DependencyRegistrationExtension
         services.AddScoped<ICommentRepository, CommentRepository>();
         services.AddScoped<IChatRepository, ChatRepository>();
         services.AddScoped<IMessageRepository, MessageRepository>();
+        services.AddScoped<IUserChatReadStatusRepository, UserChatReadStatusRepository>();
         
         // Domain
         services.AddScoped<IUserService, UserService>();
@@ -38,6 +39,7 @@ public static class DependencyRegistrationExtension
         services.AddScoped<IChatService, ChatService>();
         services.AddScoped<IMessageService, MessageService>();
         services.AddScoped<IAuthorizationService, AuthorizationService>();
+        services.AddScoped<IUserChatReadStatusService, UserChatReadStatusService>();
 
         services.AddScoped<IEncryptionService, EncryptionService>();
 

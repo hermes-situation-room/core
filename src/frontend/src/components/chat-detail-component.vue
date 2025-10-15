@@ -21,6 +21,7 @@ const editingMessageId = ref<string | null>(null);
 const editingContent = ref('');
 const messageInputRef = ref<HTMLInputElement | null>(null);
 const errorMessage = ref('');
+const isSocketConnected = ref(false);
 const otherUserDisplayName = ref<string>('');
 
 const clearError = () => {
@@ -58,11 +59,19 @@ const loadChat = async () => {
             }
             
             await loadMessages(chatId);
-            await sockets.hub.ensureSocketInitialization();
-            sockets.hub.joinChat(currentUserUid.value, chatId);
-            sockets.hub.registerToEvent('ReceiveMessage', handleIncomingMessage);
-            sockets.hub.registerToEvent('UpdateMessage', handleMessageUpdate);
-            sockets.hub.registerToEvent('DeleteMessage', handleMessageDelete);
+            
+            // Try to initialize socket connection for real-time updates
+            try {
+                await sockets.hub.initialize();
+                sockets.hub.joinChat(chatId);
+                sockets.hub.registerToEvent('ReceiveMessage', handleIncomingMessage);
+                sockets.hub.registerToEvent('UpdateMessage', handleMessageUpdate);
+                sockets.hub.registerToEvent('DeleteMessage', handleMessageDelete);
+                isSocketConnected.value = true;
+            } catch (socketError) {
+                console.warn('Failed to connect to real-time messaging. Messages will not update automatically:', socketError);
+                isSocketConnected.value = false;
+            }
         } else {
             if (result.responseCode === 404) {
                 showError('Chat not found');
@@ -302,40 +311,11 @@ const shouldShowEditMode = (message: MessageBo) => {
 };
 
 const formatTime = (timestamp: string) => {
-    if (!timestamp || timestamp.trim() === '') {
-        return new Date().toLocaleTimeString('en-US', {
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    }
-
-    try {
-        let date: Date;
-        if (timestamp.includes('T')) {
-            date = new Date(timestamp);
-        } else if (/^\d+$/.test(timestamp)) {
-            date = new Date(parseInt(timestamp));
-        } else {
-            date = new Date(timestamp);
-        }
-
-        if (isNaN(date.getTime())) {
-            return new Date().toLocaleTimeString('en-US', {
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-        }
-
-        return date.toLocaleTimeString('en-US', {
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    } catch (error) {
-        return new Date().toLocaleTimeString('en-US', {
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    }
+    const date = new Date(timestamp + 'Z') || new Date().toISOString();
+    return date.toLocaleTimeString(navigator.language || 'en-US', {
+        hour: '2-digit',
+        minute: '2-digit'
+    });
 };
 
 onMounted(() => {
@@ -343,8 +323,12 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-    if (chat.value) {
-        sockets.hub.leaveChat(chat.value.uid);
+    if (chat.value && isSocketConnected.value) {
+        try {
+            sockets.hub.leaveChat(chat.value.uid);
+        } catch (error) {
+            console.warn('Error leaving chat:', error);
+        }
     }
 });
 </script>

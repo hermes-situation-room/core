@@ -30,15 +30,17 @@ public partial class HermessituationRoomContext : DbContext
 
     public virtual DbSet<User> Users { get; set; }
 
+    public virtual DbSet<UserChatReadStatus> UserChatReadStatuses { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Activist>(entity =>
         {
-            entity.HasKey(e => e.UserUid).HasName("PK__Activist__A1F26A8A2A7B588C");
+            entity.HasKey(e => e.UserUid).HasName("PK__Activist__A1F26A8A49AA7AA2");
 
             entity.ToTable("Activist");
 
-            entity.HasIndex(e => e.Username, "UQ__Activist__536C85E482440425").IsUnique();
+            entity.HasIndex(e => e.Username, "UQ__Activist__536C85E4163B90BF").IsUnique();
 
             entity.Property(e => e.UserUid)
                 .ValueGeneratedNever()
@@ -54,7 +56,7 @@ public partial class HermessituationRoomContext : DbContext
 
         modelBuilder.Entity<Chat>(entity =>
         {
-            entity.HasKey(e => e.Uid).HasName("PK__Chat__C5B1960213252B66");
+            entity.HasKey(e => e.Uid).HasName("PK__Chat__C5B19602E9A5427D");
 
             entity.ToTable("Chat");
 
@@ -81,7 +83,7 @@ public partial class HermessituationRoomContext : DbContext
 
         modelBuilder.Entity<Comment>(entity =>
         {
-            entity.HasKey(e => e.Uid).HasName("PK__Comment__C5B19602253D8937");
+            entity.HasKey(e => e.Uid).HasName("PK__Comment__C5B19602DB4BA2E9");
 
             entity.ToTable("Comment");
 
@@ -107,7 +109,7 @@ public partial class HermessituationRoomContext : DbContext
 
         modelBuilder.Entity<Journalist>(entity =>
         {
-            entity.HasKey(e => e.UserUid).HasName("PK__Journali__A1F26A8A93FBA525");
+            entity.HasKey(e => e.UserUid).HasName("PK__Journali__A1F26A8AA6DB6DB0");
 
             entity.ToTable("Journalist");
 
@@ -125,7 +127,7 @@ public partial class HermessituationRoomContext : DbContext
 
         modelBuilder.Entity<Message>(entity =>
         {
-            entity.HasKey(e => e.Uid).HasName("PK__Message__C5B1960280E34E19");
+            entity.HasKey(e => e.Uid).HasName("PK__Message__C5B19602720B3D45");
 
             entity.ToTable("Message");
 
@@ -153,7 +155,7 @@ public partial class HermessituationRoomContext : DbContext
 
         modelBuilder.Entity<Post>(entity =>
         {
-            entity.HasKey(e => e.Uid).HasName("PK__Post__C5B196027A61BFC5");
+            entity.HasKey(e => e.Uid).HasName("PK__Post__C5B196023B924E39");
 
             entity.ToTable("Post");
 
@@ -193,7 +195,7 @@ public partial class HermessituationRoomContext : DbContext
 
         modelBuilder.Entity<PrivacyLevelPersonal>(entity =>
         {
-            entity.HasKey(e => e.Uid).HasName("PK__PrivacyL__C5B19602BB9B8704");
+            entity.HasKey(e => e.Uid).HasName("PK__PrivacyL__C5B196027240694B");
 
             entity.ToTable("PrivacyLevelPersonal");
 
@@ -220,7 +222,7 @@ public partial class HermessituationRoomContext : DbContext
 
         modelBuilder.Entity<User>(entity =>
         {
-            entity.HasKey(e => e.Uid).HasName("PK__User__C5B1960248062C74");
+            entity.HasKey(e => e.Uid).HasName("PK__User__C5B196026DF71806");
 
             entity.ToTable("User");
 
@@ -240,6 +242,34 @@ public partial class HermessituationRoomContext : DbContext
             entity.Property(e => e.PasswordSalt)
                 .IsRequired()
                 .HasMaxLength(16);
+        });
+
+        modelBuilder.Entity<UserChatReadStatus>(entity =>
+        {
+            entity.HasKey(e => e.Uid).HasName("PK__UserChat__C5B196023B47AEE0");
+
+            entity.ToTable("UserChatReadStatus");
+
+            entity.HasIndex(e => e.ChatId, "IX_UserChatReadStatus_Chat");
+
+            entity.HasIndex(e => e.UserId, "IX_UserChatReadStatus_User");
+
+            entity.Property(e => e.Uid)
+                .ValueGeneratedNever()
+                .HasColumnName("UID");
+            entity.Property(e => e.ChatId).HasColumnName("ChatID");
+            entity.Property(e => e.ReadTime).HasColumnType("datetime");
+            entity.Property(e => e.UserId).HasColumnName("UserID");
+
+            entity.HasOne(d => d.Chat).WithMany(p => p.UserChatReadStatuses)
+                .HasForeignKey(d => d.ChatId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_UserChatReadStatus_Chat");
+
+            entity.HasOne(d => d.User).WithMany(p => p.UserChatReadStatuses)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_UserChatReadStatus_User");
         });
 
         OnModelCreatingPartial(modelBuilder);
