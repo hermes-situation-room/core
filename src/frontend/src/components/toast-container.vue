@@ -29,6 +29,10 @@ const getIconClass = (type: NotificationType): string => {
     return icons[type] || 'bi bi-bell-fill';
 };
 
+const isLightBackground = (type: NotificationType): boolean => {
+    return type === 'warning';
+};
+
 const getTimeAgo = (timestamp: Date): string => {
     const seconds = Math.floor((new Date().getTime() - timestamp.getTime()) / 1000);
 
@@ -42,6 +46,7 @@ const getTimeAgo = (timestamp: Date): string => {
     return `${hours}h ago`;
 };
 </script>
+
 
 <template>
     <div
@@ -69,6 +74,7 @@ const getTimeAgo = (timestamp: Date): string => {
                 <button
                     type="button"
                     class="btn-close"
+                    :class="isLightBackground(toast.type) ? '' : 'btn-close-white'"
                     @click="remove(toast.id)"
                     aria-label="Close"
                 ></button>
@@ -78,4 +84,5 @@ const getTimeAgo = (timestamp: Date): string => {
             </div>
         </div>
     </div>
+
 </template>

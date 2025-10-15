@@ -4,10 +4,12 @@ import { useRoute, useRouter } from 'vue-router';
 import { services } from '../services/api';
 import type { PostBo, UpdatePostDto } from '../types/post';
 import { useAuthStore } from '../stores/auth-store';
+import { useNotification } from '../composables/useNotification';
 
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
+const notification = useNotification();
 
 const postType = computed(() => {
     return authStore.userType.value;
@@ -29,12 +31,11 @@ const selectedTags = ref<string[]>([]);
 const loading = ref(false);
 const loadingTags = ref(false);
 const loadingPost = ref(false);
-const error = ref('');
 
 const loadPost = async () => {
     const postId = route.params.id as string;
     if (!postId) {
-        error.value = 'Post ID not found';
+        notification.error('Post ID not found');
         return;
     }
 
@@ -45,7 +46,7 @@ const loadPost = async () => {
             originalPost.value = result.data;
             
             if (originalPost.value.creatorUid !== authStore.userId.value) {
-                error.value = 'You are not authorized to edit this post';
+                notification.error('You are not authorized to edit this post');
                 setTimeout(() => {
                     router.push('/');
                 }, 2000);
@@ -59,10 +60,10 @@ const loadPost = async () => {
             };
             selectedTags.value = [...result.data.tags];
         } else {
-            error.value = result.responseMessage || 'Failed to load post';
+            notification.error(result.responseMessage || 'Failed to load post');
         }
     } catch (err) {
-        error.value = 'Error loading post';
+        notification.error('Error loading post');
     } finally {
         loadingPost.value = false;
     }
@@ -75,10 +76,10 @@ const loadTags = async () => {
         if (result.isSuccess && result.data) {
             availableTags.value = result.data;
         } else {
-            error.value = result.responseMessage || 'Failed to load tags';
+            notification.error(result.responseMessage || 'Failed to load tags');
         }
     } catch (err) {
-        error.value = 'Error loading tags';
+        notification.error('Error loading tags');
     } finally {
         loadingTags.value = false;
     }
@@ -103,25 +104,24 @@ const goBack = () => {
 
 const handleSubmit = async () => {
     if (!formData.value.title.trim()) {
-        error.value = 'Title is required';
+        notification.warning('Title is required');
         return;
     }
     if (!formData.value.description.trim()) {
-        error.value = 'Description is required';
+        notification.warning('Description is required');
         return;
     }
     if (!formData.value.content.trim()) {
-        error.value = 'Content is required';
+        notification.warning('Content is required');
         return;
     }
 
     if (!originalPost.value) {
-        error.value = 'Post data not loaded';
+        notification.error('Post data not loaded');
         return;
     }
 
     loading.value = true;
-    error.value = '';
 
     try {
         const updateData: UpdatePostDto = {
@@ -137,12 +137,13 @@ const handleSubmit = async () => {
         const result = await services.posts.updatePost(originalPost.value.uid, updateData);
 
         if (result.isSuccess) {
+            notification.updated('Post updated successfully!');
             router.replace(`/post/${originalPost.value.uid}`);
         } else {
-            error.value = result.responseMessage || 'Failed to update post';
+            notification.error(result.responseMessage || 'Failed to update post');
         }
     } catch (err) {
-        error.value = err instanceof Error ? err.message : 'An error occurred';
+        notification.error(err instanceof Error ? err.message : 'An error occurred');
     } finally {
         loading.value = false;
     }
@@ -172,14 +173,6 @@ onMounted(() => {
                     </div>
                 </div>
 
-                <div v-else-if="!originalPost && error" class="card">
-                    <div class="card-body text-center p-5">
-                        <i class="fas fa-exclamation-triangle mb-4 text-danger" style="font-size: 3rem;"></i>
-                        <h3 class="card-title">Error</h3>
-                        <p class="card-text text-muted">{{ error }}</p>
-                    </div>
-                </div>
-
                 <div v-else-if="originalPost" class="card">
                     <div class="card-header bg-dark text-white">
                         <h1 class="h3 mb-0">Edit {{ postType === 'journalist' ? 'Journalist' : 'Activist' }} Post</h1>
@@ -187,10 +180,6 @@ onMounted(() => {
 
                     <div class="card-body">
                         <form @submit.prevent="handleSubmit">
-                            <div v-if="error" class="alert alert-danger" role="alert">
-                                {{ error }}
-                            </div>
-
                             <div class="mb-3">
                                 <label for="postTitle" class="form-label">Title <span class="text-danger">*</span></label>
                                 <input

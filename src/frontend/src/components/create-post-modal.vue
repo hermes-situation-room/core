@@ -3,8 +3,10 @@ import {computed, onMounted, ref, watch} from 'vue';
 import {services} from '../services/api';
 import type {CreatePostDto} from '../types/post';
 import { useAuthStore } from '../stores/auth-store';
+import { useNotification } from '../composables/useNotification';
 
 const authStore = useAuthStore();
+const notification = useNotification();
 
 interface Props {
     show: boolean;
@@ -35,7 +37,6 @@ const availableTags = ref<string[]>([]);
 const selectedTags = ref<string[]>([]);
 const loading = ref(false);
 const loadingTags = ref(false);
-const error = ref('');
 
 const loadTags = async () => {
     loadingTags.value = true;
@@ -44,10 +45,10 @@ const loadTags = async () => {
         if (result.isSuccess && result.data) {
             availableTags.value = result.data;
         } else {
-            error.value = result.responseMessage || 'Failed to load tags';
+            notification.error(result.responseMessage || 'Failed to load tags');
         }
     } catch (err) {
-        error.value = 'Error loading tags';
+        notification.error('Error loading tags');
     } finally {
         loadingTags.value = false;
     }
@@ -74,7 +75,6 @@ watch(() => props.show, (newVal) => {
             content: ''
         };
         selectedTags.value = [];
-        error.value = '';
     }
 });
 
@@ -84,24 +84,23 @@ const handleClose = () => {
 
 const handleSubmit = async () => {
     if (!formData.value.title.trim()) {
-        error.value = 'Title is required';
+        notification.warning('Title is required');
         return;
     }
     if (!formData.value.description.trim()) {
-        error.value = 'Description is required';
+        notification.warning('Description is required');
         return;
     }
     if (!formData.value.content.trim()) {
-        error.value = 'Content is required';
+        notification.warning('Content is required');
         return;
     }
 
     loading.value = true;
-    error.value = '';
 
     try {
         if (!authStore.userId.value) {
-            error.value = 'You must be logged in to create a post';
+            notification.error('You must be logged in to create a post');
             loading.value = false;
             return;
         }
@@ -117,13 +116,14 @@ const handleSubmit = async () => {
         const result = await services.posts.createPost(postData);
 
         if (result.isSuccess) {
+            notification.created('Post created successfully!');
             emit('postCreated');
             emit('close');
         } else {
-            error.value = result.responseMessage || 'Failed to create post';
+            notification.error(result.responseMessage || 'Failed to create post');
         }
     } catch (err) {
-        error.value = err instanceof Error ? err.message : 'An error occurred';
+        notification.error(err instanceof Error ? err.message : 'An error occurred');
     } finally {
         loading.value = false;
     }
@@ -156,10 +156,6 @@ onMounted(() => {
                 </div>
                 <div class="modal-body">
                     <form @submit.prevent="handleSubmit">
-                        <div v-if="error" class="alert alert-danger" role="alert">
-                            {{ error }}
-                        </div>
-
                         <div class="mb-3">
                             <label for="postTitle" class="form-label">Title <span class="text-danger">*</span></label>
                             <input

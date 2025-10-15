@@ -4,16 +4,17 @@ import { useRoute, useRouter } from 'vue-router';
 import { services } from '../services/api';
 import type { PostBo } from '../types/post';
 import { useAuthStore } from '../stores/auth-store';
+import { useNotification } from '../composables/useNotification';
 import type { CommentBo, CreateCommentDto, UpdateCommentDto } from '../types/comment';
 
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
+const notification = useNotification();
 
 const post = ref<PostBo | null>(null);
 const loading = ref(false);
 const loadingComments = ref(false);
-const error = ref<string | null>(null);
 const creatingChat = ref(false);
 const creatorDisplayName = ref<string>('');
 const commentContent = ref()
@@ -40,7 +41,7 @@ const editPost = () => {
 const loadPost = async () => {
     const postId = route.params.id as string;
     if (!postId) {
-        error.value = 'Post ID not found';
+        notification.error('Post ID not found');
         return;
     }
 
@@ -57,10 +58,10 @@ const loadPost = async () => {
                 }
             }
         } else {
-            error.value = result.responseMessage || 'Failed to load post';
+            notification.error(result.responseMessage || 'Failed to load post');
         }
     } catch (err) {
-        error.value = 'Error loading post';
+        notification.error('Error loading post');
     } finally {
         loading.value = false;
     }
@@ -69,7 +70,7 @@ const loadPost = async () => {
 const loadComments = async () => {
     const postId = route.params.id as string;
     if (!postId) {
-        error.value = 'Post ID not found';
+        notification.warning('Post ID not found');
         return;
     }
 
@@ -88,10 +89,10 @@ const loadComments = async () => {
             };
             comments.value = result.data;
         } else {
-            error.value = result.responseMessage || 'Failed to load comments';
+            notification.error(result.responseMessage || 'Failed to load comments');
         }
     } catch (err) {
-        error.value = 'Error loading comments';
+        notification.error('Error loading comments');
     } finally {
         loadingComments.value = false;
     }
@@ -107,7 +108,7 @@ const sendDirectMessage = async () => {
     }
 
     if (post.value.creatorUid === currentUserUid.value) {
-        error.value = 'You cannot send a message to yourself';
+        notification.warning('You cannot send a message to yourself');
         return;
     }
 
@@ -122,10 +123,10 @@ const sendDirectMessage = async () => {
         if (chatResult.isSuccess && chatResult.data) {
             router.push(`/chat/${chatResult.data.uid}`);
         } else {
-            error.value = chatResult.responseMessage || 'Failed to open chat';
+            notification.error(chatResult.responseMessage || 'Failed to open chat');
         }
     } catch (err) {
-        error.value = 'An error occurred while opening the chat';
+        notification.error('An error occurred while opening the chat');
     } finally {
         creatingChat.value = false;
     }
@@ -134,7 +135,7 @@ const sendDirectMessage = async () => {
 const postComment = async () => {
     try {
         if (!authStore.userId.value) {
-            error.value = 'You must be logged in to create a comment';
+            notification.warning('You must be logged in to create a comment');
             return;
         }
 
@@ -149,7 +150,7 @@ const postComment = async () => {
 
         await loadComments()
     } catch (err) {
-        error.value = err instanceof Error ? err.message : 'An error occurred';
+        notification.error(err instanceof Error ? err.message : 'An error occurred');
     }
 }
 
@@ -162,7 +163,7 @@ const editCommentToggle = (comment:CommentBo) => {
 const updateComment = async (comment:CommentBo) => {
     try {
         if (comment.creatorUid !== currentUserUid.value) {
-            error.value = 'You cannot edit someone else\'s comment';
+            notification.warning('You cannot edit someone else\'s comment');
             return;
         }
 
@@ -171,14 +172,14 @@ const updateComment = async (comment:CommentBo) => {
         }
 
         const result = await services.comments.updateComment(comment.uid, commentData);
-
         if (result.isSuccess && result.data) {
+            notification.updated("Comment updated successfully!")
             await loadComments()
         } else {
-            error.value = result.responseMessage || 'Failed to update comment';
+            notification.error(result.responseMessage || 'Failed to update comment');
         }
     } catch (err) {
-        error.value = 'An error occurred while updating the comment';
+        notification.error('An error occurred while updating the comment');
     } finally {
         editingComments.value = false
         comment.inEdit = false
@@ -191,14 +192,15 @@ const deleteComment = async (comment:CommentBo) => {
     }
 
     if (comment.creatorUid !== currentUserUid.value) {
-        error.value = 'You cannot delete someone else\'s comment';
+        notification.error('You cannot delete someone else\'s comment');
         return;
     }
 
     try {
         await services.comments.deleteComment(comment.uid);
+        notification.deleted("Comment deleted successfully!")
     } catch (err) {
-        error.value = 'An error occurred while deleting the comment';
+        notification.error('An error occurred while deleting the comment');
     } finally {
         await loadComments();
     }
@@ -237,14 +239,6 @@ onMounted(() => {
                             <span class="visually-hidden">Loading...</span>
                         </div>
                         <div class="text-muted">Loading post...</div>
-                    </div>
-                </div>
-
-                <div v-else-if="error" class="card">
-                    <div class="card-body text-center p-5">
-                        <i class="fas fa-exclamation-triangle mb-4 text-danger" style="font-size: 3rem;"></i>
-                        <h3 class="card-title">Error Loading Post</h3>
-                        <p class="card-text text-muted">{{ error }}</p>
                     </div>
                 </div>
 

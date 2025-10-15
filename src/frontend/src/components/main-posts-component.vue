@@ -4,10 +4,12 @@ import {useRoute, useRouter} from 'vue-router';
 import CreatePostModal from './create-post-modal.vue';
 import {services} from '../services/api';
 import { useAuthStore } from '../stores/auth-store';
+import { useNotification } from '../composables/useNotification';
 
 const router = useRouter();
 const route = useRoute();
 const authStore = useAuthStore();
+const notification = useNotification();
 
 const searchQuery = ref('');
 const showCreateModal = ref(false);
@@ -17,16 +19,6 @@ const refreshKey = ref(0);
 const availableTags = ref<string[]>([]);
 const selectedFilterTags = ref<string[]>([]);
 const loadingTags = ref(false);
-const errorMessage = ref<string>('');
-
-const clearError = () => {
-    errorMessage.value = '';
-};
-
-const showError = (message: string) => {
-    errorMessage.value = message;
-    setTimeout(clearError, 5000);
-};
 
 type SortOption = 'newest' | 'oldest' | 'title-asc' | 'title-desc';
 const sortBy = ref<SortOption>('newest');
@@ -90,10 +82,10 @@ const loadTags = async () => {
         if (result.isSuccess && result.data) {
             availableTags.value = result.data;
         } else {
-            showError(result.responseMessage || 'Failed to load tags');
+            notification.error(result.responseMessage || 'Failed to load tags');
         }
     } catch (err) {
-        showError('Error loading tags');
+        notification.error('Error loading tags');
     } finally {
         loadingTags.value = false;
     }
@@ -157,15 +149,6 @@ onMounted(() => {
 
 <template>
     <div class="d-flex flex-column" style="height: calc(100vh - 60px); overflow: hidden;">
-        <div v-if="errorMessage" class="position-fixed w-100 px-3 pt-2" style="top: 60px; z-index: 1050;">
-            <div class="container">
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    {{ errorMessage }}
-                    <button type="button" class="btn-close" @click="clearError" aria-label="Close"></button>
-                </div>
-            </div>
-        </div>
-
         <div class="bg-white border-bottom flex-shrink-0" style="z-index: 1000;">
             <div class="container">
                 <div class="d-md-none py-3">

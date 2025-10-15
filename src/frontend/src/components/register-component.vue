@@ -4,9 +4,11 @@ import { RouterLink, useRouter } from 'vue-router'
 import type { LoginFormData, UserType } from '../types/user'
 import { useAuthStore } from '../stores/auth-store'
 import {services} from "../services/api";
+import { useNotification } from '../composables/useNotification';
 
 const router = useRouter()
 const authStore = useAuthStore()
+const notification = useNotification()
 
 const selectedUserType = ref<UserType>('activist')
 const formData = ref<LoginFormData>({
@@ -21,7 +23,6 @@ const formData = ref<LoginFormData>({
     isLastNameVisible: true,
     isEmailVisible: true
 })
-const errorMessage = ref('')
 const isLoading = ref(false)
 
 const isJournalist = computed(() => selectedUserType.value === 'journalist')
@@ -38,7 +39,6 @@ const showPrivacySettings = computed(() => {
 function selectUserType(type: UserType) {
     selectedUserType.value = type
     formData.value.userType = type
-    errorMessage.value = ''
 
     formData.value = {
         userType: type,
@@ -57,7 +57,6 @@ function selectUserType(type: UserType) {
 async function handleRegister() {
     if (isLoading.value) return
     
-    errorMessage.value = ''
     isLoading.value = true
 
     try {
@@ -77,7 +76,7 @@ async function handleRegister() {
         } else {
             if (!formData.value.firstName || !formData.value.lastName || 
                 !formData.value.emailAddress || !formData.value.employer) {
-                errorMessage.value = 'All fields are required for journalist registration.'
+                notification.warning('All fields are required for journalist registration.')
                 isLoading.value = false
                 return
             }
@@ -93,14 +92,14 @@ async function handleRegister() {
 
         if (result.isSuccess && result.data) {
             authStore.login()
-            
+            notification.success('Registration successful!');
             await router.push('/')
         } else {
-            errorMessage.value = result.responseMessage || 'Registration failed. Please try again.'
+            notification.error(result.responseMessage || 'Registration failed. Please try again.')
         }
     } catch (error) {
         console.error('Registration error:', error)
-        errorMessage.value = 'An error occurred during registration. Please try again.'
+        notification.error('An error occurred during registration. Please try again.')
     } finally {
         isLoading.value = false
     }
@@ -145,12 +144,8 @@ async function handleRegister() {
                                 </p>
                             </div>
 
-                            <div v-if="errorMessage" class="alert alert-danger" role="alert">
-                                {{ errorMessage }}
-                            </div>
-
-                            <form v-if="isActivist" @submit.prevent="handleRegister">
-                                <div class="mb-3">
+                            <form @submit.prevent="handleRegister">
+                                <div v-if="isActivist" class="mb-3">
                                     <label class="form-label">Username</label>
                                     <input
                                         v-model="formData.userName"

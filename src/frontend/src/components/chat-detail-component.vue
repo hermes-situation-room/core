@@ -5,10 +5,12 @@ import {services, sockets} from '../services/api';
 import type {ChatBo} from '../types/chat';
 import { useAuthStore } from '../stores/auth-store';
 import type {CreateMessageDto, MessageBo} from "../types/message.ts";
+import { useNotification } from '../composables/useNotification';
 
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
+const notification = useNotification();
 
 const chat = ref<ChatBo | null>(null);
 const messages = ref<MessageBo[]>([]);
@@ -20,18 +22,8 @@ const currentUserUid = ref<string>('');
 const editingMessageId = ref<string | null>(null);
 const editingContent = ref('');
 const messageInputRef = ref<HTMLInputElement | null>(null);
-const errorMessage = ref('');
 const isSocketConnected = ref(false);
 const otherUserDisplayName = ref<string>('');
-
-const clearError = () => {
-    errorMessage.value = '';
-};
-
-const showError = (message: string) => {
-    errorMessage.value = message;
-    setTimeout(clearError, 5000);
-};
 
 const loadChat = async () => {
     loading.value = true;
@@ -40,7 +32,7 @@ const loadChat = async () => {
         currentUserUid.value = authStore.userId.value || '';
 
         if (!currentUserUid.value) {
-            showError('You must be logged in to view chats');
+            notification.error('You must be logged in to view chats');
             router.push('/chats');
             return;
         }
@@ -74,12 +66,12 @@ const loadChat = async () => {
             }
         } else {
             if (result.responseCode === 404) {
-                showError('Chat not found');
+                notification.error('Chat not found');
                 router.push('/chats');
             }
         }
     } catch (error) {
-        showError('Error loading chat');
+        notification.error('Error loading chat');
     } finally {
         loading.value = false;
     }
@@ -211,11 +203,11 @@ const sendMessage = async () => {
             }
             scrollToBottom();
         } else {
-            showError('Failed to send message');
+            notification.error('Failed to send message');
             newMessage.value = messageContent;
         }
     } catch (error) {
-        showError('Failed to send message');
+        notification.error('Failed to send message');
         newMessage.value = messageContent;
     } finally {
         sending.value = false;
@@ -253,10 +245,10 @@ const saveEdit = async (messageId: string) => {
             }
              cancelEdit();
          } else {
-             showError('Failed to update message');
+             notification.error('Failed to update message');
          }
      } catch (error) {
-         showError('Failed to update message');
+         notification.error('Failed to update message');
      }
 };
 
@@ -269,11 +261,12 @@ const deleteMessage = async (messageId: string) => {
         const result = await services.messages.deleteMessage(messageId);
          if (result.isSuccess) {
              messages.value = messages.value.filter(m => m.uid !== messageId);
+             notification.deleted('Message deleted');
          } else {
-             showError('Failed to delete message');
+             notification.error('Failed to delete message');
          }
      } catch (error) {
-         showError('Failed to delete message');
+         notification.error('Failed to delete message');
      }
 };
 
@@ -367,11 +360,6 @@ onUnmounted(() => {
                 </div>
               </div>
             </div>
-          </div>
-
-          <div v-if="errorMessage" class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
-            {{ errorMessage }}
-            <button type="button" class="btn-close" @click="clearError" aria-label="Close"></button>
           </div>
 
           <div class="card flex-grow-1 d-flex flex-column" style="min-height: 0;">
