@@ -1,9 +1,9 @@
 ﻿export interface CommentBo {
     commentUid: string;
-    postUid: string;
+    timestamp: Date;
     creatorUid: string;
+    postUid: string;
     content: string;
-    timeStamp: Date;
     displayName: string;
 }
 
