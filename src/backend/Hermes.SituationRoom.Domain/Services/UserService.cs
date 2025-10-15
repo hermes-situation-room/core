@@ -55,9 +55,6 @@ public class UserService(IUserRepository userRepository, IActivistRepository act
         return user with { Password = null, PasswordHash = null, PasswordSalt = null };
     }
 
-    public Task DeleteUserAsync(Guid userUid)
-    {
+    public Task DeleteUserAsync(Guid userUid) =>
         userRepository.DeleteAsync(userUid);
-        return Task.CompletedTask;
-    }
 }
