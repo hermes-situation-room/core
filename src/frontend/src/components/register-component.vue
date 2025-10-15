@@ -145,12 +145,12 @@ async function handleRegister() {
                                 </p>
                             </div>
 
-                            <form @submit.prevent="handleRegister">
-                                <div v-if="errorMessage" class="alert alert-danger" role="alert">
-                                    {{ errorMessage }}
-                                </div>
+                            <div v-if="errorMessage" class="alert alert-danger" role="alert">
+                                {{ errorMessage }}
+                            </div>
 
-                                <div v-if="isActivist" class="mb-3">
+                            <form v-if="isActivist" @submit.prevent="handleRegister">
+                                <div class="mb-3">
                                     <label class="form-label">Username</label>
                                     <input
                                         v-model="formData.userName"
@@ -174,8 +174,124 @@ async function handleRegister() {
                                     />
                                 </div>
 
-                                <template v-if="isJournalist">
-                                    <div class="mb-3">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">First Name</label>
+                                            <input
+                                                v-model="formData.firstName"
+                                                type="text"
+                                                class="form-control"
+                                                placeholder="Optional"
+                                                :disabled="isLoading"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Last Name</label>
+                                            <input
+                                                v-model="formData.lastName"
+                                                type="text"
+                                                class="form-control"
+                                                placeholder="Optional"
+                                                :disabled="isLoading"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Email Address</label>
+                                    <input
+                                        v-model="formData.emailAddress"
+                                        type="email"
+                                        class="form-control"
+                                        placeholder="Optional"
+                                        :disabled="isLoading"
+                                    />
+                                </div>
+
+                                <div v-if="showPrivacySettings" class="card bg-light mb-4">
+                                    <div class="card-body">
+                                        <div class="text-center mb-3">
+                                            <h6 class="card-title">Privacy Settings</h6>
+                                        </div>
+                                        
+                                        <div v-if="formData.firstName" class="form-check mb-2">
+                                            <input
+                                                v-model="formData.isFirstNameVisible"
+                                                type="checkbox"
+                                                class="form-check-input"
+                                                id="firstNameVisible"
+                                            />
+                                            <label class="form-check-label small" for="firstNameVisible">
+                                                Make first name visible
+                                            </label>
+                                        </div>
+                                        
+                                        <div v-if="formData.lastName" class="form-check mb-2">
+                                            <input
+                                                v-model="formData.isLastNameVisible"
+                                                type="checkbox"
+                                                class="form-check-input"
+                                                id="lastNameVisible"
+                                            />
+                                            <label class="form-check-label small" for="lastNameVisible">
+                                                Make last name visible
+                                            </label>
+                                        </div>
+                                        
+                                        <div v-if="formData.emailAddress" class="form-check">
+                                            <input
+                                                v-model="formData.isEmailVisible"
+                                                type="checkbox"
+                                                class="form-check-input"
+                                                id="emailVisible"
+                                            />
+                                            <label class="form-check-label small" for="emailVisible">
+                                                Make email visible
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-dark w-100 mb-3" :disabled="isLoading">
+                                    <span v-if="isLoading">
+                                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                        Registering...
+                                    </span>
+                                    <span v-else>
+                                        Register as Activist
+                                    </span>
+                                </button>
+                            </form>
+
+                            <form v-else @submit.prevent="handleRegister">
+                                <div class="mb-3">
+                                    <label class="form-label">Email Address</label>
+                                    <input
+                                        v-model="formData.emailAddress"
+                                        type="email"
+                                        required
+                                        class="form-control"
+                                        placeholder="Enter your email"
+                                        :disabled="isLoading"
+                                    />
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Password</label>
+                                    <input
+                                        v-model="formData.password"
+                                        type="password"
+                                        required
+                                        class="form-control"
+                                        placeholder="Choose a password"
+                                        :disabled="isLoading"
+                                    />
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
                                         <label class="form-label">First Name</label>
                                         <input
                                             v-model="formData.firstName"
@@ -186,8 +302,8 @@ async function handleRegister() {
                                             :disabled="isLoading"
                                         />
                                     </div>
-
-                                    <div class="mb-3">
+    
+                                    <div class="col-md-6 mb-3">
                                         <label class="form-label">Last Name</label>
                                         <input
                                             v-model="formData.lastName"
@@ -198,115 +314,19 @@ async function handleRegister() {
                                             :disabled="isLoading"
                                         />
                                     </div>
+                                </div>
 
-                                    <div class="mb-3">
-                                        <label class="form-label">Email Address</label>
-                                        <input
-                                            v-model="formData.emailAddress"
-                                            type="email"
-                                            required
-                                            class="form-control"
-                                            placeholder="Enter your email"
-                                            :disabled="isLoading"
-                                        />
-                                    </div>
-
-                                    <div class="mb-4">
-                                        <label class="form-label">Employer</label>
-                                        <input
-                                            v-model="formData.employer"
-                                            type="text"
-                                            required
-                                            class="form-control"
-                                            placeholder="Enter your employer"
-                                            :disabled="isLoading"
-                                        />
-                                    </div>
-                                </template>
-
-                                <template v-if="isActivist">
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="mb-3">
-                                                <label class="form-label">First Name</label>
-                                                <input
-                                                    v-model="formData.firstName"
-                                                    type="text"
-                                                    class="form-control"
-                                                    placeholder="Optional"
-                                                    :disabled="isLoading"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="mb-3">
-                                                <label class="form-label">Last Name</label>
-                                                <input
-                                                    v-model="formData.lastName"
-                                                    type="text"
-                                                    class="form-control"
-                                                    placeholder="Optional"
-                                                    :disabled="isLoading"
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <label class="form-label">Email Address</label>
-                                        <input
-                                            v-model="formData.emailAddress"
-                                            type="email"
-                                            class="form-control"
-                                            placeholder="Optional"
-                                            :disabled="isLoading"
-                                        />
-                                    </div>
-
-                                    <div v-if="showPrivacySettings" class="card bg-light mb-4">
-                                        <div class="card-body">
-                                            <div class="text-center mb-3">
-                                                <h6 class="card-title">Privacy Settings</h6>
-                                            </div>
-                                            
-                                            <div v-if="formData.firstName" class="form-check mb-2">
-                                                <input
-                                                    v-model="formData.isFirstNameVisible"
-                                                    type="checkbox"
-                                                    class="form-check-input"
-                                                    id="firstNameVisible"
-                                                />
-                                                <label class="form-check-label small" for="firstNameVisible">
-                                                    Make first name visible
-                                                </label>
-                                            </div>
-                                            
-                                            <div v-if="formData.lastName" class="form-check mb-2">
-                                                <input
-                                                    v-model="formData.isLastNameVisible"
-                                                    type="checkbox"
-                                                    class="form-check-input"
-                                                    id="lastNameVisible"
-                                                />
-                                                <label class="form-check-label small" for="lastNameVisible">
-                                                    Make last name visible
-                                                </label>
-                                            </div>
-                                            
-                                            <div v-if="formData.emailAddress" class="form-check">
-                                                <input
-                                                    v-model="formData.isEmailVisible"
-                                                    type="checkbox"
-                                                    class="form-check-input"
-                                                    id="emailVisible"
-                                                />
-                                                <label class="form-check-label small" for="emailVisible">
-                                                    Make email visible
-                                                </label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </template>
+                                <div class="mb-4">
+                                    <label class="form-label">Employer</label>
+                                    <input
+                                        v-model="formData.employer"
+                                        type="text"
+                                        required
+                                        class="form-control"
+                                        placeholder="Enter your employer"
+                                        :disabled="isLoading"
+                                    />
+                                </div>
 
                                 <button type="submit" class="btn btn-dark w-100 mb-3" :disabled="isLoading">
                                     <span v-if="isLoading">
@@ -314,7 +334,7 @@ async function handleRegister() {
                                         Registering...
                                     </span>
                                     <span v-else>
-                                        {{ isJournalist ? 'Register as Journalist' : 'Register as Activist' }}
+                                        Register as Journalist
                                     </span>
                                 </button>
                             </form>
