@@ -34,11 +34,15 @@ export default function chatsApi(apiBaseClient: ApiBaseClient) {
          * This method will never return 404 - it creates the chat if it doesn't exist
          */
         async getOrCreateChatByUserPair(user1Id: string, user2Id: string): Promise<BaseResultBo<ChatBo>> {
-            const params = {
-                user1Id: user1Id,
-                user2Id: user2Id
+            const createChatDto = {
+                user1Uid: user1Id,
+                user2Uid: user2Id
             };
-            return await apiBaseClient.get<ChatBo>('services/api/internal/chats/get-or-create-by-user-pair', params);
+
+            const response = await apiBaseClient.post<CreateChatDto>('services/api/internal/chats', createChatDto);
+            const chatId = response.data;
+
+            return await apiBaseClient.get<ChatBo>(`services/api/internal/chats/${chatId}`);
         },
 
         /**

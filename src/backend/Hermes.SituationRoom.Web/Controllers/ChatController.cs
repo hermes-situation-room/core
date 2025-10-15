@@ -18,9 +18,9 @@ public class ChatController(IControllerInfrastructure controllerInfrastructure, 
 {
     [HttpPost("internal/chats")]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_CHAT])]
-    [ProducesResponseType(typeof(string), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> AddAsync([FromBody] ChatBo newChatBo) => Ok(await chatService.AddAsync(newChatBo));
+    public async Task<ActionResult<Guid>> AddAsync([FromBody] ChatBo newChatBo) => Ok(await chatService.AddAsync(newChatBo));
 
     [HttpGet("internal/chats/{chatId:guid}")]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_CHAT])]
@@ -41,17 +41,6 @@ public class ChatController(IControllerInfrastructure controllerInfrastructure, 
     )
     {
         var chat = await chatService.GetChatByUserPairAsync(user1Id, user2Id);
-        return Ok(chat);
-    }
-
-    [HttpGet("internal/chats/get-or-create-by-user-pair")]
-    [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_CHAT])]
-    [ProducesResponseType(typeof(ChatBo), StatusCodes.Status200OK)]
-    public async Task<ActionResult<ChatBo>> GetOrCreateChatByUserPairAsync([FromQuery] [Required] Guid user1Id,
-        [FromQuery] [Required] Guid user2Id
-    )
-    {
-        var chat = await chatService.GetOrCreateChatByUserPairAsync(user1Id, user2Id);
         return Ok(chat);
     }
 
