@@ -197,15 +197,7 @@ const sendMessage = async () => {
 
         if (result.isSuccess && result.data) {
             const message = (await services.messages.getMessageById(result.data)).data!;
-            const exists = messages.value.some(m =>
-                m.uid === message.uid ||
-                (m.senderUid === message.senderUid &&
-                    m.content === message.content &&
-                    Math.abs(new Date(m.timestamp).getTime() - new Date(message.timestamp).getTime()) < 5000)
-            );
-            if (!exists) {
                 messages.value.push(message);
-            }
             scrollToBottom();
         } else {
             notification.error('Failed to send message');
