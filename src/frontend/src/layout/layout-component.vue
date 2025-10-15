@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onBeforeUnmount, ref, watch } from "vue";
+import { onUnmounted, ref, watch } from "vue";
 import { useAuthStore } from "../stores/auth-store";
 import NavbarComponent from "./navbar-component.vue";
 import { services, sockets } from "../services/api";
@@ -43,21 +43,13 @@ const checkUnreadMessages = async (userId: string) => {
 
 window.addEventListener('beforeunload', () => {
     if (isSocketConnected.value) {
-        try {
-            sockets.hub.leaveMessaging();
-        } catch (error) {
-            // Ignore errors during cleanup
-        }
+        sockets.hub.leaveMessaging();
     }
 })
 
-onBeforeUnmount(() => {
+onUnmounted(() => {
     if (isSocketConnected.value) {
-        try {
-            sockets.hub.leaveMessaging();
-        } catch (error) {
-            // Ignore errors during cleanup
-        }
+        sockets.hub.leaveMessaging();
     }
 })
 </script>

@@ -102,7 +102,7 @@ const handleLogout = async () => {
                                     <i class="fas fa-comments"></i>
                                     <span class="d-none d-xl-inline ms-1">Messages</span>
                                 </RouterLink>
-                                <span class="unreadMessages" :class="['badge', 'bg-dark', 'text-white', 'px-2', 'py-1', { 'd-none': !props.totalUnreadMessages }]">
+                                <span class="unreadMessages" :class="['badge', 'bg-primary', 'text-white', 'px-2', 'py-1', { 'd-none': !props.totalUnreadMessages }]">
                                     {{ props.totalUnreadMessages }}
                                 </span>
                             </div>
@@ -185,21 +185,19 @@ const handleLogout = async () => {
                             <i class="fas fa-newspaper fs-5"></i>
                             <span>Posts</span>
                         </button>
-                        <RouterLink 
-                            to="/chats" 
-                            class="list-group-item list-group-item-action d-flex align-items-center gap-3"
-                            @click="closeMobileMenu"
-                        >
-                            <i class="fas fa-comments fs-5"></i>
-                            <span>Messages</span>
-                        </RouterLink>
-                        <button 
-                            @click="viewUser(); closeMobileMenu()"
-                            class="list-group-item list-group-item-action d-flex align-items-center gap-3"
-                        >
-                            <i class="fas fa-user fs-5"></i>
-                            <span>Profile</span>
-                        </button>
+                        <div class="messages">
+                            <RouterLink 
+                                to="/chats" 
+                                class="list-group-item list-group-item-action d-flex align-items-center gap-3"
+                                @click="closeMobileMenu"
+                            >
+                                <i class="fas fa-comments fs-5"></i>
+                                <span>Messages</span>
+                            </RouterLink>
+                            <span class="unreadMessages" :class="['badge', 'bg-primary', 'text-white', 'px-2', 'py-1', { 'd-none': !props.totalUnreadMessages }]">
+                                {{ props.totalUnreadMessages }}
+                            </span>
+                        </div>
                         <button 
                             @click="handleLogout"
                             class="list-group-item list-group-item-action d-flex align-items-center gap-3 text-danger"

@@ -199,8 +199,6 @@ const formatLastMessageTime = (timestamp?: string) => {
 };
 
 const handleUnreadMessageUpdate = (chatId: string, count: number) => {
-    console.log('Received unread message update:', { chatId, count });
-    // Normalize the chatId to lowercase for consistent matching
     const normalizedChatId = chatId.toLowerCase();
     unreadCounts.value[normalizedChatId] = count;
 };
@@ -209,9 +207,7 @@ const isSocketConnected = ref(false);
 
 onMounted(async () => {
     await loadChats();
-    
-    // Try to initialize socket connection for real-time updates
-    try {
+        try {
         await sockets.hub.initialize();
         sockets.hub.registerToEvent('NewUnreadChatMessage', handleUnreadMessageUpdate);
         sockets.hub.joinMessaging();
@@ -219,16 +215,6 @@ onMounted(async () => {
     } catch (error) {
         console.warn('Failed to connect to real-time messaging. Badge counts will not update automatically:', error);
         isSocketConnected.value = false;
-    }
-});
-
-onUnmounted(() => {
-    if (isSocketConnected.value) {
-        try {
-            sockets.hub.leaveMessaging();
-        } catch (error) {
-            console.warn('Error leaving messaging group:', error);
-        }
     }
 });
 </script>
@@ -280,7 +266,7 @@ onUnmounted(() => {
                                                 </a>
                                             </h5>
                                             <span 
-                                                    v-if="unreadCounts[chat.uid.toLowerCase()] && unreadCounts[chat.uid.toLowerCase()] > 0" 
+                                                    v-if="unreadCounts[chat.uid.toLowerCase()] && unreadCounts[chat.uid.toLowerCase()]! > 0" 
                                                     class="badge bg-primary rounded-pill"
                                                 >
                                                     {{ unreadCounts[chat.uid.toLowerCase()] }}
