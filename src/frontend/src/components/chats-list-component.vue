@@ -125,7 +125,7 @@ const formatLastMessageTime = (timestamp?: string) => {
     if (!timestamp) return '';
     
     try {
-        const date = new Date(timestamp + 'Z');
+        const date = new Date(timestamp + 'Z') || new Date().toISOString();
         const now = new Date();
         const diffMs = now.getTime() - date.getTime();
         const diffHours = diffMs / (1000 * 60 * 60);

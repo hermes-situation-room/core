@@ -291,7 +291,7 @@ const shouldShowEditMode = (message: MessageBo) => {
 };
 
 const formatTime = (timestamp: string) => {
-    const date = new Date(timestamp + 'Z');
+    const date = new Date(timestamp + 'Z') || new Date().toISOString();
     return date.toLocaleTimeString(navigator.language || 'en-US', {
         hour: '2-digit',
         minute: '2-digit'
