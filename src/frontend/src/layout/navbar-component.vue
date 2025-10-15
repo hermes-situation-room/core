@@ -99,7 +99,7 @@ const handleLogout = async () => {
                                     class="btn btn-outline-secondary btn-sm d-flex align-items-center"
                                 >
                                     <i class="fas fa-comments"></i>
-                                    <span class="d-none d-xl-inline ms-1">Messages</span>
+                                    <span class="d-none d-xl-inline ms-1">Chats</span>
                                 </RouterLink>
                                 <span class="unreadMessages" :class="['badge', 'bg-primary', 'text-white', 'px-2', 'py-1', { 'd-none': !props.totalUnreadMessages }]">
                                     {{ props.totalUnreadMessages }}
@@ -186,62 +186,60 @@ const handleLogout = async () => {
                         </div>
                         <button 
                             @click="goToPosts(); closeMobileMenu()"
-                            class="list-group-item list-group-item-action d-flex align-items-center gap-3"
+                            class="list-group-item list-group-item-action d-flex align-items-center mobile-menu-item"
                         >
-                            <i class="fas fa-newspaper fs-5"></i>
-                            <span>Posts</span>
+                            <i class="fas fa-newspaper fs-5 mobile-menu-icon"></i>
+                            <span class="mobile-menu-text">Posts</span>
                         </button>
-                        <div class="messages">
-                            <RouterLink 
-                                to="/chats" 
-                                class="list-group-item list-group-item-action d-flex align-items-center gap-3"
-                                @click="closeMobileMenu"
-                            >
-                                <i class="fas fa-comments fs-5"></i>
-                                <span>Messages</span>
-                            </RouterLink>
+                        <RouterLink 
+                            to="/chats" 
+                            class="list-group-item list-group-item-action d-flex align-items-center messages-mobile mobile-menu-item"
+                            @click="closeMobileMenu"
+                        >
+                            <i class="fas fa-comments fs-5 mobile-menu-icon"></i>
+                            <span class="mobile-menu-text">Chats</span>
                             <span class="unreadMessages" :class="['badge', 'bg-primary', 'text-white', 'px-2', 'py-1', { 'd-none': !props.totalUnreadMessages }]">
                                 {{ props.totalUnreadMessages }}
                             </span>
-                        </div>
+                        </RouterLink>
                         <button 
                             @click="viewUser(); closeMobileMenu()"
-                            class="list-group-item list-group-item-action d-flex align-items-center gap-3"
+                            class="list-group-item list-group-item-action d-flex align-items-center mobile-menu-item"
                         >
-                            <i class="fas fa-user fs-5"></i>
-                            <span>Profile</span>
+                            <i class="fas fa-user fs-5 mobile-menu-icon"></i>
+                            <span class="mobile-menu-text">Profile</span>
                         </button>
                         <button 
                             @click="handleLogout"
-                            class="list-group-item list-group-item-action d-flex align-items-center gap-3 text-danger"
+                            class="list-group-item list-group-item-action d-flex align-items-center mobile-menu-item text-danger"
                         >
-                            <i class="fas fa-sign-out-alt fs-5"></i>
-                            <span>Logout</span>
+                            <i class="fas fa-sign-out-alt fs-5 mobile-menu-icon"></i>
+                            <span class="mobile-menu-text">Logout</span>
                         </button>
                     </template>
                     <template v-else>
                         <button 
                             @click="goToPosts(); closeMobileMenu()"
-                            class="list-group-item list-group-item-action d-flex align-items-center gap-3"
+                            class="list-group-item list-group-item-action d-flex align-items-center mobile-menu-item"
                         >
-                            <i class="fas fa-newspaper fs-5"></i>
-                            <span>Posts</span>
+                            <i class="fas fa-newspaper fs-5 mobile-menu-icon"></i>
+                            <span class="mobile-menu-text">Posts</span>
                         </button>
                         <RouterLink 
                             to="/login" 
-                            class="list-group-item list-group-item-action d-flex align-items-center gap-3"
+                            class="list-group-item list-group-item-action d-flex align-items-center mobile-menu-item"
                             @click="closeMobileMenu"
                         >
-                            <i class="fas fa-sign-in-alt fs-5"></i>
-                            <span>Login</span>
+                            <i class="fas fa-sign-in-alt fs-5 mobile-menu-icon"></i>
+                            <span class="mobile-menu-text">Login</span>
                         </RouterLink>
                         <RouterLink 
                             to="/register" 
-                            class="list-group-item list-group-item-action d-flex align-items-center gap-3"
+                            class="list-group-item list-group-item-action d-flex align-items-center mobile-menu-item"
                             @click="closeMobileMenu"
                         >
-                            <i class="fas fa-user-plus fs-5"></i>
-                            <span>Register</span>
+                            <i class="fas fa-user-plus fs-5 mobile-menu-icon"></i>
+                            <span class="mobile-menu-text">Register</span>
                         </RouterLink>
                     </template>
                 </div>
@@ -264,6 +262,31 @@ const handleLogout = async () => {
         right: -10px;
         border-radius: 50px;
         text-decoration: none;
+    }
+}
+
+.messages-mobile {
+    position: relative;
+    .unreadMessages {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        border-radius: 50px;
+        text-decoration: none;
+    }
+}
+
+.mobile-menu-item {
+    gap: 1rem;
+    
+    .mobile-menu-icon {
+        width: 1.25rem;
+        text-align: center;
+        flex-shrink: 0;
+    }
+    
+    .mobile-menu-text {
+        flex-grow: 1;
     }
 }
 </style>
