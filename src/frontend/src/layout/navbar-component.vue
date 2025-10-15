@@ -59,7 +59,7 @@ const goToPosts = () => {
 
 const handleLogout = async () => {
     await authStore.logout()
-    await router.push('/login')
+    await router.push('/')
 }
 </script>
 
@@ -125,7 +125,7 @@ const handleLogout = async () => {
                         </template>
                         <template v-else>
                             <RouterLink 
-                                to="/chats" 
+                                to="/login" 
                                 class="btn btn-outline-secondary btn-sm d-flex align-items-center"
                             >
                                 <i class="fas fa-sign-in-alt"></i>
@@ -214,7 +214,7 @@ const handleLogout = async () => {
                     </template>
                     <template v-else>
                         <RouterLink 
-                            to="/chats" 
+                            to="/login" 
                             class="list-group-item list-group-item-action d-flex align-items-center gap-3"
                             @click="closeMobileMenu"
                         >

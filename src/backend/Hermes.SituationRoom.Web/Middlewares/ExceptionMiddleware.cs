@@ -2,6 +2,8 @@ namespace Hermes.SituationRoom.Api.Middlewares;
 
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Hermes.SituationRoom.Shared.Exceptions;
 
 public class ExceptionMiddleware
 {
@@ -37,17 +39,32 @@ public class ExceptionMiddleware
 	{
 		return exception switch
 		{
+			ResourceNotFoundException => (StatusCodes.Status404NotFound, "Resource not found"),
+			DuplicateResourceException => (StatusCodes.Status409Conflict, "Resource already exists"),
+			ValidationBusinessException => (StatusCodes.Status400BadRequest, "Validation failed"),
+			InvalidOperationBusinessException => (StatusCodes.Status400BadRequest, "Invalid operation"),
+			
+			DbUpdateException => (StatusCodes.Status400BadRequest, "Database operation failed"),
+			
 			KeyNotFoundException => (StatusCodes.Status404NotFound, "Resource not found"),
 			UnauthorizedAccessException => (StatusCodes.Status401Unauthorized, "Unauthorized"),
 			ValidationException => (StatusCodes.Status400BadRequest, "Validation failed"),
+			ArgumentNullException => (StatusCodes.Status400BadRequest, "Required argument is missing"),
 			ArgumentException => (StatusCodes.Status400BadRequest, "Invalid argument"),
 			NotSupportedException => (StatusCodes.Status405MethodNotAllowed, "Operation not allowed"),
-			_ => (StatusCodes.Status500InternalServerError, "An unexpected error occurred: " + exception.InnerException?.Message)
+			InvalidOperationException => (StatusCodes.Status400BadRequest, "Invalid operation"),
+			
+			_ => (StatusCodes.Status500InternalServerError, "An unexpected error occurred")
 		};
 	}
 
 	private static IDictionary<string, string[]> ExtractValidationErrors(Exception exception)
 	{
+		if (exception is ValidationBusinessException validationBusinessException)
+		{
+			return validationBusinessException.ValidationErrors;
+		}
+		
 		if (exception is ValidationException validationException)
 		{
 			var memberName = validationException.ValidationResult?.MemberNames?.FirstOrDefault() ?? "Model";

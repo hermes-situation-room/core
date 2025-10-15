@@ -6,6 +6,7 @@ using Entities;
 using Interface;
 using Microsoft.EntityFrameworkCore;
 using Shared.BusinessObjects;
+using Hermes.SituationRoom.Shared.Exceptions;
 
 public sealed class JournalistRepository(IHermessituationRoomContext context, IUserRepository userRepository)
     : IJournalistRepository
@@ -13,6 +14,20 @@ public sealed class JournalistRepository(IHermessituationRoomContext context, IU
     public async Task<Guid> AddAsync(JournalistBo journalistBo)
     {
         ArgumentNullException.ThrowIfNull(journalistBo);
+
+        var validationErrors = new Dictionary<string, string[]>();
+
+        if (string.IsNullOrWhiteSpace(journalistBo.FirstName))
+            validationErrors["FirstName"] = new[] { "First name is required for journalists." };
+
+        if (string.IsNullOrWhiteSpace(journalistBo.LastName))
+            validationErrors["LastName"] = new[] { "Last name is required for journalists." };
+
+        if (string.IsNullOrWhiteSpace(journalistBo.EmailAddress))
+            validationErrors["EmailAddress"] = new[] { "Email address is required for journalists." };
+
+        if (validationErrors.Count > 0)
+            throw new ValidationBusinessException(validationErrors);
 
         var userUid = await userRepository.AddAsync(journalistBo);
 
@@ -33,7 +48,7 @@ public sealed class JournalistRepository(IHermessituationRoomContext context, IU
                            .AsNoTracking()
                            .Include(j => j.UserU)
                            .FirstOrDefaultAsync(j => j.UserUid == journalistUid)
-                       ?? throw new KeyNotFoundException($"Journalist with UID {journalistUid} was not found.")
+                       ?? throw new ResourceNotFoundException("Journalist", journalistUid.ToString())
         );
     }
 
@@ -53,8 +68,34 @@ public sealed class JournalistRepository(IHermessituationRoomContext context, IU
                              .AsTracking()
                              .Include(j => j.UserU)
                              .FirstOrDefaultAsync(j => j.UserUid == updatedJournalist.Uid)
-                         ?? throw new KeyNotFoundException($"Journalist with UID {updatedJournalist.Uid} was not found."
-                         );
+                         ?? throw new ResourceNotFoundException("Journalist", updatedJournalist.Uid.ToString());
+
+        var validationErrors = new Dictionary<string, string[]>();
+
+        if (string.IsNullOrWhiteSpace(updatedJournalist.FirstName))
+            validationErrors["FirstName"] = new[] { "First name is required for journalists." };
+
+        if (string.IsNullOrWhiteSpace(updatedJournalist.LastName))
+            validationErrors["LastName"] = new[] { "Last name is required for journalists." };
+
+        if (string.IsNullOrWhiteSpace(updatedJournalist.EmailAddress))
+            validationErrors["EmailAddress"] = new[] { "Email address is required for journalists." };
+
+        if (validationErrors.Count > 0)
+            throw new ValidationBusinessException(validationErrors);
+
+        if (journalist.UserU.EmailAddress != updatedJournalist.EmailAddress)
+        {
+            var existingUserWithEmail = await context.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.EmailAddress == updatedJournalist.EmailAddress && u.Uid != updatedJournalist.Uid);
+
+            if (existingUserWithEmail is not null)
+            {
+                throw new DuplicateResourceException("User", updatedJournalist.EmailAddress, 
+                    "A user with this email address already exists.");
+            }
+        }
 
         journalist.UserU.FirstName = updatedJournalist.FirstName;
         journalist.UserU.LastName = updatedJournalist.LastName;

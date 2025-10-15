@@ -96,4 +96,3 @@ export const useNotification = () => {
         clearAll,
     };
 };
-

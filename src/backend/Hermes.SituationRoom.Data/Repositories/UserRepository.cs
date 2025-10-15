@@ -5,12 +5,31 @@ using Entities;
 using Interface;
 using Microsoft.EntityFrameworkCore;
 using Shared.BusinessObjects;
+using Hermes.SituationRoom.Shared.Exceptions;
 
 public sealed class UserRepository(IHermessituationRoomContext context) : IUserRepository
 {
     public async Task<Guid> AddAsync(UserBo userBo)
     {
         ArgumentNullException.ThrowIfNull(userBo);
+
+        if (!string.IsNullOrWhiteSpace(userBo.EmailAddress))
+        {
+            if (!IsValidEmail(userBo.EmailAddress))
+            {
+                throw new ValidationBusinessException("EmailAddress", "Invalid email address format.");
+            }
+
+            var existingUserWithEmail = await context.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.EmailAddress == userBo.EmailAddress);
+
+            if (existingUserWithEmail is not null)
+            {
+                throw new DuplicateResourceException("User", userBo.EmailAddress, 
+                    "A user with this email address already exists.");
+            }
+        }
 
         var newUser = new User
         {
@@ -36,7 +55,7 @@ public sealed class UserRepository(IHermessituationRoomContext context) : IUserR
         return MapToBo(await context.Users
                            .AsNoTracking()
                            .FirstOrDefaultAsync(u => u.Uid == userId)
-                       ?? throw new KeyNotFoundException($"User with UID {userId} was not found.")
+                       ?? throw new ResourceNotFoundException("User", userId.ToString())
         );
     }
     
@@ -60,7 +79,7 @@ public sealed class UserRepository(IHermessituationRoomContext context) : IUserR
         return MapToBo(await context.Users
                            .AsNoTracking()
                            .FirstOrDefaultAsync(u => u.EmailAddress == emailAddress)
-                       ?? throw new UnauthorizedAccessException("Invalid password or email address.")
+                       ?? throw new ResourceNotFoundException("User", emailAddress)
         );
     }
 
@@ -72,9 +91,7 @@ public sealed class UserRepository(IHermessituationRoomContext context) : IUserR
         var userProfileBo = MapToUserProfileBo(await context.Users
                                                    .AsNoTracking()
                                                    .FirstOrDefaultAsync(u => u.Uid == userId)
-                                               ?? throw new KeyNotFoundException(
-                                                   $"User with UID {userId} was not found."
-                                               )
+                                               ?? throw new ResourceNotFoundException("User", userId.ToString())
         );
 
         userProfileBo = await ApplyUserPrivacyLevel(userProfileBo, userId, consumerId);
@@ -90,7 +107,7 @@ public sealed class UserRepository(IHermessituationRoomContext context) : IUserR
         var user = await context.Users
                        .AsNoTracking()
                        .FirstOrDefaultAsync(u => u.Uid == userId)
-                   ?? throw new KeyNotFoundException($"User with UID {userId} was not found.");
+                   ?? throw new ResourceNotFoundException("User", userId.ToString());
 
         var activist = await context.Activists
             .AsNoTracking()
@@ -111,7 +128,26 @@ public sealed class UserRepository(IHermessituationRoomContext context) : IUserR
             throw new ArgumentException("UID required.", nameof(updatedUser));
 
         var user = await context.Users.AsTracking().FirstOrDefaultAsync(u => u.Uid == updatedUser.Uid)
-                   ?? throw new KeyNotFoundException($"User with UID {updatedUser.Uid} was not found.");
+                   ?? throw new ResourceNotFoundException("User", updatedUser.Uid.ToString());
+
+        if (!string.IsNullOrWhiteSpace(updatedUser.EmailAddress) && 
+            user.EmailAddress != updatedUser.EmailAddress)
+        {
+            if (!IsValidEmail(updatedUser.EmailAddress))
+            {
+                throw new ValidationBusinessException("EmailAddress", "Invalid email address format.");
+            }
+
+            var existingUserWithEmail = await context.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.EmailAddress == updatedUser.EmailAddress && u.Uid != updatedUser.Uid);
+
+            if (existingUserWithEmail is not null)
+            {
+                throw new DuplicateResourceException("User", updatedUser.EmailAddress, 
+                    "A user with this email address already exists.");
+            }
+        }
 
         user.FirstName = updatedUser.FirstName;
         user.LastName = updatedUser.LastName;
@@ -207,5 +243,21 @@ public sealed class UserRepository(IHermessituationRoomContext context) : IUserR
         }
 
         return userProfileBo;
+    }
+
+    private static bool IsValidEmail(string email)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+            return false;
+
+        try
+        {
+            var addr = new System.Net.Mail.MailAddress(email);
+            return addr.Address == email;
+        }
+        catch
+        {
+            return false;
+        }
     }
 }

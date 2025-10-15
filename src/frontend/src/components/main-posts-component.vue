@@ -58,7 +58,7 @@ const handleSearch = () => {
 
 const openCreateModal = () => {
     if (!authStore.isAuthenticated.value) {
-        router.push('/login');
+        notification.warning('Please log in to create a post');
         return;
     }
     showCreateModal.value = true;

@@ -73,7 +73,7 @@ public static class MigrationExtension
             {
                 using var conn = new SqlConnection(connectionString);
                 conn.Open();
-                return; // success
+                return;
             }
             catch (SqlException)
             {

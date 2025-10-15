@@ -6,7 +6,7 @@ export default class ApiBaseClient {
     apiBaseUrl: string = import.meta.env.VITE_APP_BACKEND;
 
     /**
-     * Handle 401 Unauthorized responses by redirecting to login
+     * Handle 401 Unauthorized responses by redirecting to posts page
      * Clears auth state locally without calling logout API (session already expired)
      * Uses dynamic imports to avoid circular dependency
      */
@@ -15,10 +15,53 @@ export default class ApiBaseClient {
             const authStore = useAuthStore();
             authStore.clearAuthState();
 
-            if (router.currentRoute.value.path !== '/login') {
-                router.push('/login');
+            if (router.currentRoute.value.path !== '/') {
+                router.push('/');
             }
         }
+    }
+
+    /**
+     * Extract error message from ProblemDetails response or fallback to statusText
+     * @param response The fetch response
+     * @param data The parsed response data
+     * @returns A user-friendly error message
+     */
+    private getErrorMessage(response: Response, data: any): string {
+        if (data && typeof data === 'object') {
+            if (data.detail) {
+                return data.detail;
+            }
+            
+            if (data.title) {
+                return data.title;
+            }
+            
+            if (data.errors && typeof data.errors === 'object') {
+                const errorMessages: string[] = [];
+                for (const field in data.errors) {
+                    const fieldErrors = data.errors[field];
+                    if (Array.isArray(fieldErrors)) {
+                        errorMessages.push(...fieldErrors);
+                    }
+                }
+                if (errorMessages.length > 0) {
+                    return errorMessages.join(', ');
+                }
+            }
+        }
+        
+        const statusMessages: Record<number, string> = {
+            400: 'Invalid request. Please check your input.',
+            401: 'Unauthorized. Please log in.',
+            403: 'Access denied.',
+            404: 'Resource not found.',
+            409: 'This resource already exists.',
+            500: 'Server error. Please try again later.',
+            503: 'Service unavailable. Please try again later.'
+        };
+        
+        return statusMessages[response.status] || response.statusText || 'An error occurred';
     }
 
     /**
@@ -54,9 +97,9 @@ export default class ApiBaseClient {
             }
 
             return {
-                data: data as T,
+                data: response.ok ? (data as T) : undefined,
                 responseCode: response.status,
-                responseMessage: response.statusText,
+                responseMessage: this.getErrorMessage(response, data),
                 isSuccess: response.ok,
             };
         } catch (e) {
@@ -90,12 +133,23 @@ export default class ApiBaseClient {
 
             void this.handleUnauthorized(response.status);
 
-            const uid = (await response.text()).replace(/"/g, '');
+            const contentType = response.headers.get("content-type");
+            let responseData: any;
+
+            if (contentType?.includes("application/json")) {
+                responseData = await response.json();
+            } else {
+                responseData = await response.text();
+            }
+
+            const uid = response.ok && typeof responseData === 'string' 
+                ? responseData.replace(/"/g, '') 
+                : undefined;
 
             return {
                 data: uid,
                 responseCode: response.status,
-                responseMessage: response.statusText,
+                responseMessage: response.ok ? 'Success' : this.getErrorMessage(response, responseData),
                 isSuccess: response.ok,
             };
         } catch (e) {
@@ -129,12 +183,23 @@ export default class ApiBaseClient {
 
             void this.handleUnauthorized(response.status);
 
-            const uid = await response.text();
+            const contentType = response.headers.get("content-type");
+            let responseData: any;
+
+            if (contentType?.includes("application/json")) {
+                responseData = await response.json();
+            } else {
+                responseData = await response.text();
+            }
+
+            const uid = response.ok && typeof responseData === 'string' 
+                ? responseData.replace(/"/g, '') 
+                : undefined;
 
             return {
                 data: uid,
                 responseCode: response.status,
-                responseMessage: response.statusText,
+                responseMessage: response.ok ? 'Success' : this.getErrorMessage(response, responseData),
                 isSuccess: response.ok,
             };
         } catch (e) {
@@ -158,14 +223,28 @@ export default class ApiBaseClient {
             const response = await fetch(url, {
                 method: 'DELETE',
                 credentials: "include",
+                headers: {
+                    "Accept": "application/json, text/plain, */*",
+                }
             });
 
             void this.handleUnauthorized(response.status);
 
+            let responseData: any;
+            const contentType = response.headers.get("content-type");
+            
+            if (!response.ok && contentType?.includes("application/json")) {
+                try {
+                    responseData = await response.json();
+                } catch {
+                    responseData = null;
+                }
+            }
+
             return {
                 data: undefined,
                 responseCode: response.status,
-                responseMessage: response.statusText,
+                responseMessage: response.ok ? 'Success' : this.getErrorMessage(response, responseData),
                 isSuccess: response.ok
             };
         } catch (e) {
