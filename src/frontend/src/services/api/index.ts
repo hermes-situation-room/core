@@ -77,6 +77,14 @@ export const sockets = {
         leaveMessaging: async () => {
             await initPromise;
             socketBaseClient.sendEvent("LeaveMessaging", []);
+        },
+        /**
+         * Send an UpdateReadChat event over the socket to mark a chat as read
+         * @param chatId Guid (string) with the chatId to be marked as read
+         */
+        updateReadChat: async (chatId: string) => {
+            await initPromise;
+            socketBaseClient.sendEvent("UpdateReadChat", [chatId]);
         }
     }
 }
