@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { services } from '../services/api';
 import type { PostBo } from '../types/post';
 import { useAuthStore } from '../stores/auth-store';
+import type { CommentBo, CreateCommentDto } from '../types/comment';
 
 const route = useRoute();
 const router = useRouter();
@@ -11,8 +12,11 @@ const authStore = useAuthStore();
 
 const post = ref<PostBo | null>(null);
 const loading = ref(false);
+const loadingComments = ref(false);
 const error = ref<string | null>(null);
 const creatingChat = ref(false);
+const commentContent = ref()
+const comments = ref<CommentBo[] | null>(null);
 
 const currentUserUid = computed(() => authStore.userId.value || '');
 
@@ -37,6 +41,28 @@ const loadPost = async () => {
         }
     } catch (err) {
         error.value = 'Error loading post';
+    } finally {
+        loading.value = false;
+    }
+};
+
+const loadComments = async () => {
+    const postId = route.params.id as string;
+    if (!postId) {
+        error.value = 'Post ID not found';
+        return;
+    }
+
+    loadingComments.value = true;
+    try {
+        const result = await services.comments.getCommentsByPost(postId);
+        if (result.isSuccess && result.data) {
+            comments.value = result.data;
+        } else {
+            error.value = result.responseMessage || 'Failed to load comments';
+        }
+    } catch (err) {
+        error.value = 'Error loading comments';
     } finally {
         loading.value = false;
     }
@@ -76,6 +102,28 @@ const sendDirectMessage = async () => {
     }
 };
 
+const postComment = async () => {
+    try {
+    if (!authStore.userId.value) {
+        error.value = 'You must be logged in to create a comment';
+        return;
+    }
+
+    const commentData: CreateCommentDto = {
+        postUid: route.params.id as string,
+        content: commentContent.value,
+        creatorUid: authStore.userId.value
+    }
+
+    await services.comments.createComment(commentData)
+    commentContent.value = "";
+
+    await loadComments()
+    } catch (err) {
+        error.value = err instanceof Error ? err.message : 'An error occurred';
+    }
+}
+
 const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-GB', { 
@@ -89,6 +137,7 @@ const formatDate = (dateString: string) => {
 
 onMounted(() => {
     loadPost();
+    loadComments()
 });
 </script>
 
@@ -178,6 +227,20 @@ onMounted(() => {
                                 Login to Message
                             </RouterLink>
                         </div>
+                    </div>
+
+                </div>
+
+                <div class="comment-input mt-2 d-flex gap-2">
+                    <input v-model="commentContent" type="text" class="rounded w-100" placeholder="Comment...">
+                    <button class="w-25 rounded" @click="postComment">Comment</button>
+                </div>
+
+                <div class="comment-list d-flex flex-column">
+                    <div v-for="comment in comments" :key="comment.commentUid" class="comments">
+                        <div>{{ comment.creatorUid }}</div>
+                        <div>{{ comment.content }}</div>
+                        <div>{{ comment.timeStamp }}</div>
                     </div>
                 </div>
             </div>
