@@ -4,7 +4,6 @@ import faviconUrl from '../assets/logo_situation_room_URL.png'
 import logoUrl from '../assets/logo_situation_room.png'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth-store'
-
 const props = defineProps({
     totalUnreadMessages: {
         type: Number,
@@ -102,7 +101,7 @@ const handleLogout = async () => {
                                     <i class="fas fa-comments"></i>
                                     <span class="d-none d-xl-inline ms-1">Messages</span>
                                 </RouterLink>
-                                <span class="unreadMessages" :class="['badge', 'bg-primary', 'text-white', 'px-2', 'py-1', { 'd-none': !props.totalUnreadMessages }]">
+                                <span class="unreadMessages" :class="['badge', 'bg-dark', 'text-white', 'px-2', 'py-1', { 'd-none': !props.totalUnreadMessages }]">
                                     {{ props.totalUnreadMessages }}
                                 </span>
                             </div>
