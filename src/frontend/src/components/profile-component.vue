@@ -12,6 +12,8 @@ const authStore = useAuthStore();
 const userProfile = ref<UserProfileBo | null>(null);
 const loading = ref(false);
 const error = ref<string | null>(null);
+const currentUserUid = computed(() => authStore.userId.value || '');
+const errorMessage = ref<string>('');
 
 const isOwnProfile = computed(() => {
     const userId = route.query.id as string;
@@ -26,6 +28,10 @@ const isActivist = computed(() => {
 const isJournalist = computed(() => {
     return userProfile.value?.employer != null;
 });
+
+const clearError = () => {
+    errorMessage.value = '';
+};
 
 const loadUser = async () => {
     const userId = route.query.id as string;
@@ -52,6 +58,42 @@ const loadUser = async () => {
         console.error('Error loading user profile:', err);
     } finally {
         loading.value = false;
+    }
+};
+
+const showError = (message: string) => {
+    errorMessage.value = message;
+    setTimeout(clearError, 5000);
+};
+
+const sendDirectMessage = async () => {
+    if (!currentUserUid.value) {
+        showError('Please log in to send messages');
+        return;
+    }
+
+    if (userProfile.value?.uid === currentUserUid.value) {
+        return;
+    }
+
+    if (!userProfile.value){
+        showError('Userprofile has not loaded properly');
+        return;
+    }
+
+    try {
+        const chatResult = await services.chats.getOrCreateChatByUserPair(
+            currentUserUid.value,
+            userProfile.value.uid
+        );
+
+        if (chatResult.isSuccess && chatResult.data) {
+            router.push(`/chat/${chatResult.data.uid}`);
+        } else {
+            showError(chatResult.responseMessage || 'Failed to open chat');
+        }
+    } catch (err) {
+        showError('An error occurred while opening the chat');
     }
 };
 
@@ -175,6 +217,24 @@ watch(() => route.query.id, () => {
                                 <div class="fw-medium">{{ userProfile.employer }}</div>
                             </div>
                         </div>
+                        
+                        <button 
+                            v-if="userProfile.uid !== currentUserUid && currentUserUid"
+                            class="btn btn-primary btn-sm"
+                            @click="sendDirectMessage(post, $event)"
+                        >
+                            <i class="fas fa-comment me-1"></i>
+                            Message
+                        </button>
+                        <RouterLink 
+                            v-else-if="!currentUserUid"
+                            to="/login"
+                            class="btn btn-outline-primary btn-sm"
+                            @click.stop
+                        >
+                            <i class="fas fa-sign-in-alt me-1"></i>
+                            Login to Message
+                        </RouterLink>
                     </div>
                 </div>
             </div>
