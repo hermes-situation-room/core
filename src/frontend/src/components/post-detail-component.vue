@@ -48,7 +48,6 @@ const loadPost = async () => {
         if (result.isSuccess && result.data) {
             post.value = result.data;
             
-            // Load display name for the creator
             if (post.value.creatorUid && post.value.creatorUid !== currentUserUid.value) {
                 const displayNameResult = await services.users.getDisplayName(post.value.creatorUid);
                 if (displayNameResult.isSuccess && displayNameResult.data) {
@@ -288,10 +287,16 @@ onMounted(() => {
                         Login to Message
                     </RouterLink>
                 </div>
-
                 <div class="comment-list d-flex flex-column">
                     <div v-for="comment in comments" :key="comment.commentUid" class="comment border mb-1 p-2 rounded d-flex flex-column flex-wrap">
-                        <small class="d-flex justify-content-between"><strong>{{ comment.displayName }}</strong>{{ comment.timestamp }}</small>
+                        <small class="d-flex justify-content-between">
+                            <strong>
+                                <a href="#" class="text-primary text-decoration-none"@click.prevent="router.push({ path: '/profile', query: { id: comment.creatorUid } })">
+                                    {{ comment.displayName }}
+                                </a>
+                            </strong>
+                            {{ comment.timestamp }}
+                        </small>
                         <div class="text-break width-100">{{ comment.content }}</div>
                     </div>
                 </div>
