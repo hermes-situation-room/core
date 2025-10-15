@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { services } from '../services/api';
 import type { PostBo } from '../types/post';
 import { useAuthStore } from '../stores/auth-store';
-import { useNotification } from '../composables/useNotification';
+import { useNotification } from '../composables/use-notification.ts';
 import type { CommentBo, CreateCommentDto, UpdateCommentDto } from '../types/comment';
 
 const route = useRoute();
@@ -86,7 +86,7 @@ const loadComments = async () => {
                     comment.displayName = displayName.data
                 }
                 comment.inEdit = false
-            };
+            }
             comments.value = result.data;
         } else {
             notification.error(result.responseMessage || 'Failed to load comments');
@@ -339,7 +339,7 @@ onMounted(() => {
                     <div v-for="comment in comments" :key="comment.uid" class="comment border mb-1 p-2 pe-3 ps-3 rounded d-flex flex-column flex-wrap">
                         <small class="d-flex justify-content-between">
                             <strong>
-                                <a href="#" class="text-primary text-decoration-none"@click.prevent="router.push({ path: '/profile', query: { id: comment.creatorUid } })">
+                                <a href="#" class="text-primary text-decoration-none" @click.prevent="router.push({ path: '/profile', query: { id: comment.creatorUid } })">
                                     {{ comment.displayName }}
                                 </a>
                             </strong>

@@ -5,7 +5,7 @@ import {services, sockets} from '../services/api';
 import type {ChatBo} from '../types/chat';
 import { useAuthStore } from '../stores/auth-store';
 import type {CreateMessageDto, MessageBo} from "../types/message.ts";
-import { useNotification } from '../composables/useNotification';
+import { useNotification } from '../composables/use-notification.ts';
 
 const route = useRoute();
 const router = useRouter();

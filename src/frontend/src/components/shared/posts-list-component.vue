@@ -4,7 +4,7 @@ import {useRouter} from 'vue-router';
 import {services} from '../../services/api';
 import type {PostBo, PostFilter} from '../../types/post';
 import { useAuthStore } from '../../stores/auth-store';
-import { useNotification } from '../../composables/useNotification';
+import { useNotification } from '../../composables/use-notification.ts';
 
 type SortOption = 'newest' | 'oldest' | 'title-asc' | 'title-desc';
 

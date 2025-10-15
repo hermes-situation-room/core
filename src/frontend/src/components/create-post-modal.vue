@@ -3,7 +3,7 @@ import {computed, onMounted, ref, watch} from 'vue';
 import {services} from '../services/api';
 import type {CreatePostDto} from '../types/post';
 import { useAuthStore } from '../stores/auth-store';
-import { useNotification } from '../composables/useNotification';
+import { useNotification } from '../composables/use-notification.ts';
 
 const authStore = useAuthStore();
 const notification = useNotification();

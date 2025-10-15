@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { services } from '../services/api';
 import type { PostBo, UpdatePostDto } from '../types/post';
 import { useAuthStore } from '../stores/auth-store';
-import { useNotification } from '../composables/useNotification';
+import { useNotification } from '../composables/use-notification.ts';
 
 const route = useRoute();
 const router = useRouter();

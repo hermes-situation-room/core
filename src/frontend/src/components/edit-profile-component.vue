@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router';
 import { services } from '../services/api';
 import type {UserProfileBo, ActivistBo, JournalistBo} from '../types/user';
 import { useAuthStore } from '../stores/auth-store';
-import { useNotification } from '../composables/useNotification';
+import { useNotification } from '../composables/use-notification.ts';
 
 const router = useRouter();
 const authStore = useAuthStore();

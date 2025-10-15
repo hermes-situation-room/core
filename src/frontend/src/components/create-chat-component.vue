@@ -3,7 +3,7 @@ import {ref} from 'vue';
 import {useRouter} from 'vue-router';
 import {services} from '../services/api';
 import { useAuthStore } from '../stores/auth-store';
-import { useNotification } from '../composables/useNotification';
+import { useNotification } from '../composables/use-notification.ts';
 
 const router = useRouter();
 const authStore = useAuthStore();

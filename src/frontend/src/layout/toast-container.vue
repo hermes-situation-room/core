@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {type NotificationType, useNotification} from '../composables/useNotification';
+import {type NotificationType, useNotification} from '../composables/use-notification.ts';
 
 const {toasts, remove} = useNotification();
 
