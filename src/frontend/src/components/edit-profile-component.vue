@@ -2,7 +2,7 @@
 import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { services } from '../services/api';
-import type { UserProfileBo, ActivistBo } from '../types/user';
+import type {UserProfileBo, ActivistBo, JournalistBo} from '../types/user';
 import { useAuthStore } from '../stores/auth-store';
 
 const router = useRouter();
@@ -109,11 +109,9 @@ const saveProfile = async () => {
 
             result = await services.users.updateActivist(userId, activistData);
         } else if (isJournalist.value) {
-            const journalistData = {
+            const journalistData: JournalistBo = {
+                password: '',
                 uid: userId,
-                password: null,
-                passwordHash: null,
-                passwordSalt: null,
                 firstName: firstName.value.trim(),
                 lastName: lastName.value.trim(),
                 emailAddress: emailAddress.value.trim(),
