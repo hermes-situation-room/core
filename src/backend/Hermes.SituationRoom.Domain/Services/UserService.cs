@@ -8,13 +8,20 @@ using Interfaces;
 
 public class UserService(IUserRepository userRepository, IActivistRepository activistRepository, IEncryptionService encryptionService) : IUserService
 {
-    public Task<UserBo> GetUserAsync(Guid userUid) => userRepository.GetUserBoAsync(userUid);
+    public async Task<UserBo> GetUserAsync(Guid userUid) {
+        var user = await userRepository.GetUserBoAsync(userUid);
+        return user with { Password = null, PasswordHash = null, PasswordSalt = null };
+    }
 
     public Task<UserProfileBo> GetUserProfileAsync(Guid userUid, Guid consumerUid) => userRepository.GetUserProfileBoAsync(userUid, consumerUid);
 
     public Task<string> GetDisplayNameAsync(Guid userUid) => userRepository.GetDisplayNameAsync(userUid);
 
-    public Task<IReadOnlyList<UserBo>> GetUsersAsync() => userRepository.GetAllUserBosAsync();
+    public async Task<IReadOnlyList<UserBo>> GetUsersAsync()
+    {
+        var users = await userRepository.GetAllUserBosAsync();
+        return [ ..users.Select(user => user with {Password = null, PasswordHash = null, PasswordSalt = null})];
+    }
 
     public Task<Guid> CreateUserAsync(UserBo userBo) 
     {
@@ -42,7 +49,11 @@ public class UserService(IUserRepository userRepository, IActivistRepository act
         throw new KeyNotFoundException($"No user with the username or email '{usernameOrEmail}' was found.");
     }
 
-    public Task<UserBo> UpdateUserAsync(UserBo updatedUser) => userRepository.Update(updatedUser);
+    public async Task<UserBo> UpdateUserAsync(UserBo updatedUser)
+    {
+        var user = await userRepository.Update(updatedUser);
+        return user with { Password = null, PasswordHash = null, PasswordSalt = null };
+    }
 
     public Task DeleteUserAsync(Guid userUid)
     {
