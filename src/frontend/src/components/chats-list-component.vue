@@ -132,7 +132,6 @@ const loadUnreadCounts = async () => {
             })
         );
         unreadCounts.value = counts;
-        console.log('Loaded unread counts:', counts);
     } catch (error) {
         console.error('Error loading unread counts:', error);
     }
@@ -210,8 +209,8 @@ onMounted(async () => {
     await loadChats();
         try {
         await sockets.hub.initialize();
-        sockets.hub.registerToEvent('NewUnreadChatMessage', handleUnreadMessageUpdate);
-        sockets.hub.joinMessaging();
+        await sockets.hub.registerToEvent('NewUnreadChatMessage', handleUnreadMessageUpdate);
+        await sockets.hub.joinMessaging();
         isSocketConnected.value = true;
     } catch (error) {
         console.warn('Failed to connect to real-time messaging. Badge counts will not update automatically:', error);

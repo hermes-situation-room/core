@@ -63,10 +63,10 @@ const loadChat = async () => {
             // Try to initialize socket connection for real-time updates
             try {
                 await sockets.hub.initialize();
-                sockets.hub.joinChat(chatId);
-                sockets.hub.registerToEvent('ReceiveMessage', handleIncomingMessage);
-                sockets.hub.registerToEvent('UpdateMessage', handleMessageUpdate);
-                sockets.hub.registerToEvent('DeleteMessage', handleMessageDelete);
+                await sockets.hub.joinChat(chatId);
+                await sockets.hub.registerToEvent('ReceiveMessage', handleIncomingMessage);
+                await sockets.hub.registerToEvent('UpdateMessage', handleMessageUpdate);
+                await sockets.hub.registerToEvent('DeleteMessage', handleMessageDelete);
                 isSocketConnected.value = true;
             } catch (socketError) {
                 console.warn('Failed to connect to real-time messaging. Messages will not update automatically:', socketError);
@@ -322,10 +322,10 @@ onMounted(() => {
     loadChat();
 });
 
-onUnmounted(() => {
+onUnmounted(async () => {
     if (chat.value && isSocketConnected.value) {
         try {
-            sockets.hub.leaveChat(chat.value.uid);
+            await sockets.hub.leaveChat(chat.value.uid);
         } catch (error) {
             console.warn('Error leaving chat:', error);
         }
