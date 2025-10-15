@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import {computed, onMounted, ref, watch} from 'vue';
-import {useRouter} from 'vue-router';
+import {computed, onMounted, onBeforeUnmount, ref, watch} from 'vue';
+import {useRouter, useRoute} from 'vue-router';
 import {services} from '../../services/api';
 import type {PostBo, PostFilter} from '../../types/post';
 import { useAuthStore } from '../../stores/auth-store';
@@ -22,6 +22,7 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const router = useRouter();
+const route = useRoute();
 const authStore = useAuthStore();
 const notification = useNotification();
 const currentUserUid = computed(() => authStore.userId.value || '');
@@ -30,48 +31,75 @@ const posts = ref<PostBo[]>([]);
 const loading = ref(false);
 const displayNames = ref<Map<string, string>>(new Map());
 
-const filteredPosts = computed(() => {
-    let filtered = [...posts.value];
+// Pagination state - initialize from URL query parameter
+const currentPage = ref(1);
+const postsPerPage = 12;
+const hasMorePosts = ref(true);
 
-    if (props.searchQuery) {
-        const query = props.searchQuery.toLowerCase();
-        filtered = filtered.filter(post =>
-            post.title.toLowerCase().includes(query) ||
-            post.content.toLowerCase().includes(query) ||
-            post.description.toLowerCase().includes(query) ||
-            post.tags.some(tag => tag.toLowerCase().includes(query))
-        );
+// Debounce timer for search
+let searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+// Initialize page from URL
+const initializePageFromUrl = () => {
+    const pageParam = route.query.page;
+    if (pageParam) {
+        const pageNum = parseInt(pageParam as string, 10);
+        if (!isNaN(pageNum) && pageNum > 0) {
+            currentPage.value = pageNum;
+        }
     }
+};
+
+const filteredPosts = computed(() => {
+    // Posts are now filtered by backend, only apply client-side sorting
+    let sorted = [...posts.value];
 
     switch (props.sortBy) {
         case 'newest':
-            filtered.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+            sorted.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
             break;
         case 'oldest':
-            filtered.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+            sorted.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
             break;
         case 'title-asc':
-            filtered.sort((a, b) => a.title.localeCompare(b.title));
+            sorted.sort((a, b) => a.title.localeCompare(b.title));
             break;
         case 'title-desc':
-            filtered.sort((a, b) => b.title.localeCompare(a.title));
+            sorted.sort((a, b) => b.title.localeCompare(a.title));
             break;
     }
 
-    return filtered;
+    return sorted;
 });
 
 const loadPosts = async () => {
     loading.value = true;
     try {
+        const offset = (currentPage.value - 1) * postsPerPage;
         const filter: PostFilter = {
             category: props.postType,
-            tags: props.filterTags && props.filterTags.length > 0 ? props.filterTags : undefined
+            tags: props.filterTags && props.filterTags.length > 0 ? props.filterTags : undefined,
+            limit: postsPerPage,
+            offset: offset,
+            query: props.searchQuery || undefined
         };
 
         const result = await services.posts.getPostsWithFilter(filter);
         if (result.isSuccess && result.data) {
             posts.value = result.data;
+            
+            // Check if there are more posts (if we got less than postsPerPage, we're at the end)
+            hasMorePosts.value = result.data.length === postsPerPage;
+            
+            // Update URL to show page 1 explicitly when pagination is needed
+            if (currentPage.value === 1 && hasMorePosts.value && !route.query.page) {
+                router.replace({
+                    query: {
+                        ...route.query,
+                        page: '1'
+                    }
+                });
+            }
             
             const uniqueCreators = [...new Set(posts.value.map(p => p.creatorUid))];
             for (const creatorUid of uniqueCreators) {
@@ -115,13 +143,80 @@ const formatDate = (dateString: string) => {
     });
 };
 
+const goToPage = (page: number) => {
+    currentPage.value = page;
+    
+    // Update URL with current page
+    router.push({
+        query: {
+            ...route.query,
+            page: page.toString()
+        }
+    });
+    
+    loadPosts();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+const nextPage = () => {
+    if (hasMorePosts.value) {
+        goToPage(currentPage.value + 1);
+    }
+};
+
+const previousPage = () => {
+    if (currentPage.value > 1) {
+        goToPage(currentPage.value - 1);
+    }
+};
+
 onMounted(() => {
+    initializePageFromUrl();
     loadPosts();
 });
 
-watch([() => props.searchQuery, () => props.filterTags, () => props.sortBy], () => {
+// Watch search query with debounce
+watch(() => props.searchQuery, () => {
+    if (searchDebounceTimer) {
+        clearTimeout(searchDebounceTimer);
+    }
+    
+    searchDebounceTimer = setTimeout(() => {
+        currentPage.value = 1; // Reset to first page when search changes
+        
+        // Remove page parameter temporarily - will be set after loading if needed
+        router.push({
+            query: {
+                ...route.query,
+                page: undefined
+            }
+        });
+        
+        loadPosts();
+    }, 500); // 500ms debounce (half a second)
+});
+
+// Watch filter tags and sort options without debounce (immediate response)
+watch([() => props.filterTags, () => props.sortBy], () => {
+    currentPage.value = 1; // Reset to first page when filters change
+    
+    // Remove page parameter temporarily - will be set after loading if needed
+    router.push({
+        query: {
+            ...route.query,
+            page: undefined
+        }
+    });
+    
     loadPosts();
 }, {immediate: true});
+
+// Cleanup debounce timer on unmount
+onBeforeUnmount(() => {
+    if (searchDebounceTimer) {
+        clearTimeout(searchDebounceTimer);
+    }
+});
 </script>
 
 <template>
@@ -179,6 +274,29 @@ watch([() => props.searchQuery, () => props.filterTags, () => props.sortBy], () 
             <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
             <h5 class="text-muted">No posts found</h5>
             <p class="text-muted">Try adjusting your filters or search query</p>
+        </div>
+
+        <!-- Pagination Controls -->
+        <div v-if="!loading && (currentPage > 1 || hasMorePosts)" class="d-flex justify-content-center align-items-center gap-3 mt-4">
+            <button 
+                class="btn btn-outline-primary"
+                :disabled="currentPage === 1"
+                @click="previousPage"
+            >
+                <i class="fas fa-chevron-left me-2"></i>Previous
+            </button>
+            
+            <div class="d-flex align-items-center gap-2">
+                <span class="text-muted">Page {{ currentPage }}</span>
+            </div>
+            
+            <button 
+                class="btn btn-outline-primary"
+                :disabled="!hasMorePosts"
+                @click="nextPage"
+            >
+                Next<i class="fas fa-chevron-right ms-2"></i>
+            </button>
         </div>
     </div>
 </template>

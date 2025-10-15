@@ -40,14 +40,25 @@ public sealed class PostRepository(IHermessituationRoomContext context) : IPostR
         );
     }
 
-    public async Task<IReadOnlyList<PostWithTagsBo>> GetActivistPostsByTagsAsync(IReadOnlyList<Tag> tags, int limit, int offset)
+    public async Task<IReadOnlyList<PostWithTagsBo>> GetActivistPostsByTagsAsync(IReadOnlyList<Tag> tags, int limit, int offset, string? query = null)
     {
         var tagSet = tags.Distinct().Select(t => t.ToString()).ToList();
 
-        var posts = await context.Posts
+        var queryable = context.Posts
             .AsNoTracking()
             .Where(p => p.PostTags.Any(pt => tagSet.Contains(pt.Tag)) &&
-                       context.Activists.Any(a => a.UserUid == p.CreatorUid))
+                       context.Activists.Any(a => a.UserUid == p.CreatorUid));
+
+        if (!string.IsNullOrWhiteSpace(query))
+        {
+            var lowerQuery = query.ToLower();
+            queryable = queryable.Where(p =>
+                p.Title.ToLower().Contains(lowerQuery) ||
+                p.Description.ToLower().Contains(lowerQuery) ||
+                p.Content.ToLower().Contains(lowerQuery));
+        }
+
+        var posts = await queryable
             .Include(p => p.PostTags)
             .Skip(offset)
             .Take(limit)
@@ -56,14 +67,25 @@ public sealed class PostRepository(IHermessituationRoomContext context) : IPostR
         return posts.Select(MapToBoWithTags).ToList();
     }
 
-    public async Task<IReadOnlyList<PostWithTagsBo>> GetJournalistPostsByTagsAsync(IReadOnlyList<Tag> tags, int limit, int offset)
+    public async Task<IReadOnlyList<PostWithTagsBo>> GetJournalistPostsByTagsAsync(IReadOnlyList<Tag> tags, int limit, int offset, string? query = null)
     {
         var tagSet = tags.Distinct().Select(t => t.ToString()).ToList();
 
-        var posts = await context.Posts
+        var queryable = context.Posts
             .AsNoTracking()
             .Where(p => p.PostTags.Any(pt => tagSet.Contains(pt.Tag)) &&
-                       context.Journalists.Any(j => j.UserUid == p.CreatorUid))
+                       context.Journalists.Any(j => j.UserUid == p.CreatorUid));
+
+        if (!string.IsNullOrWhiteSpace(query))
+        {
+            var lowerQuery = query.ToLower();
+            queryable = queryable.Where(p =>
+                p.Title.ToLower().Contains(lowerQuery) ||
+                p.Description.ToLower().Contains(lowerQuery) ||
+                p.Content.ToLower().Contains(lowerQuery));
+        }
+
+        var posts = await queryable
             .Include(p => p.PostTags)
             .Skip(offset)
             .Take(limit)
@@ -72,31 +94,73 @@ public sealed class PostRepository(IHermessituationRoomContext context) : IPostR
         return posts.Select(MapToBoWithTags).ToList();
     }
 
-    public async Task<IReadOnlyList<PostBo>> GetUserPostsAsync(Guid userUid, int limit, int offset) => await context.Posts
-        .AsNoTracking()
-        .Where(u => u.CreatorUid == userUid)
-        .Skip(offset)
-        .Take(limit)
-        .Select(u => MapToBo(u))
-        .ToListAsync();
+    public async Task<IReadOnlyList<PostBo>> GetUserPostsAsync(Guid userUid, int limit, int offset, string? query = null)
+    {
+        var queryable = context.Posts
+            .AsNoTracking()
+            .Where(u => u.CreatorUid == userUid);
 
-    public async Task<IReadOnlyList<PostBo>> GetAllActivistPostsAsync(int limit, int offset) => await context.Posts
-        .AsNoTracking()
-        .Where(p => context.Activists.Any(a => a.UserUid == p.CreatorUid))
-        .OrderByDescending(p => p.Timestamp)
-        .Skip(offset)
-        .Take(limit)
-        .Select(p => MapToBo(p))
-        .ToListAsync();
+        if (!string.IsNullOrWhiteSpace(query))
+        {
+            var lowerQuery = query.ToLower();
+            queryable = queryable.Where(p =>
+                p.Title.ToLower().Contains(lowerQuery) ||
+                p.Description.ToLower().Contains(lowerQuery) ||
+                p.Content.ToLower().Contains(lowerQuery));
+        }
 
-    public async Task<IReadOnlyList<PostBo>> GetAllJournalistPostsAsync(int limit, int offset) => await context.Posts
-        .AsNoTracking()
-        .Where(p => context.Journalists.Any(j => j.UserUid == p.CreatorUid))
-        .OrderByDescending(p => p.Timestamp)
-        .Skip(offset)
-        .Take(limit)
-        .Select(p => MapToBo(p))
-        .ToListAsync();
+        return await queryable
+            .Skip(offset)
+            .Take(limit)
+            .Select(u => MapToBo(u))
+            .ToListAsync();
+    }
+
+    public async Task<IReadOnlyList<PostBo>> GetAllActivistPostsAsync(int limit, int offset, string? query = null)
+    {
+        var queryable = context.Posts
+            .AsNoTracking()
+            .Where(p => context.Activists.Any(a => a.UserUid == p.CreatorUid));
+
+        if (!string.IsNullOrWhiteSpace(query))
+        {
+            var lowerQuery = query.ToLower();
+            queryable = queryable.Where(p =>
+                p.Title.ToLower().Contains(lowerQuery) ||
+                p.Description.ToLower().Contains(lowerQuery) ||
+                p.Content.ToLower().Contains(lowerQuery));
+        }
+
+        return await queryable
+            .OrderByDescending(p => p.Timestamp)
+            .Skip(offset)
+            .Take(limit)
+            .Select(p => MapToBo(p))
+            .ToListAsync();
+    }
+
+    public async Task<IReadOnlyList<PostBo>> GetAllJournalistPostsAsync(int limit, int offset, string? query = null)
+    {
+        var queryable = context.Posts
+            .AsNoTracking()
+            .Where(p => context.Journalists.Any(j => j.UserUid == p.CreatorUid));
+
+        if (!string.IsNullOrWhiteSpace(query))
+        {
+            var lowerQuery = query.ToLower();
+            queryable = queryable.Where(p =>
+                p.Title.ToLower().Contains(lowerQuery) ||
+                p.Description.ToLower().Contains(lowerQuery) ||
+                p.Content.ToLower().Contains(lowerQuery));
+        }
+
+        return await queryable
+            .OrderByDescending(p => p.Timestamp)
+            .Skip(offset)
+            .Take(limit)
+            .Select(p => MapToBo(p))
+            .ToListAsync();
+    }
 
     public async Task<PostBo> UpdateAsync(PostBo updatedPost)
     {
