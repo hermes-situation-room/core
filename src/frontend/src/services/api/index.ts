@@ -8,10 +8,12 @@ import SocketBaseClient from "./base/socket-base-client";
 import authApi from "./auth-api.ts";
 import usersApi from "./users-api";
 import messageStatusApi from "./messageStatus-api.ts";
+import commentsApi from "./comments-api.ts";
 
 const apiBaseClient = new ApiBaseClient();
 
 export const services = {
+    comments: commentsApi(apiBaseClient),
     about: aboutApi(apiBaseClient),
     posts: postsApi(apiBaseClient),
     tags: tagsApi(apiBaseClient),
