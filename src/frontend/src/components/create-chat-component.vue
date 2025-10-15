@@ -7,12 +7,12 @@ import { useAuthStore } from '../stores/auth-store';
 const router = useRouter();
 const authStore = useAuthStore();
 
-const otherUserUid = ref('');
+const otherUserMailOrName = ref('');
 const creating = ref(false);
 const error = ref('');
 
 const createChat = async () => {
-    if (!otherUserUid.value.trim()) {
+    if (!otherUserMailOrName.value.trim()) {
         error.value = 'Please enter a user ID';
         return;
     }
@@ -29,9 +29,17 @@ const createChat = async () => {
             return;
         }
 
+        const userId = await services.users.getUserIdByUsernameOrEmail(otherUserMailOrName.value.trim());
+        
+        if (!userId.isSuccess || !userId.data) {
+            error.value = 'User not found';
+            creating.value = false;
+            return;
+        }
+        
         const chatResult = await services.chats.getOrCreateChatByUserPair(
             currentUserUid,
-            otherUserUid.value.trim()
+            userId.data
         );
 
         if (chatResult.isSuccess && chatResult.data) {
@@ -62,14 +70,14 @@ const cancel = () => {
                     <div class="card-body">
                         <form @submit.prevent="createChat">
                             <div class="mb-3">
-                                <label for="otherUserUid" class="form-label">User ID</label>
+                                <label for="otherUserMailOrName" class="form-label">Username or Email</label>
                                 <input 
-                                    id="otherUserUid"
-                                    v-model="otherUserUid"
+                                    id="otherUserMailOrName"
+                                    v-model="otherUserMailOrName"
                                     type="text"
                                     class="form-control"
                                     :class="{'is-invalid': error}"
-                                    placeholder="Enter the UID of the user you want to chat with"
+                                    placeholder="Username or Email"
                                     :disabled="creating"
                                     required
                                 />
@@ -77,7 +85,7 @@ const cancel = () => {
                                     {{ error }}
                                 </div>
                                 <div class="form-text">
-                                    Enter the unique ID of the user you want to start a chat with.
+                                    Enter the username of an activist or the email of a journalist to start a chat.
                                 </div>
                             </div>
 
@@ -85,7 +93,7 @@ const cancel = () => {
                                 <button 
                                     type="submit"
                                     class="btn btn-primary"
-                                    :disabled="creating || !otherUserUid.trim()"
+                                    :disabled="creating || !otherUserMailOrName.trim()"
                                 >
                                     <span v-if="creating" class="spinner-border spinner-border-sm me-2"></span>
                                     {{ creating ? 'Creating...' : 'Create Chat' }}

@@ -37,6 +37,13 @@ public class UserController(IControllerInfrastructure infra, IUserService userSe
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_USER])]
     [ProducesResponseType(typeof(IReadOnlyList<UserBo>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IReadOnlyList<UserBo>>> GetUsers() => Ok(await userService.GetUsersAsync());
+    
+    [HttpGet("internal/user/get-id-by-email-or-username/")]
+    [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_USER])]
+    [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<string>> GetUserIdByEmailOrUsernameAsync([FromQuery] string mailOrUsername) =>
+        Ok(await userService.GetUserIdByEmailOrUsernameAsync(mailOrUsername));
 
     [HttpPost("internal/user/")]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_USER])]

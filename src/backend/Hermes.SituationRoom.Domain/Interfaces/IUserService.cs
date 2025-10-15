@@ -11,6 +11,8 @@ public interface IUserService
     Task<string> GetDisplayNameAsync(Guid userUid);
 
     Task<IReadOnlyList<UserBo>> GetUsersAsync();
+    
+    Task<Guid> GetUserIdByEmailOrUsernameAsync(string identificationString);
 
     Task<Guid> CreateUserAsync(UserBo userBo);
 

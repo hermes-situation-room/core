@@ -12,6 +12,8 @@ public interface IUserRepository
 
     Task<UserBo> GetUserBoAsync(Guid userUid);
 
+    Task<Guid?> FindJournalistIdByEmailAsync(string emailAddress);
+
     Task<UserBo> GetUserBoByEmailAsync(string emailAddress);
 
     Task<UserProfileBo> GetUserProfileBoAsync(Guid userUid, Guid consumerUid);

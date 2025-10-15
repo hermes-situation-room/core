@@ -26,6 +26,12 @@ export default function usersApi(apiBaseClient: ApiBaseClient) {
             return await apiBaseClient.get<ActivistBo>(`services/api/internal/activist/${uid}`);
         },
         /**
+         * Get userId by username or email
+         */
+        async getUserIdByUsernameOrEmail(mailOrUsername: string): Promise<BaseResultBo<string>> {
+            return await apiBaseClient.get<string>(`services/api/internal/user/get-id-by-email-or-username`, { mailOrUsername: mailOrUsername });
+        },
+        /**
          * Update activist profile (full ActivistBo)
          */
         async updateActivist(uid: string, activistData: ActivistBo): Promise<BaseResultBo<string>> {
