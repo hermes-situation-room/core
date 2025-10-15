@@ -3,7 +3,7 @@ import { onUnmounted, ref, watch } from "vue";
 import { useAuthStore } from "../stores/auth-store";
 import NavbarComponent from "./navbar-component.vue";
 import { services, sockets } from "../services/api";
-import ToastContainer from "../components/toast-container.vue";
+import ToastContainer from "./toast-container.vue";
 
 const authStore = useAuthStore();
 
