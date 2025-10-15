@@ -17,7 +17,7 @@ export default class SocketBaseClient {
      * @param action Function which is executed with the response-object from the socket-message
      */
     registerToEvent = (event: string, action: Function) => {
-        connection.on(event, (response) => action(response));
+        connection.on(event, (...args) => action(...args));
     }
 
     /**

@@ -7,8 +7,8 @@ export default function messageStatusApi(apiBaseClient: ApiBaseClient) {
         async getTotalUnreadMessages(userId: string): Promise<BaseResultBo<UserChatMessageStatus>> {
             return await apiBaseClient.get<UserChatMessageStatus>("services/api/internal/userChatReadStatus/total", {userId: userId});
         },
-        async getUnreadMessageCountPerChat(): Promise<BaseResultBo<UserChatMessageStatus[]>> {
-            return await apiBaseClient.get<UserChatMessageStatus[]>("services/api/internal/userChatReadStatus/byChat");
+        async getUnreadMessageCountPerChat(userId: string, chatId: string): Promise<BaseResultBo<UserChatMessageStatus>> {
+            return await apiBaseClient.get<UserChatMessageStatus>("services/api/internal/userChatReadStatus/byChat", {userId: userId, chatId: chatId});
         }
     }
 }

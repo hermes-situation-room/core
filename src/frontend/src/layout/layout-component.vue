@@ -7,34 +7,58 @@ import { services, sockets } from "../services/api";
 const authStore = useAuthStore();
 
 const totalUnreadMessages = ref(0);
+const isSocketConnected = ref(false);
 
 watch(authStore.isAuthenticated, async (_) => {
     if (authStore.isAuthenticated) {
-        await sockets.hub.initialize();
-        sockets.hub.joinMessaging();
-        sockets.hub.registerToEvent("NewTotalUnreadChatMessage", 
-        (newTotal: number) => {
-            totalUnreadMessages.value = newTotal;
-        });
+        try {
+            await sockets.hub.initialize();
+            sockets.hub.registerToEvent("NewTotalUnreadChatMessage", 
+            (newTotal: number) => {
+                totalUnreadMessages.value = newTotal;
+            });
+            sockets.hub.joinMessaging();
+            isSocketConnected.value = true;
+        } catch (error) {
+            console.warn('Failed to connect to real-time messaging:', error);
+            isSocketConnected.value = false;
+        }
+        
         const userId = authStore.userId;
         await checkUnreadMessages(userId.value!);
     }
 }, {immediate: true});
 
 const checkUnreadMessages = async (userId: string) => {
-    const res = await services.userChatMessageStatus.getTotalUnreadMessages(userId);
-    if (res.isSuccess && res.data) {
-        totalUnreadMessages.value = res.data.countUnreadMessages;
+    try {
+        const res = await services.userChatMessageStatus.getTotalUnreadMessages(userId);
+        if (res.isSuccess && res.data) {
+            totalUnreadMessages.value = res.data.countUnreadMessages;
+        }
+    } catch (error) {
+        console.warn('Failed to fetch unread message count:', error);
     }
 }
 
 
 window.addEventListener('beforeunload', () => {
-    sockets.hub.leaveMessaging();
+    if (isSocketConnected.value) {
+        try {
+            sockets.hub.leaveMessaging();
+        } catch (error) {
+            // Ignore errors during cleanup
+        }
+    }
 })
 
 onBeforeUnmount(() => {
-    sockets.hub.leaveMessaging();
+    if (isSocketConnected.value) {
+        try {
+            sockets.hub.leaveMessaging();
+        } catch (error) {
+            // Ignore errors during cleanup
+        }
+    }
 })
 </script>
 
