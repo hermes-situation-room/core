@@ -13,6 +13,7 @@ const notification = useNotification();
 
 const userProfile = ref<UserProfileBo | null>(null);
 const loading = ref(false);
+const currentUserUid = computed(() => authStore.userId.value || '');
 
 const isOwnProfile = computed(() => {
     const userId = route.query.id as string;
@@ -52,6 +53,38 @@ const loadUser = async () => {
         console.error('Error loading user profile:', err);
     } finally {
         loading.value = false;
+    }
+};
+
+const sendDirectMessage = async () => {
+    if (!currentUserUid.value) {
+        notification.warning('Please log in to send messages');
+        return;
+    }
+
+    if (userProfile.value?.uid === currentUserUid.value) {
+        notification.warning('You can not send messages to yourself');
+        return;
+    }
+
+    if (!userProfile.value?.uid){
+        notification.error('The user has not been properly loaded');
+        return;
+    }
+
+    try {
+        const chatResult = await services.chats.getOrCreateChatByUserPair(
+            currentUserUid.value,
+            userProfile.value.uid
+        );
+
+        if (chatResult.isSuccess && chatResult.data) {
+            router.push(`/chat/${chatResult.data.uid}`);
+        } else {
+            notification.error(chatResult.responseMessage || 'Failed to open chat');
+        }
+    } catch (err) {
+        notification.error('An error occurred while opening the chat');
     }
 };
 
@@ -167,6 +200,24 @@ watch(() => route.query.id, () => {
                                 <div class="fw-medium">{{ userProfile.employer }}</div>
                             </div>
                         </div>
+                        
+                        <button 
+                            v-if="userProfile.uid !== currentUserUid && currentUserUid"
+                            class="btn btn-primary btn-sm"
+                            @click="sendDirectMessage()"
+                        >
+                            <i class="fas fa-comment me-1"></i>
+                            Message
+                        </button>
+                        <RouterLink 
+                            v-else-if="!currentUserUid"
+                            to="/login"
+                            class="btn btn-outline-primary btn-sm"
+                            @click.stop
+                        >
+                            <i class="fas fa-sign-in-alt me-1"></i>
+                            Login to Message
+                        </RouterLink>
                     </div>
                 </div>
             </div>
