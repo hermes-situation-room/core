@@ -21,7 +21,6 @@ const editingMessageId = ref<string | null>(null);
 const editingContent = ref('');
 const messageInputRef = ref<HTMLInputElement | null>(null);
 const errorMessage = ref('');
-const otherUserDisplayName = ref<string>('');
 const isSocketConnected = ref(false);
 const otherUserDisplayName = ref<string>('');
 
