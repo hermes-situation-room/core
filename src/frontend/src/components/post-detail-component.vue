@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { services } from '../services/api';
 import type { PostBo } from '../types/post';
 import { useAuthStore } from '../stores/auth-store';
-import type { CommentBo, CreateCommentDto } from '../types/comment';
+import type { CommentBo, CreateCommentDto, UpdateCommentDto } from '../types/comment';
 
 const route = useRoute();
 const router = useRouter();
@@ -18,6 +18,8 @@ const creatingChat = ref(false);
 const creatorDisplayName = ref<string>('');
 const commentContent = ref()
 const comments = ref<CommentBo[] | null>(null);
+const editingComments = ref(false)
+const editCommentContent = ref()
 
 const currentUserUid = computed(() => authStore.userId.value || '');
 
@@ -75,11 +77,14 @@ const loadComments = async () => {
     try {
         const result = await services.comments.getCommentsByPost(postId);
         if (result.isSuccess && result.data) {
+
             for (const comment of result.data) {
+
                 const displayName = await services.users.getDisplayName(comment.creatorUid);
                 if (displayName.isSuccess && displayName.data) {
                     comment.displayName = displayName.data
                 }
+                comment.inEdit = false
             };
             comments.value = result.data;
         } else {
@@ -88,7 +93,7 @@ const loadComments = async () => {
     } catch (err) {
         error.value = 'Error loading comments';
     } finally {
-        loading.value = false;
+        loadingComments.value = false;
     }
 };
 
@@ -128,24 +133,76 @@ const sendDirectMessage = async () => {
 
 const postComment = async () => {
     try {
-    if (!authStore.userId.value) {
-        error.value = 'You must be logged in to create a comment';
-        return;
-    }
+        if (!authStore.userId.value) {
+            error.value = 'You must be logged in to create a comment';
+            return;
+        }
 
-    const commentData: CreateCommentDto = {
-        postUid: route.params.id as string,
-        content: commentContent.value,
-        creatorUid: authStore.userId.value
-    }
+        const commentData: CreateCommentDto = {
+            postUid: route.params.id as string,
+            content: commentContent.value,
+            creatorUid: authStore.userId.value
+        }
 
-    await services.comments.createComment(commentData)
-    commentContent.value = "";
+        await services.comments.createComment(commentData)
+        commentContent.value = "";
 
-    await loadComments()
+        await loadComments()
     } catch (err) {
         error.value = err instanceof Error ? err.message : 'An error occurred';
     }
+}
+
+const editCommentToggle = (comment:CommentBo) => {
+    editCommentContent.value = comment.content;
+    editingComments.value = !editingComments.value
+    comment.inEdit = !comment.inEdit
+}
+
+const updateComment = async (comment:CommentBo) => {
+    try {
+        if (comment.creatorUid !== currentUserUid.value) {
+            error.value = 'You cannot edit someone else\'s comment';
+            return;
+        }
+
+        const commentData: UpdateCommentDto = {
+            content: editCommentContent.value
+        }
+
+        const result = await services.comments.updateComment(comment.uid, commentData);
+
+        if (result.isSuccess && result.data) {
+            await loadComments()
+        } else {
+            error.value = result.responseMessage || 'Failed to update comment';
+        }
+    } catch (err) {
+        error.value = 'An error occurred while updating the comment';
+    } finally {
+        editingComments.value = false
+        comment.inEdit = false
+    }
+}
+
+const deleteComment = async (comment:CommentBo) => {
+    if (!confirm('Are you sure you want to delete this comment?')) {
+        return;
+    }
+
+    if (comment.creatorUid !== currentUserUid.value) {
+        error.value = 'You cannot delete someone else\'s comment';
+        return;
+    }
+
+    try {
+        await services.comments.deleteComment(comment.uid);
+    } catch (err) {
+        error.value = 'An error occurred while deleting the comment';
+    } finally {
+        await loadComments();
+    }
+    
 }
 
 const formatDate = (dateString: string) => {
@@ -276,10 +333,10 @@ onMounted(() => {
                 </div>
 
                 <div class="comment-input mt-3 mb-2 d-flex gap-2">
-                    <input v-model="commentContent" maxlength="255" type="text" class="rounded w-100 form-control" placeholder="Comment...">
-                    <button v-if="canSendMessage" class="w-25 rounded btn btn-primary" @click="postComment">Comment</button>
+                    <input v-model="commentContent" maxlength="255" minlength="1" type="text" class="rounded w-100 form-control" placeholder="Comment...">
+                    <button v-if="currentUserUid" class="w-25 rounded btn btn-primary" @click="postComment">Comment</button>
                     <RouterLink 
-                        v-else-if="!currentUserUid"
+                        v-else
                         to="/login"
                         class="btn btn-outline-primary btn-sm"
                     >
@@ -288,7 +345,7 @@ onMounted(() => {
                     </RouterLink>
                 </div>
                 <div class="comment-list d-flex flex-column">
-                    <div v-for="comment in comments" :key="comment.commentUid" class="comment border mb-1 p-2 rounded d-flex flex-column flex-wrap">
+                    <div v-for="comment in comments" :key="comment.uid" class="comment border mb-1 p-2 pe-3 ps-3 rounded d-flex flex-column flex-wrap">
                         <small class="d-flex justify-content-between">
                             <strong>
                                 <a href="#" class="text-primary text-decoration-none"@click.prevent="router.push({ path: '/profile', query: { id: comment.creatorUid } })">
@@ -297,7 +354,29 @@ onMounted(() => {
                             </strong>
                             {{ comment.timestamp }}
                         </small>
-                        <div class="text-break width-100">{{ comment.content }}</div>
+                        <div>
+                            <div v-if="!comment.inEdit" class="d-flex justify-content-between flex-nowrap gap-2">
+                                <div class="text-break width-100">
+                                    {{ comment.content }}
+                                </div>
+                                <div class="d-flex gap-3 mt-1">
+                                    <i v-if="comment.creatorUid == currentUserUid && !editingComments" class="fas fa-edit" @click="editCommentToggle(comment)"></i>
+                                    <i v-if="comment.creatorUid == currentUserUid && !editingComments" class="fas fa-trash" @click="deleteComment(comment)"></i>
+                                </div>
+                            </div>
+                            <div v-else class="d-flex justify-content-between align-items-center gap-2">
+                                <input v-model="editCommentContent" type="text" maxlength="255" class="rounded w-100 form-control">
+                                
+                                <button class="w-20 rounded btn btn-primary d-flex align-items-center" @click="updateComment(comment)">
+                                    <i class="fas fa-check fa-lg m-2"></i>
+                                    Confirm
+                                </button>
+                                <button class="w-20 rounded btn btn-primary d-flex align-items-center" @click="editCommentToggle(comment)">
+                                    <i class="fas fa-close fa-lg m-2"></i>
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

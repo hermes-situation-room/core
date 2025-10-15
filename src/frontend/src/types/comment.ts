@@ -1,10 +1,11 @@
 ﻿export interface CommentBo {
-    commentUid: string;
+    uid: string;
     timestamp: Date;
     creatorUid: string;
     postUid: string;
     content: string;
     displayName: string;
+    inEdit: boolean;
 }
 
 export interface CreateCommentDto {
