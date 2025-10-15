@@ -39,6 +39,9 @@ public class ChatService(IChatRepository chatRepository, IUserChatReadStatusServ
 
         var newChatBo = new ChatBo(Guid.NewGuid(), user1Id, user2Id);
         var chatId = await chatRepository.AddAsync(newChatBo);
+
+        await userReadStatusService.CreateReadStatusAsync(newChatBo.User1Uid, chatId);
+        await userReadStatusService.CreateReadStatusAsync(newChatBo.User2Uid, chatId);
         return await chatRepository.GetChatAsync(chatId);
     }
 

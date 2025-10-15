@@ -28,10 +28,10 @@ public class MessageService(IMessageRepository messageRepository, IHubContext<Ch
         var receiverId = newMessageDto.SenderUid == chat.User1Uid ? chat.User2Uid : chat.User1Uid;
         var countNewMessages = await userChatStatusService.GetUnreadMessageCountAsync(receiverId, chat.Uid);
 
-        await chatHub.Clients.User(receiverId.ToString()).SendAsync("NewUnreadChatMessage", chat.Uid, countNewMessages);
+        await chatHub.Clients.Group(receiverId.ToString()).SendAsync("NewUnreadChatMessage", chat.Uid, countNewMessages);
 
         var totalCountNewMessages = await userChatStatusService.GetUnreadMessageCountAsync(receiverId);
-        await chatHub.Clients.User(receiverId.ToString()).SendAsync("NewTotalUnreadChatMessage", totalCountNewMessages);
+        await chatHub.Clients.Group(receiverId.ToString()).SendAsync("NewTotalUnreadChatMessage", totalCountNewMessages);
 
         await userChatStatusService.UpdateReadStatusAsync(newMessageDto.SenderUid, newMessageDto.ChatUid);
 

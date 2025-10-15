@@ -5,7 +5,7 @@ const apiHubPath = import.meta.env.VITE_APP_SOCKET_HUB_PATH;
 
 const connection = new signalR.HubConnectionBuilder()
     .withUrl(`${apiBaseUrl}${apiHubPath}`, {
-        withCredentials: false
+        withCredentials: true
     })
     .build();
 
@@ -38,5 +38,9 @@ export default class SocketBaseClient {
         const promise = connection.start()
             .catch((err) => console.log(err))
         return promise;
+    }
+
+    flush = () => {
+        connection.stop();
     }
 }

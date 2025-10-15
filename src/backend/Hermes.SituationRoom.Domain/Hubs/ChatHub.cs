@@ -4,11 +4,23 @@ using Microsoft.AspNetCore.SignalR;
 using Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
-
+using System.Text.RegularExpressions;
 
 [Authorize]
 public class ChatHub(IChatService chatService, IUserChatReadStatusService userChatStatusSearvice) : Hub
 {
+
+    public async Task JoinMessaging()
+    {
+        var userId = GetUserIdFromContext();
+        await Groups.AddToGroupAsync(Context.ConnectionId, userId.ToString());
+    }
+
+    public async Task LeaveMessaging()
+    {
+        var userId = GetUserIdFromContext();
+        await Groups.RemoveFromGroupAsync(Context.ConnectionId, userId.ToString());
+    }
     public async Task JoinChat(Guid chatId)
     {
         if (chatId == Guid.Empty)

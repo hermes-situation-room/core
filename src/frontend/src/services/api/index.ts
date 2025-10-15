@@ -7,6 +7,7 @@ import ApiBaseClient from "./base/api-base-client";
 import SocketBaseClient from "./base/socket-base-client";
 import authApi from "./auth-api.ts";
 import usersApi from "./users-api";
+import messageStatusApi from "./messageStatus-api.ts";
 
 const apiBaseClient = new ApiBaseClient();
 
@@ -17,22 +18,30 @@ export const services = {
     chats: chatsApi(apiBaseClient),
     messages: messagesApi(apiBaseClient),
     auth: authApi(apiBaseClient),
-    users: usersApi(apiBaseClient)
+    users: usersApi(apiBaseClient),
+    userChatMessageStatus: messageStatusApi(apiBaseClient),
 }
 
 const socketBaseClient = new SocketBaseClient();
 /**
  * Indicated the initialization-state of the socket. If promise is resolved, the socket is fully initialized
  */
-const initPromise = socketBaseClient.initialize();
+let initPromise: Promise<void> | undefined = undefined;
 
 export const sockets = {
     hub: {
         /**
-         * Ensures the socket for hub is fully initialized. Always call ensure before registering or sending over the socket 
+         * Initializes the socket connection and ensures, the connection is established. Calling it again tells the caller that the connection is fully established. 
          */
-        ensureSocketInitialization: async() => {
-            await initPromise;
+        initialize: async(): Promise<void> => {
+            if (!initPromise) {
+                initPromise = socketBaseClient.initialize();
+            }
+            return initPromise;
+        },
+        flush: () => {
+            initPromise = undefined;
+            socketBaseClient.flush();
         },
         /**
          * Registers a new event over the socket
@@ -55,6 +64,12 @@ export const sockets = {
          */
         leaveChat: (chatId: string) => {
             socketBaseClient.sendEvent("LeaveChat", [chatId]);
+        },
+        joinMessaging: () => {
+            socketBaseClient.sendEvent("JoinMessaging", []);
+        },
+        leaveMessaging: () => {
+            socketBaseClient.sendEvent("LeaveMessaging", []);
         }
     }
 }

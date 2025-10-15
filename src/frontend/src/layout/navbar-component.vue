@@ -5,6 +5,13 @@ import logoUrl from '../assets/logo_situation_room.png'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth-store'
 
+const props = defineProps({
+    totalUnreadMessages: {
+        type: Number,
+        required: false
+    },
+});
+
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
@@ -87,13 +94,18 @@ const handleLogout = async () => {
                                 <i class="fas fa-newspaper"></i>
                                 <span class="d-none d-xl-inline ms-1">Posts</span>
                             </button>
-                            <RouterLink 
-                                to="/chats" 
-                                class="btn btn-outline-secondary btn-sm d-flex align-items-center"
-                            >
-                                <i class="fas fa-comments"></i>
-                                <span class="d-none d-xl-inline ms-1">Messages</span>
-                            </RouterLink>
+                            <div class="messages">
+                                <RouterLink 
+                                    to="/chats" 
+                                    class="btn btn-outline-secondary btn-sm d-flex align-items-center"
+                                >
+                                    <i class="fas fa-comments"></i>
+                                    <span class="d-none d-xl-inline ms-1">Messages</span>
+                                </RouterLink>
+                                <span class="unreadMessages" :class="['badge', 'bg-dark', 'text-white', 'px-2', 'py-1', { 'd-none': !props.totalUnreadMessages }]">
+                                    {{ props.totalUnreadMessages }}
+                                </span>
+                            </div>
                             <button 
                                 @click="viewUser"
                                 class="btn btn-outline-secondary btn-sm d-flex align-items-center"
@@ -225,3 +237,16 @@ const handleLogout = async () => {
         ></div>
     </div>
 </template>
+
+<style scoped lang="scss">
+.messages {
+    position: relative;
+    .unreadMessages {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        border-radius: 50px;
+        text-decoration: none;
+    }
+}
+</style>

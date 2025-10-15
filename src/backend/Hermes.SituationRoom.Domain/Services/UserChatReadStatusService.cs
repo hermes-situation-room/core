@@ -3,11 +3,12 @@ namespace Hermes.SituationRoom.Domain.Services;
 using System;
 using System.Threading.Tasks;
 using Hermes.SituationRoom.Data.Interface;
+using Hermes.SituationRoom.Domain.Hubs;
 using Hermes.SituationRoom.Domain.Interfaces;
 using Hermes.SituationRoom.Shared.BusinessObjects;
+using Microsoft.AspNetCore.SignalR;
 
-
-public class UserChatReadStatusService(IUserChatReadStatusRepository userChatReadStatusRepository) : IUserChatReadStatusService
+public class UserChatReadStatusService(IUserChatReadStatusRepository userChatReadStatusRepository, IHubContext<ChatHub> chatHub ): IUserChatReadStatusService
 {
     public Task<Guid> CreateReadStatusAsync(Guid userId, Guid chatId)
     {
@@ -31,8 +32,19 @@ public class UserChatReadStatusService(IUserChatReadStatusRepository userChatRea
     public Task<UserChatReadStatusBo> UpdateReadStatusAsync(Guid readStatusId) => 
         userChatReadStatusRepository.UpdateAsync(readStatusId);
 
-    public Task<UserChatReadStatusBo> UpdateReadStatusAsync(Guid userId, Guid chatId) =>
-        userChatReadStatusRepository.UpdateAsync(userId, chatId);
+    public async Task<UserChatReadStatusBo> UpdateReadStatusAsync(Guid userId, Guid chatId)
+    {
+        var res = await userChatReadStatusRepository.UpdateAsync(userId, chatId);
+
+        var countNewMessagesSender = await GetUnreadMessageCountAsync(userId, chatId);
+
+        await chatHub.Clients.Group(userId.ToString()).SendAsync("NewUnreadChatMessage", chatId, countNewMessagesSender);
+
+        var totalCountNewMessagesSender = await GetUnreadMessageCountAsync(userId);
+        await chatHub.Clients.Group(userId.ToString()).SendAsync("NewTotalUnreadChatMessage", totalCountNewMessagesSender);
+
+        return res;
+    }
     public Task DeleteReadStatusAsync(Guid uid) =>
         userChatReadStatusRepository.DeleteAsync(uid);
 }
