@@ -123,34 +123,6 @@ const formatDate = (dateString: string) => {
     });
 };
 
-const sendDirectMessage = async (post: PostBo, event: Event) => {
-    event.stopPropagation();
-
-    if (!currentUserUid.value) {
-        showError('Please log in to send messages');
-        return;
-    }
-
-    if (post.creatorUid === currentUserUid.value) {
-        return;
-    }
-
-    try {
-        const chatResult = await services.chats.getOrCreateChatByUserPair(
-            currentUserUid.value,
-            post.creatorUid
-        );
-
-        if (chatResult.isSuccess && chatResult.data) {
-            router.push(`/chat/${chatResult.data.uid}`);
-        } else {
-            showError(chatResult.responseMessage || 'Failed to open chat');
-        }
-    } catch (err) {
-        showError('An error occurred while opening the chat');
-    }
-};
-
 onMounted(() => {
     loadPosts();
 });
@@ -210,23 +182,6 @@ watch([() => props.searchQuery, () => props.filterTags, () => props.sortBy], () 
                                     {{ getDisplayName(post.creatorUid) }}
                                 </a>
                             </small>
-                            <button 
-                                v-if="post.creatorUid !== currentUserUid && currentUserUid"
-                                class="btn btn-primary btn-sm"
-                                @click="sendDirectMessage(post, $event)"
-                            >
-                                <i class="fas fa-comment me-1"></i>
-                                Message
-                            </button>
-                            <RouterLink 
-                                v-else-if="!currentUserUid"
-                                to="/login"
-                                class="btn btn-outline-primary btn-sm"
-                                @click.stop
-                            >
-                                <i class="fas fa-sign-in-alt me-1"></i>
-                                Login to Message
-                            </RouterLink>
                         </div>
                     </div>
                 </div>
