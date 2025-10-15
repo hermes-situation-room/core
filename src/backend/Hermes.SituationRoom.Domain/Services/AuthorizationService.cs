@@ -16,6 +16,14 @@ public class AuthorizationService(IHttpContextAccessor httpContextAccessor, IUse
 
     public async Task<Guid> LoginActivist(LoginActivistBo loginActivistBo)
     {
+        ArgumentNullException.ThrowIfNull(loginActivistBo, nameof(loginActivistBo));
+
+        if (string.IsNullOrWhiteSpace(loginActivistBo.UserName))
+            throw new ArgumentException("Username is required.", nameof(loginActivistBo.UserName));
+
+        if (string.IsNullOrWhiteSpace(loginActivistBo.Password))
+            throw new ArgumentException("Password is required.", nameof(loginActivistBo.Password));
+
         var activist = await activistRepository.GetActivistBoByUsernameAsync(loginActivistBo.UserName);
 
         if (!encryptionService.VerifyPassword(loginActivistBo.Password, activist.PasswordHash, activist.PasswordSalt))
@@ -40,7 +48,7 @@ public class AuthorizationService(IHttpContextAccessor httpContextAccessor, IUse
         };
 
         if (HttpContext == null)
-            throw new InvalidOperationException("No active HttpContext available.");
+            throw new InvalidOperationException("No active HttpContext available for authentication.");
 
         await HttpContext.SignInAsync(
             CookieAuthenticationDefaults.AuthenticationScheme,
@@ -52,6 +60,14 @@ public class AuthorizationService(IHttpContextAccessor httpContextAccessor, IUse
 
     public async Task<Guid> LoginJournalist(LoginJournalistBo loginJournalistBo)
     {
+        ArgumentNullException.ThrowIfNull(loginJournalistBo, nameof(loginJournalistBo));
+
+        if (string.IsNullOrWhiteSpace(loginJournalistBo.EmailAddress))
+            throw new ArgumentException("Email address is required.", nameof(loginJournalistBo.EmailAddress));
+
+        if (string.IsNullOrWhiteSpace(loginJournalistBo.Password))
+            throw new ArgumentException("Password is required.", nameof(loginJournalistBo.Password));
+
         var journalist = await userRepository.GetUserBoByEmailAsync(loginJournalistBo.EmailAddress);
 
         if (!encryptionService.VerifyPassword(loginJournalistBo.Password, journalist.PasswordHash, journalist.PasswordSalt))
@@ -76,7 +92,7 @@ public class AuthorizationService(IHttpContextAccessor httpContextAccessor, IUse
         };
 
         if (HttpContext == null)
-            throw new InvalidOperationException("No active HttpContext available.");
+            throw new InvalidOperationException("No active HttpContext available for authentication.");
 
         await HttpContext.SignInAsync(
             CookieAuthenticationDefaults.AuthenticationScheme,
@@ -89,7 +105,7 @@ public class AuthorizationService(IHttpContextAccessor httpContextAccessor, IUse
     public async Task Logout()
     {
         if (HttpContext == null)
-            throw new InvalidOperationException("No active HttpContext available.");
+            throw new InvalidOperationException("No active HttpContext available for sign out.");
 
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
     }

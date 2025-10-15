@@ -6,33 +6,103 @@ using Interfaces;
 using Shared.BusinessObjects;
 using Shared.DataTransferObjects;
 using Shared.Enums;
+using Shared.Exceptions;
 
 public class PostService(IPostRepository postRepository, ITagService tagService) : IPostService
 {
     public async Task<PostWithTagsBo> GetPostAsync(Guid postUid)
     {
+        if (postUid == Guid.Empty)
+            throw new ArgumentException("Post ID cannot be empty.", nameof(postUid));
+
         var post = await postRepository.GetPostBoAsync(postUid);
         var tags = await tagService.GetAllTagsFromPostAsync(postUid);
         return MapToBo(post, tags);
     }
 
-    public Task<IReadOnlyList<PostWithTagsBo>> GetActivistPostsByTagsAsync(string tags, int limit, int offset) =>
-        postRepository.GetActivistPostsByTagsAsync(tags.Split(',').Select(TagService.MapToTag).ToList(), limit, offset);
+    public Task<IReadOnlyList<PostWithTagsBo>> GetActivistPostsByTagsAsync(string tags, int limit, int offset)
+    {
+        if (string.IsNullOrWhiteSpace(tags))
+            throw new ArgumentException("Tags cannot be empty.", nameof(tags));
 
-    public Task<IReadOnlyList<PostWithTagsBo>> GetJournalistPostsByTagsAsync(string tags, int limit, int offset) =>
-        postRepository.GetJournalistPostsByTagsAsync(tags.Split(',').Select(TagService.MapToTag).ToList(), limit, offset);
+        if (limit < 1)
+            throw new ArgumentException("Limit must be at least 1.", nameof(limit));
 
-    public async Task<IReadOnlyList<PostWithTagsBo>> GetUserPostsAsync(Guid userUid, int limit, int offset) =>
-        await GetTagsFromPosts(await postRepository.GetUserPostsAsync(userUid, limit, offset));
+        if (offset < 0)
+            throw new ArgumentException("Offset cannot be negative.", nameof(offset));
 
-    public async Task<IReadOnlyList<PostWithTagsBo>> GetAllActivistPostsAsync(int limit, int offset) =>
-        await GetTagsFromPosts(await postRepository.GetAllActivistPostsAsync(limit, offset));
+        return postRepository.GetActivistPostsByTagsAsync(tags.Split(',').Select(TagService.MapToTag).ToList(), limit, offset);
+    }
 
-    public async Task<IReadOnlyList<PostWithTagsBo>> GetAllJournalistPostsAsync(int limit, int offset) =>
-        await GetTagsFromPosts(await postRepository.GetAllJournalistPostsAsync(limit, offset));
+    public Task<IReadOnlyList<PostWithTagsBo>> GetJournalistPostsByTagsAsync(string tags, int limit, int offset)
+    {
+        if (string.IsNullOrWhiteSpace(tags))
+            throw new ArgumentException("Tags cannot be empty.", nameof(tags));
+
+        if (limit < 1)
+            throw new ArgumentException("Limit must be at least 1.", nameof(limit));
+
+        if (offset < 0)
+            throw new ArgumentException("Offset cannot be negative.", nameof(offset));
+
+        return postRepository.GetJournalistPostsByTagsAsync(tags.Split(',').Select(TagService.MapToTag).ToList(), limit, offset);
+    }
+
+    public async Task<IReadOnlyList<PostWithTagsBo>> GetUserPostsAsync(Guid userUid, int limit, int offset)
+    {
+        if (userUid == Guid.Empty)
+            throw new ArgumentException("User ID cannot be empty.", nameof(userUid));
+
+        if (limit < 1)
+            throw new ArgumentException("Limit must be at least 1.", nameof(limit));
+
+        if (offset < 0)
+            throw new ArgumentException("Offset cannot be negative.", nameof(offset));
+
+        return await GetTagsFromPosts(await postRepository.GetUserPostsAsync(userUid, limit, offset));
+    }
+
+    public async Task<IReadOnlyList<PostWithTagsBo>> GetAllActivistPostsAsync(int limit, int offset)
+    {
+        if (limit < 1)
+            throw new ArgumentException("Limit must be at least 1.", nameof(limit));
+
+        if (offset < 0)
+            throw new ArgumentException("Offset cannot be negative.", nameof(offset));
+
+        return await GetTagsFromPosts(await postRepository.GetAllActivistPostsAsync(limit, offset));
+    }
+
+    public async Task<IReadOnlyList<PostWithTagsBo>> GetAllJournalistPostsAsync(int limit, int offset)
+    {
+        if (limit < 1)
+            throw new ArgumentException("Limit must be at least 1.", nameof(limit));
+
+        if (offset < 0)
+            throw new ArgumentException("Offset cannot be negative.", nameof(offset));
+
+        return await GetTagsFromPosts(await postRepository.GetAllJournalistPostsAsync(limit, offset));
+    }
 
     public async Task<Guid> CreatePostAsync(CreatePostDto createPostDto)
     {
+        ArgumentNullException.ThrowIfNull(createPostDto, nameof(createPostDto));
+
+        if (createPostDto.CreatorUid == Guid.Empty)
+            throw new ArgumentException("Creator ID cannot be empty.", nameof(createPostDto.CreatorUid));
+
+        if (string.IsNullOrWhiteSpace(createPostDto.Title))
+            throw new BusinessValidationException(nameof(createPostDto.Title), "Post title is required.");
+
+        if (createPostDto.Title.Length > 200)
+            throw new BusinessValidationException(nameof(createPostDto.Title), "Post title cannot exceed 200 characters.");
+
+        if (string.IsNullOrWhiteSpace(createPostDto.Content))
+            throw new BusinessValidationException(nameof(createPostDto.Content), "Post content is required.");
+
+        if (createPostDto.Tags == null || !createPostDto.Tags.Any())
+            throw new BusinessValidationException(nameof(createPostDto.Tags), "At least one tag is required for a post.");
+
         var guid = await postRepository.AddAsync(MapToBo(createPostDto, DateTime.UtcNow));
         
         foreach (var tag in createPostDto.Tags)
@@ -45,6 +115,23 @@ public class PostService(IPostRepository postRepository, ITagService tagService)
 
     public async Task<PostWithTagsBo> UpdatePostAsync(PostWithTagsBo updatedPost)
     {
+        ArgumentNullException.ThrowIfNull(updatedPost, nameof(updatedPost));
+
+        if (updatedPost.Uid == Guid.Empty)
+            throw new ArgumentException("Post ID cannot be empty.", nameof(updatedPost.Uid));
+
+        if (string.IsNullOrWhiteSpace(updatedPost.Title))
+            throw new BusinessValidationException(nameof(updatedPost.Title), "Post title is required.");
+
+        if (updatedPost.Title.Length > 200)
+            throw new BusinessValidationException(nameof(updatedPost.Title), "Post title cannot exceed 200 characters.");
+
+        if (string.IsNullOrWhiteSpace(updatedPost.Content))
+            throw new BusinessValidationException(nameof(updatedPost.Content), "Post content is required.");
+
+        if (updatedPost.Tags == null || !updatedPost.Tags.Any())
+            throw new BusinessValidationException(nameof(updatedPost.Tags), "At least one tag is required for a post.");
+
         await postRepository.UpdateAsync(MapToBo(updatedPost));
 
         var existingTags = await tagService.GetAllTagsFromPostAsync(updatedPost.Uid);
@@ -72,6 +159,9 @@ public class PostService(IPostRepository postRepository, ITagService tagService)
 
     public async Task DeletePostAsync(Guid postUid)
     {
+        if (postUid == Guid.Empty)
+            throw new ArgumentException("Post ID cannot be empty.", nameof(postUid));
+
         await postRepository.DeleteAsync(postUid);
     }
 

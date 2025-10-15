@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { services } from '../services/api';
-import type { UserProfileBo } from '../types/user';
-import { useAuthStore } from '../stores/auth-store';
+import {computed, onMounted, ref, watch} from 'vue';
+import {useRoute, useRouter} from 'vue-router';
+import {services} from '../services/api';
+import type {UserProfileBo} from '../types/user';
+import {useAuthStore} from '../stores/auth-store';
+import {useErrorStore} from "../stores/error-store.ts";
 
 const route = useRoute();
 const router = useRouter();
@@ -11,7 +12,7 @@ const authStore = useAuthStore();
 
 const userProfile = ref<UserProfileBo | null>(null);
 const loading = ref(false);
-const error = ref<string | null>(null);
+const error = useErrorStore();
 
 const isOwnProfile = computed(() => {
     const userId = route.query.id as string;
@@ -32,24 +33,29 @@ const loadUser = async () => {
     const consumerId = authStore.userId.value || '';
 
     if (!userId) {
-        error.value = 'User ID not found';
+        error.addError({category: 'not_found', message: 'User ID not found'});
         return;
     }
 
     loading.value = true;
-    error.value = null;
     userProfile.value = null;
-    
+    error.clearAll();
+
     try {
+        console.log('Loading profile for userId:', userId, 'consumerId:', consumerId);
         const result = await services.users.getUserProfile(userId, consumerId);
+        console.log('Profile API result:', result);
+        
         if (result.isSuccess && result.data) {
             userProfile.value = result.data;
+            console.log('Profile loaded successfully:', result.data);
         } else {
-            error.value = result.responseMessage || 'Failed to load user profile';
+            console.error('Profile API failed:', result.responseMessage);
+            error.addError({category: 'server', message: result.responseMessage || 'Failed to load user profile'});
         }
     } catch (err) {
-        error.value = 'Error loading user profile';
-        console.error('Error loading user profile:', err);
+        console.error('Profile loading error:', err);
+        error.addError({category: 'unknown', message: 'Error loading user profile'});
     } finally {
         loading.value = false;
     }
@@ -79,11 +85,21 @@ watch(() => route.query.id, () => {
                     </div>
                 </div>
 
-                <div v-else-if="error" class="card">
+                <div v-else-if="error.getActiveNotifications().length > 0" class="card">
                     <div class="card-body text-center p-5">
                         <i class="fas fa-exclamation-triangle mb-4 text-danger" style="font-size: 3rem;"></i>
                         <h3 class="card-title">Error Loading Profile</h3>
-                        <p class="card-text text-muted">{{ error }}</p>
+                        <div class="card-text text-muted">
+                            <div v-for="notification in error.getActiveNotifications()" :key="notification.id" class="mb-2">
+                                <strong>{{ notification.error.category }}:</strong> {{ notification.error.message }}
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <button class="btn btn-primary" @click="loadUser">
+                                <i class="fas fa-refresh me-1"></i>
+                                Try Again
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -94,7 +110,7 @@ watch(() => route.query.id, () => {
                                 <i class="fas fa-user-circle me-2"></i>
                                 Profile
                             </h4>
-                            <button 
+                            <button
                                 v-if="isOwnProfile"
                                 class="btn btn-light btn-sm"
                                 @click="router.push('/profile/edit')"
@@ -125,7 +141,7 @@ watch(() => route.query.id, () => {
                                 <label class="text-muted small mb-1">Username</label>
                                 <h5 class="mb-0">{{ userProfile.userName }}</h5>
                             </div>
-                            
+
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label class="text-muted small mb-1">First Name</label>
@@ -147,9 +163,12 @@ watch(() => route.query.id, () => {
                                 <small>To manage privacy settings, use the Edit Profile page.</small>
                             </div>
 
-                            <div v-if="!isOwnProfile && (userProfile.firstName === '[REDACTED]' || userProfile.lastName === '[REDACTED]' || userProfile.emailAddress === '[REDACTED]')" class="alert alert-warning mt-4">
+                            <div
+                                v-if="!isOwnProfile && (userProfile.firstName === '[REDACTED]' || userProfile.lastName === '[REDACTED]' || userProfile.emailAddress === '[REDACTED]')"
+                                class="alert alert-warning mt-4">
                                 <i class="fas fa-shield-alt me-2"></i>
-                                <small>Some information is hidden because the user has disabled visibility for these fields.</small>
+                                <small>Some information is hidden because the user has disabled visibility for these
+                                    fields.</small>
                             </div>
                         </div>
 

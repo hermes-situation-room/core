@@ -1,13 +1,16 @@
 ﻿<script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { services } from '../services/api';
-import type { PostBo, UpdatePostDto } from '../types/post';
-import { useAuthStore } from '../stores/auth-store';
+import {computed, onMounted, ref} from 'vue';
+import {useRoute, useRouter} from 'vue-router';
+import {services} from '../services/api';
+import type {PostBo, UpdatePostDto} from '../types/post';
+import {useAuthStore} from '../stores/auth-store';
+import {useNotifications} from "../composables/use-notifications.ts";
+import {useErrorStore} from "../stores/error-store.ts";
 
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
+const {showUpdateSuccess} = useNotifications();
 
 const postType = computed(() => {
     return authStore.userType.value;
@@ -29,12 +32,12 @@ const selectedTags = ref<string[]>([]);
 const loading = ref(false);
 const loadingTags = ref(false);
 const loadingPost = ref(false);
-const error = ref('');
+const error = useErrorStore()
 
 const loadPost = async () => {
     const postId = route.params.id as string;
     if (!postId) {
-        error.value = 'Post ID not found';
+        error.addError({category: 'validation', message: 'Post ID not found'});
         return;
     }
 
@@ -43,9 +46,9 @@ const loadPost = async () => {
         const result = await services.posts.getPostById(postId);
         if (result.isSuccess && result.data) {
             originalPost.value = result.data;
-            
+
             if (originalPost.value.creatorUid !== authStore.userId.value) {
-                error.value = 'You are not authorized to edit this post';
+                error.addError({category: 'authentication', message: 'You are not authorized to edit this post'});
                 setTimeout(() => {
                     router.push('/');
                 }, 2000);
@@ -59,10 +62,10 @@ const loadPost = async () => {
             };
             selectedTags.value = [...result.data.tags];
         } else {
-            error.value = result.responseMessage || 'Failed to load post';
+            error.addError({category: 'unknown', message: result.responseMessage || 'Failed to load post'});
         }
     } catch (err) {
-        error.value = 'Error loading post';
+        error.addError({category: 'unknown', message: 'Error loading post'});
     } finally {
         loadingPost.value = false;
     }
@@ -75,10 +78,10 @@ const loadTags = async () => {
         if (result.isSuccess && result.data) {
             availableTags.value = result.data;
         } else {
-            error.value = result.responseMessage || 'Failed to load tags';
+            error.addError({category: 'unknown', message: result.responseMessage || 'Failed to load tags'});
         }
     } catch (err) {
-        error.value = 'Error loading tags';
+        error.addError({category: 'unknown', message: 'Error loading tags'});
     } finally {
         loadingTags.value = false;
     }
@@ -103,25 +106,24 @@ const goBack = () => {
 
 const handleSubmit = async () => {
     if (!formData.value.title.trim()) {
-        error.value = 'Title is required';
+        error.addError({category: 'validation', message: 'Title is required'});
         return;
     }
     if (!formData.value.description.trim()) {
-        error.value = 'Description is required';
+        error.addError({category: 'validation', message: 'Description is required'});
         return;
     }
     if (!formData.value.content.trim()) {
-        error.value = 'Content is required';
+        error.addError({category: 'validation', message: 'Content is required'});
         return;
     }
 
     if (!originalPost.value) {
-        error.value = 'Post data not loaded';
+        error.addError({category: 'validation', message: 'Post data not loaded'});
         return;
     }
 
     loading.value = true;
-    error.value = '';
 
     try {
         const updateData: UpdatePostDto = {
@@ -137,12 +139,13 @@ const handleSubmit = async () => {
         const result = await services.posts.updatePost(originalPost.value.uid, updateData);
 
         if (result.isSuccess) {
+            showUpdateSuccess('Post');
             router.replace(`/post/${originalPost.value.uid}`);
         } else {
-            error.value = result.responseMessage || 'Failed to update post';
+            error.addError({category: 'unknown', message: result.responseMessage || 'Failed to update post'});
         }
     } catch (err) {
-        error.value = err instanceof Error ? err.message : 'An error occurred';
+        error.addError({category: 'unknown', message: err instanceof Error ? err.message : 'An error occurred'});
     } finally {
         loading.value = false;
     }
@@ -192,7 +195,8 @@ onMounted(() => {
                             </div>
 
                             <div class="mb-3">
-                                <label for="postTitle" class="form-label">Title <span class="text-danger">*</span></label>
+                                <label for="postTitle" class="form-label">Title <span
+                                    class="text-danger">*</span></label>
                                 <input
                                     type="text"
                                     class="form-control"

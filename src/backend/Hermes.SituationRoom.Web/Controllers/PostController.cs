@@ -1,5 +1,6 @@
 ﻿namespace Hermes.SituationRoom.Api.Controllers;
 
+using System.Security.Claims;
 using Base;
 using Configurations;
 using Domain.Interfaces;
@@ -7,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Shared.BusinessObjects;
 using Shared.DataTransferObjects;
+using Shared.Exceptions;
 using Swashbuckle.AspNetCore.Annotations;
 
 public class PostController(IControllerInfrastructure infra, IPostService postService)
@@ -80,15 +82,13 @@ public class PostController(IControllerInfrastructure infra, IPostService postSe
     public async Task<ActionResult<PostWithTagsBo>> UpdatePost([FromBody] PostWithTagsBo postBo, Guid uid)
     {
         var existingPost = await postService.GetPostAsync(uid);
-        if (existingPost == null)
-            return NotFound();
 
-        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
         if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
-            return Unauthorized();
+            throw new UnauthorizedAccessException("User is not authenticated or user ID is invalid.");
 
         if (existingPost.CreatorUid != userId)
-            return Forbid();
+            throw new UnauthorizedOperationException("update post", "You can only update posts that you created.");
 
         return Ok(await postService.UpdatePostAsync(postBo with { Uid = uid, }));
     }
@@ -98,10 +98,20 @@ public class PostController(IControllerInfrastructure infra, IPostService postSe
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_POST])]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> DeletePost(Guid uid)
     {
+        var existingPost = await postService.GetPostAsync(uid);
+
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
+            throw new UnauthorizedAccessException("User is not authenticated or user ID is invalid.");
+
+        if (existingPost.CreatorUid != userId)
+            throw new UnauthorizedOperationException("delete post", "You can only delete posts that you created.");
+
         await postService.DeletePostAsync(uid);
         return NoContent();
     }

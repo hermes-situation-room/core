@@ -55,6 +55,9 @@ function generateUserMessage(category: ErrorCategory, details?: ProblemDetails):
                 ? `${details.resourceType} not found.`
                 : 'The requested resource was not found.'
         case 'conflict':
+            if (details?.detail && details.detail.includes('already in use')) {
+                return details.detail;
+            }
             return details?.conflictingField
                 ? `A resource with this ${details.conflictingField} already exists.`
                 : 'This resource already exists.'
