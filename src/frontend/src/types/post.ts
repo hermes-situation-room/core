@@ -33,6 +33,7 @@ export interface PostFilter {
     limit?: number;
     offset?: number;
     query?: string;
+    sortBy?: string;
 }
 
 export interface ErrorResponse {

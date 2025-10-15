@@ -1,4 +1,5 @@
-﻿namespace Hermes.SituationRoom.Data.Repositories;
+﻿#nullable enable
+namespace Hermes.SituationRoom.Data.Repositories;
 
 using Entities;
 using Interface;
@@ -40,7 +41,7 @@ public sealed class PostRepository(IHermessituationRoomContext context) : IPostR
         );
     }
 
-    public async Task<IReadOnlyList<PostWithTagsBo>> GetActivistPostsByTagsAsync(IReadOnlyList<Tag> tags, int limit, int offset, string? query = null)
+    public async Task<IReadOnlyList<PostWithTagsBo>> GetActivistPostsByTagsAsync(IReadOnlyList<Tag> tags, int limit, int offset, string? query = null, string? sortBy = null)
     {
         var tagSet = tags.Distinct().Select(t => t.ToString()).ToList();
 
@@ -54,9 +55,10 @@ public sealed class PostRepository(IHermessituationRoomContext context) : IPostR
             var lowerQuery = query.ToLower();
             queryable = queryable.Where(p =>
                 p.Title.ToLower().Contains(lowerQuery) ||
-                p.Description.ToLower().Contains(lowerQuery) ||
-                p.Content.ToLower().Contains(lowerQuery));
+                p.Description.ToLower().Contains(lowerQuery));
         }
+
+        queryable = ApplySorting(queryable, sortBy);
 
         var posts = await queryable
             .Include(p => p.PostTags)
@@ -67,7 +69,7 @@ public sealed class PostRepository(IHermessituationRoomContext context) : IPostR
         return posts.Select(MapToBoWithTags).ToList();
     }
 
-    public async Task<IReadOnlyList<PostWithTagsBo>> GetJournalistPostsByTagsAsync(IReadOnlyList<Tag> tags, int limit, int offset, string? query = null)
+    public async Task<IReadOnlyList<PostWithTagsBo>> GetJournalistPostsByTagsAsync(IReadOnlyList<Tag> tags, int limit, int offset, string? query = null, string? sortBy = null)
     {
         var tagSet = tags.Distinct().Select(t => t.ToString()).ToList();
 
@@ -81,9 +83,10 @@ public sealed class PostRepository(IHermessituationRoomContext context) : IPostR
             var lowerQuery = query.ToLower();
             queryable = queryable.Where(p =>
                 p.Title.ToLower().Contains(lowerQuery) ||
-                p.Description.ToLower().Contains(lowerQuery) ||
-                p.Content.ToLower().Contains(lowerQuery));
+                p.Description.ToLower().Contains(lowerQuery));
         }
+
+        queryable = ApplySorting(queryable, sortBy);
 
         var posts = await queryable
             .Include(p => p.PostTags)
@@ -94,7 +97,7 @@ public sealed class PostRepository(IHermessituationRoomContext context) : IPostR
         return posts.Select(MapToBoWithTags).ToList();
     }
 
-    public async Task<IReadOnlyList<PostBo>> GetUserPostsAsync(Guid userUid, int limit, int offset, string? query = null)
+    public async Task<IReadOnlyList<PostBo>> GetUserPostsAsync(Guid userUid, int limit, int offset, string? query = null, string? sortBy = null)
     {
         var queryable = context.Posts
             .AsNoTracking()
@@ -105,9 +108,10 @@ public sealed class PostRepository(IHermessituationRoomContext context) : IPostR
             var lowerQuery = query.ToLower();
             queryable = queryable.Where(p =>
                 p.Title.ToLower().Contains(lowerQuery) ||
-                p.Description.ToLower().Contains(lowerQuery) ||
-                p.Content.ToLower().Contains(lowerQuery));
+                p.Description.ToLower().Contains(lowerQuery));
         }
+
+        queryable = ApplySorting(queryable, sortBy);
 
         return await queryable
             .Skip(offset)
@@ -116,7 +120,7 @@ public sealed class PostRepository(IHermessituationRoomContext context) : IPostR
             .ToListAsync();
     }
 
-    public async Task<IReadOnlyList<PostBo>> GetAllActivistPostsAsync(int limit, int offset, string? query = null)
+    public async Task<IReadOnlyList<PostBo>> GetAllActivistPostsAsync(int limit, int offset, string? query = null, string? sortBy = null)
     {
         var queryable = context.Posts
             .AsNoTracking()
@@ -126,20 +130,20 @@ public sealed class PostRepository(IHermessituationRoomContext context) : IPostR
         {
             var lowerQuery = query.ToLower();
             queryable = queryable.Where(p =>
-                p.Title.ToLower().Contains(lowerQuery) ||
-                p.Description.ToLower().Contains(lowerQuery) ||
-                p.Content.ToLower().Contains(lowerQuery));
+                p.Title.ToLower().Contains(lowerQuery) || p.Description.ToLower().Contains(lowerQuery)
+            );
         }
 
+        queryable = ApplySorting(queryable, sortBy);
+
         return await queryable
-            .OrderByDescending(p => p.Timestamp)
             .Skip(offset)
             .Take(limit)
             .Select(p => MapToBo(p))
             .ToListAsync();
     }
 
-    public async Task<IReadOnlyList<PostBo>> GetAllJournalistPostsAsync(int limit, int offset, string? query = null)
+    public async Task<IReadOnlyList<PostBo>> GetAllJournalistPostsAsync(int limit, int offset, string? query = null, string? sortBy = null)
     {
         var queryable = context.Posts
             .AsNoTracking()
@@ -150,12 +154,12 @@ public sealed class PostRepository(IHermessituationRoomContext context) : IPostR
             var lowerQuery = query.ToLower();
             queryable = queryable.Where(p =>
                 p.Title.ToLower().Contains(lowerQuery) ||
-                p.Description.ToLower().Contains(lowerQuery) ||
-                p.Content.ToLower().Contains(lowerQuery));
+                p.Description.ToLower().Contains(lowerQuery));
         }
 
+        queryable = ApplySorting(queryable, sortBy);
+
         return await queryable
-            .OrderByDescending(p => p.Timestamp)
             .Skip(offset)
             .Take(limit)
             .Select(p => MapToBo(p))
@@ -209,4 +213,15 @@ public sealed class PostRepository(IHermessituationRoomContext context) : IPostR
         post.CreatorUid,
         post.PostTags.Select(pt => pt.Tag).Distinct().ToList()
     );
+
+    private static IQueryable<Post> ApplySorting(IQueryable<Post> queryable, string? sortBy)
+    {
+        return sortBy switch
+        {
+            "oldest" => queryable.OrderBy(p => p.Timestamp),
+            "title-asc" => queryable.OrderBy(p => p.Title),
+            "title-desc" => queryable.OrderByDescending(p => p.Title),
+            _ => queryable.OrderByDescending(p => p.Timestamp) // "newest" or default
+        };
+    }
 }

@@ -50,27 +50,7 @@ const initializePageFromUrl = () => {
     }
 };
 
-const filteredPosts = computed(() => {
-    // Posts are now filtered by backend, only apply client-side sorting
-    let sorted = [...posts.value];
-
-    switch (props.sortBy) {
-        case 'newest':
-            sorted.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-            break;
-        case 'oldest':
-            sorted.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
-            break;
-        case 'title-asc':
-            sorted.sort((a, b) => a.title.localeCompare(b.title));
-            break;
-        case 'title-desc':
-            sorted.sort((a, b) => b.title.localeCompare(a.title));
-            break;
-    }
-
-    return sorted;
-});
+const filteredPosts = computed(() => posts.value);
 
 const loadPosts = async () => {
     loading.value = true;
@@ -81,7 +61,8 @@ const loadPosts = async () => {
             tags: props.filterTags && props.filterTags.length > 0 ? props.filterTags : undefined,
             limit: postsPerPage,
             offset: offset,
-            query: props.searchQuery || undefined
+            query: props.searchQuery || undefined,
+            sortBy: props.sortBy || undefined
         };
 
         const result = await services.posts.getPostsWithFilter(filter);
