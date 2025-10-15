@@ -86,7 +86,7 @@ const loadPosts = async () => {
                 if (creatorUid && creatorUid !== currentUserUid.value) {
                     const displayNameResult = await services.users.getDisplayName(creatorUid);
                     if (displayNameResult.isSuccess && displayNameResult.data) {
-                        displayNames.value.set(creatorUid, displayNameResult.data.displayName);
+                        displayNames.value.set(creatorUid, displayNameResult.data);
                     }
                 }
             }
