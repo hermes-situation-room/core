@@ -77,7 +77,7 @@ const handleLogout = async () => {
                                 style="height: 2.5rem; width: auto;"
                             />
                         </RouterLink>
-                        <span v-if="authStore.isAuthenticated.value" class="badge bg-dark text-white px-2 py-1 d-none d-lg-inline">
+                        <span v-if="authStore.isAuthenticated.value" class="badge bg-dark text-white px-2 py-1 d-none d-sm-inline">
                             {{ authStore.userType.value === 'journalist' ? 'Journalist' : 'Activist' }}
                         </span>
                     </div>
