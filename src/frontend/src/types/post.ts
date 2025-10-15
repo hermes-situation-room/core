@@ -30,6 +30,10 @@ export interface PostFilter {
     category?: 'activist' | 'journalist';
     tags?: string[];
     userUid?: string;
+    limit?: number;
+    offset?: number;
+    query?: string;
+    sortBy?: string;
 }
 
 export interface ErrorResponse {

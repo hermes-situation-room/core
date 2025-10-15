@@ -10,15 +10,15 @@ public interface IPostRepository
 
     Task<PostBo> GetPostBoAsync(Guid postUid);
     
-    Task<IReadOnlyList<PostWithTagsBo>> GetActivistPostsByTagsAsync(IReadOnlyList<Tag> tags, int limit, int offset);
+    Task<IReadOnlyList<PostWithTagsBo>> GetActivistPostsByTagsAsync(IReadOnlyList<Tag> tags, int limit, int offset, string? query = null, string? sortBy = null);
     
-    Task<IReadOnlyList<PostWithTagsBo>> GetJournalistPostsByTagsAsync(IReadOnlyList<Tag> tags, int limit, int offset);
+    Task<IReadOnlyList<PostWithTagsBo>> GetJournalistPostsByTagsAsync(IReadOnlyList<Tag> tags, int limit, int offset, string? query = null, string? sortBy = null);
     
-    Task<IReadOnlyList<PostBo>> GetUserPostsAsync(Guid userUid, int limit, int offset);
+    Task<IReadOnlyList<PostBo>> GetUserPostsAsync(Guid userUid, int limit, int offset, string? query = null, string? sortBy = null);
     
-    Task<IReadOnlyList<PostBo>> GetAllActivistPostsAsync(int limit, int offset);
+    Task<IReadOnlyList<PostBo>> GetAllActivistPostsAsync(int limit, int offset, string? query = null, string? sortBy = null);
     
-    Task<IReadOnlyList<PostBo>> GetAllJournalistPostsAsync(int limit, int offset);
+    Task<IReadOnlyList<PostBo>> GetAllJournalistPostsAsync(int limit, int offset, string? query = null, string? sortBy = null);
 
     Task<PostBo> UpdateAsync(PostBo updatedPost);
 
