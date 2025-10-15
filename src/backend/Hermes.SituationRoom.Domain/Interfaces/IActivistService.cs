@@ -8,6 +8,8 @@ public interface IActivistService
     Task<ActivistBo> GetActivistAsync(Guid activistUid);
 
     Task<IReadOnlyList<ActivistBo>> GetActivistsAsync();
+    
+    Task<Guid?> FindActivistIdByUsernameAsync(string username);
 
     Task<Guid> CreateActivistAsync(ActivistBo activistBo);
 

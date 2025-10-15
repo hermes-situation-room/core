@@ -13,6 +13,8 @@ public interface IActivistRepository
 
     Task<ActivistBo> GetActivistBoAsync(Guid activistUid);
 
+    Task<Guid?> FindActivistIdByUsernameAsync(string username);
+
     Task<ActivistBo> GetActivistBoByUsernameAsync(string username);
 
     Task<IReadOnlyList<ActivistBo>> GetAllActivistBosAsync();

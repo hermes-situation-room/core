@@ -39,6 +39,18 @@ public sealed class UserRepository(IHermessituationRoomContext context) : IUserR
                        ?? throw new KeyNotFoundException($"User with UID {userId} was not found.")
         );
     }
+    
+    public async Task<Guid?> FindJournalistIdByEmailAsync(string emailAddress)
+    {
+        if (string.IsNullOrWhiteSpace(emailAddress))
+            return null;
+
+        return await context.Users
+            .AsNoTracking()
+            .Where(u => u.EmailAddress == emailAddress && context.Journalists.Any(j => j.UserUid == u.Uid))
+            .Select(u => (Guid?)u.Uid)
+            .FirstOrDefaultAsync();
+    }
 
     public async Task<UserBo> GetUserBoByEmailAsync(string emailAddress)
     {

@@ -43,6 +43,18 @@ public sealed class ActivistRepository(IHermessituationRoomContext context, IUse
                        ?? throw new KeyNotFoundException($"Activist with UID {activistUid} was not found.")
         );
     }
+    
+    public async Task<Guid?> FindActivistIdByUsernameAsync(string username)
+    {
+        if (string.IsNullOrWhiteSpace(username))
+            return null;
+
+        return await context.Activists
+            .AsNoTracking()
+            .Where(a => a.Username == username)
+            .Select(a => (Guid?)a.UserUid)
+            .FirstOrDefaultAsync();
+    }
 
     public async Task<ActivistBo> GetActivistBoByUsernameAsync(string username)
     {

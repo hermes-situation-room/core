@@ -6,7 +6,7 @@ using Hermes.SituationRoom.Data.Repositories;
 using Hermes.SituationRoom.Shared.BusinessObjects;
 using Interfaces;
 
-public class UserService(IUserRepository userRepository, IEncryptionService encryptionService) : IUserService
+public class UserService(IUserRepository userRepository, IActivistRepository activistRepository, IEncryptionService encryptionService) : IUserService
 {
     public Task<UserBo> GetUserAsync(Guid userUid) => userRepository.GetUserBoAsync(userUid);
 
@@ -23,6 +23,23 @@ public class UserService(IUserRepository userRepository, IEncryptionService encr
         userBo = userBo with { PasswordHash = hash, PasswordSalt = salt };
 
         return userRepository.AddAsync(userBo);
+    }
+
+    public async Task<Guid> GetUserIdByEmailOrUsernameAsync(string usernameOrEmail)
+    {
+        Guid? userId = await activistRepository.FindActivistIdByUsernameAsync(usernameOrEmail);
+        if (userId.HasValue)
+        {
+            return userId.Value;
+        }
+        
+        userId = await userRepository.FindJournalistIdByEmailAsync(usernameOrEmail);
+        if (userId.HasValue)
+        {
+            return userId.Value;
+        }
+
+        throw new KeyNotFoundException($"No user with the username or email '{usernameOrEmail}' was found.");
     }
 
     public Task<UserBo> UpdateUserAsync(UserBo updatedUser) => userRepository.Update(updatedUser);

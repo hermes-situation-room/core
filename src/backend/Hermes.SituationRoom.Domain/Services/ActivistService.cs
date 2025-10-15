@@ -20,6 +20,9 @@ public class ActivistService(IActivistRepository activistRepository, IEncryption
 
         return activistRepository.AddAsync(activistBo); 
     }
+    
+    public Task<Guid?> FindActivistIdByUsernameAsync(string username) =>
+        activistRepository.FindActivistIdByUsernameAsync(username);
 
     public Task<ActivistBo> UpdateActivistAsync(ActivistBo updatedActivist) =>
         activistRepository.UpdateAsync(updatedActivist);
