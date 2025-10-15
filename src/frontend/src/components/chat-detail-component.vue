@@ -55,10 +55,10 @@ const loadChat = async () => {
             // Try to initialize socket connection for real-time updates
             try {
                 await sockets.hub.initialize();
-                sockets.hub.joinChat(chatId);
-                sockets.hub.registerToEvent('ReceiveMessage', handleIncomingMessage);
-                sockets.hub.registerToEvent('UpdateMessage', handleMessageUpdate);
-                sockets.hub.registerToEvent('DeleteMessage', handleMessageDelete);
+                await sockets.hub.joinChat(chatId);
+                await sockets.hub.registerToEvent('ReceiveMessage', handleIncomingMessage);
+                await sockets.hub.registerToEvent('UpdateMessage', handleMessageUpdate);
+                await sockets.hub.registerToEvent('DeleteMessage', handleMessageDelete);
                 isSocketConnected.value = true;
             } catch (socketError) {
                 console.warn('Failed to connect to real-time messaging. Messages will not update automatically:', socketError);
@@ -119,8 +119,13 @@ const handleIncomingMessage = (message: MessageBo) => {
         timestamp: message.timestamp || new Date().toISOString()
     };
 
-    if (!completeMessage.timestamp || isNaN(new Date(completeMessage.timestamp).getTime())) {
+    if (!completeMessage.timestamp) {
         completeMessage.timestamp = new Date().toISOString();
+    } else {
+        const testDate = new Date(completeMessage.timestamp);
+        if (isNaN(testDate.getTime())) {
+            completeMessage.timestamp = new Date().toISOString();
+        }
     }
 
     const existingIndex = messages.value.findIndex(m => m.uid === completeMessage.uid);
@@ -211,6 +216,7 @@ const sendMessage = async () => {
         newMessage.value = messageContent;
     } finally {
         sending.value = false;
+        focusMessageInput();
     }
 };
 
@@ -287,6 +293,14 @@ const scrollToBottom = async (smooth = true) => {
     }
 };
 
+const focusMessageInput = async () => {
+    await nextTick();
+    const inputRefValue = messageInputRef.value;
+    if (inputRefValue) {
+        inputRefValue.focus();
+    }
+};
+
 const getOtherUserUid = () => {
     if (!chat.value) return '';
     return chat.value.user1Uid === currentUserUid.value ? chat.value.user2Uid : chat.value.user1Uid;
@@ -304,7 +318,19 @@ const shouldShowEditMode = (message: MessageBo) => {
 };
 
 const formatTime = (timestamp: string) => {
-    const date = new Date(timestamp + 'Z') || new Date().toISOString();
+    let dateString = timestamp;
+    
+    if (!timestamp.includes('Z') && !timestamp.includes('+') && !timestamp.includes('-', 10)) {
+        dateString = timestamp + 'Z';
+    }
+    
+    const date = new Date(dateString);
+    
+    if (isNaN(date.getTime())) {
+        console.error("Invalid Date:", dateString)
+        return '';
+    }
+    
     return date.toLocaleTimeString(navigator.language || 'en-US', {
         hour: '2-digit',
         minute: '2-digit'
@@ -315,10 +341,10 @@ onMounted(() => {
     loadChat();
 });
 
-onUnmounted(() => {
+onUnmounted(async () => {
     if (chat.value && isSocketConnected.value) {
         try {
-            sockets.hub.leaveChat(chat.value.uid);
+            await sockets.hub.leaveChat(chat.value.uid);
         } catch (error) {
             console.warn('Error leaving chat:', error);
         }

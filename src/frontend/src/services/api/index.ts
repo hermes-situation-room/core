@@ -51,26 +51,31 @@ export const sockets = {
          * @param action Function which is executed when the event is triggered over the socket
          */
         registerToEvent: async(event: string, action: Function) => {
+            await initPromise;
             socketBaseClient.registerToEvent(event, action);
         },
         /**
          * Send a JoinChat event over the socket to the backend
          * @param chatId Guid (string) with the chatId
          */
-        joinChat: (chatId: string) => {
+        joinChat: async (chatId: string) => {
+            await initPromise;
             socketBaseClient.sendEvent("JoinChat", [chatId]);
         },
         /**
          * Send a LeaveChat event over the socket to the backend to unsubscribe to chat messages
          * @param chatId Guid (string) with the chatId to be left
          */
-        leaveChat: (chatId: string) => {
+        leaveChat: async (chatId: string) => {
+            await initPromise;
             socketBaseClient.sendEvent("LeaveChat", [chatId]);
         },
-        joinMessaging: () => {
+        joinMessaging: async () => {
+            await initPromise;
             socketBaseClient.sendEvent("JoinMessaging", []);
         },
-        leaveMessaging: () => {
+        leaveMessaging: async () => {
+            await initPromise;
             socketBaseClient.sendEvent("LeaveMessaging", []);
         }
     }

@@ -124,7 +124,6 @@ const loadUnreadCounts = async () => {
             })
         );
         unreadCounts.value = counts;
-        console.log('Loaded unread counts:', counts);
     } catch (error) {
         console.error('Error loading unread counts:', error);
     }
@@ -168,7 +167,17 @@ const formatLastMessageTime = (timestamp?: string) => {
     if (!timestamp) return '';
     
     try {
-        const date = new Date(timestamp + 'Z') || new Date().toISOString();
+        let dateString = timestamp;
+        
+        if (!timestamp.includes('Z') && !timestamp.includes('+') && !timestamp.includes('-', 10)) {
+            dateString = timestamp + 'Z';
+        }
+        
+        const date = new Date(dateString);
+        
+        if (isNaN(date.getTime())) {
+            return '';
+        }
         const now = new Date();
         const diffMs = now.getTime() - date.getTime();
         const diffHours = diffMs / (1000 * 60 * 60);
@@ -203,8 +212,8 @@ onMounted(async () => {
     await loadChats();
         try {
         await sockets.hub.initialize();
-        sockets.hub.registerToEvent('NewUnreadChatMessage', handleUnreadMessageUpdate);
-        sockets.hub.joinMessaging();
+        await sockets.hub.registerToEvent('NewUnreadChatMessage', handleUnreadMessageUpdate);
+        await sockets.hub.joinMessaging();
         isSocketConnected.value = true;
     } catch (error) {
         console.warn('Failed to connect to real-time messaging. Badge counts will not update automatically:', error);
