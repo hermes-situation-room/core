@@ -296,7 +296,7 @@ onMounted(() => {
                                 </a>
                             </span>
                             </div>
-                            <div class="d-flex gap-2">
+                                                        <div class="d-flex gap-2">
                                 <button 
                                     v-if="canSendMessage"
                                     class="btn btn-primary btn-sm"
