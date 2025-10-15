@@ -259,26 +259,8 @@ onMounted(() => {
                                     <i class="fas fa-edit me-1"></i>
                                     Edit Post
                                 </button>
-                                <RouterLink 
-                                    v-if="!currentUserUid"
-                                    to="/login"
-                                    class="btn btn-outline-primary btn-sm"
-                                >
-                                    <i class="fas fa-sign-in-alt me-1"></i>
-                                    Login to Message
-                                </RouterLink>
                             </div>
-                            <button 
-                                v-if="canSendMessage"
-                                class="btn btn-primary btn-sm"
-                                :disabled="creatingChat"
-                                @click="sendDirectMessage"
-                            >
-                                <span v-if="creatingChat" class="spinner-border spinner-border-sm me-1"></span>
-                                <i v-else class="fas fa-comment me-1"></i>
-                                Direct Message
-                            </button>
-                            <span v-else-if="currentUserUid && post.creatorUid === currentUserUid" class="badge bg-secondary">
+                            <span v-if="currentUserUid && post.creatorUid === currentUserUid" class="badge bg-secondary">
                                 Your Post
                             </span>
                             <RouterLink 
@@ -296,7 +278,15 @@ onMounted(() => {
 
                 <div class="comment-input mt-3 mb-2 d-flex gap-2">
                     <input v-model="commentContent" maxlength="255" type="text" class="rounded w-100 form-control" placeholder="Comment...">
-                    <button class="w-25 rounded btn btn-primary" @click="postComment">Comment</button>
+                    <button v-if="canSendMessage" class="w-25 rounded btn btn-primary" @click="postComment">Comment</button>
+                    <RouterLink 
+                        v-else-if="!currentUserUid"
+                        to="/login"
+                        class="btn btn-outline-primary btn-sm"
+                    >
+                        <i class="fas fa-sign-in-alt me-1"></i>
+                        Login to Message
+                    </RouterLink>
                 </div>
 
                 <div class="comment-list d-flex flex-column">

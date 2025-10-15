@@ -13,6 +13,7 @@ using Swashbuckle.AspNetCore.Annotations;
 public class CommentController(IControllerInfrastructure infra, ICommentService commentService)
     : SituationRoomControllerBase(infra)
 {
+    [AllowAnonymous]
     [HttpGet("internal/post/{postUid:guid}/comment")]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_COMMENT])]
     [ProducesResponseType(typeof(IReadOnlyList<CommentBo>), StatusCodes.Status200OK)]
