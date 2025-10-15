@@ -97,6 +97,7 @@ public class Startup
                         "https://hermes-situation-room.stage",
                         "http://localhost:13500/swagger",
                         "http://localhost:5005/swagger",
+                        "http://localhost:5005",
                         "http://localhost:4300"
                     )
                     .AllowAnyHeader()
