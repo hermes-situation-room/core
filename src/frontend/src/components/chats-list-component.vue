@@ -174,7 +174,17 @@ const formatLastMessageTime = (timestamp?: string) => {
     if (!timestamp) return '';
     
     try {
-        const date = new Date(timestamp + 'Z') || new Date().toISOString();
+        let dateString = timestamp;
+        
+        if (!timestamp.includes('Z') && !timestamp.includes('+') && !timestamp.includes('-', 10)) {
+            dateString = timestamp + 'Z';
+        }
+        
+        const date = new Date(dateString);
+        
+        if (isNaN(date.getTime())) {
+            return '';
+        }
         const now = new Date();
         const diffMs = now.getTime() - date.getTime();
         const diffHours = diffMs / (1000 * 60 * 60);
