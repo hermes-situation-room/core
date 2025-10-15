@@ -4,26 +4,18 @@ import {useRouter} from 'vue-router';
 import {services, sockets} from '../services/api';
 import type {ChatBo} from '../types/chat';
 import { useAuthStore } from '../stores/auth-store';
+import { useNotification } from '../composables/use-notification.ts';
 
 const router = useRouter();
 const authStore = useAuthStore();
+const notification = useNotification();
 
 const chats = ref<ChatBo[]>([]);
 const chatsWithLastMessage = ref<Array<ChatBo & { lastMessageTime?: string, lastMessage?: string }>>([]);
 const unreadCounts = ref<Record<string, number>>({});
 const loading = ref(false);
 const currentUserUid = ref<string>('');
-const errorMessage = ref<string>('');
 const displayNames = ref<Map<string, string>>(new Map());
-
-const clearError = () => {
-    errorMessage.value = '';
-};
-
-const showError = (message: string) => {
-    errorMessage.value = message;
-    setTimeout(clearError, 5000);
-};
 
 const loadChats = async () => {
     loading.value = true;
@@ -31,7 +23,7 @@ const loadChats = async () => {
         currentUserUid.value = authStore.userId.value || '';
         
         if (!currentUserUid.value) {
-            showError('You must be logged in to view chats');
+            notification.error('You must be logged in to view chats');
             router.push("/login");
             return;
         }
@@ -56,10 +48,10 @@ const loadChats = async () => {
                 loadUnreadCounts()
             ]);
         } else {
-            showError(result.responseMessage || 'Failed to load chats');
+            notification.error(result.responseMessage || 'Failed to load chats');
         }
     } catch (error) {
-        showError('Error loading chats');
+        notification.error('Error loading chats');
     } finally {
         loading.value = false;
     }
@@ -163,11 +155,12 @@ const deleteChat = async (chatId: string, event: Event) => {
         if (result.isSuccess) {
             chats.value = chats.value.filter(chat => chat.uid !== chatId);
             chatsWithLastMessage.value = chatsWithLastMessage.value.filter(chat => chat.uid !== chatId);
+            notification.deleted('Chat deleted successfully');
         } else {
-            showError(result.responseMessage || 'Failed to delete chat');
+            notification.error(result.responseMessage || 'Failed to delete chat');
         }
     } catch (error) {
-        showError('Error deleting chat');
+        notification.error('Error deleting chat');
     }
 };
 
@@ -229,11 +222,6 @@ onMounted(async () => {
                     <button class="btn btn-primary" @click="router.push('/chat/new')">
                         New Chat
                     </button>
-                </div>
-
-                <div v-if="errorMessage" class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
-                    {{ errorMessage }}
-                    <button type="button" class="btn-close" @click="clearError" aria-label="Close"></button>
                 </div>
 
                 <div v-if="loading" class="d-flex justify-content-center align-items-center py-5">

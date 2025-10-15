@@ -4,6 +4,7 @@ import {useRouter} from 'vue-router';
 import {services} from '../../services/api';
 import type {PostBo, PostFilter} from '../../types/post';
 import { useAuthStore } from '../../stores/auth-store';
+import { useNotification } from '../../composables/use-notification.ts';
 
 type SortOption = 'newest' | 'oldest' | 'title-asc' | 'title-desc';
 
@@ -22,21 +23,12 @@ const props = withDefaults(defineProps<Props>(), {
 
 const router = useRouter();
 const authStore = useAuthStore();
+const notification = useNotification();
 const currentUserUid = computed(() => authStore.userId.value || '');
 
 const posts = ref<PostBo[]>([]);
 const loading = ref(false);
-const errorMessage = ref<string>('');
 const displayNames = ref<Map<string, string>>(new Map());
-
-const clearError = () => {
-    errorMessage.value = '';
-};
-
-const showError = (message: string) => {
-    errorMessage.value = message;
-    setTimeout(clearError, 5000);
-};
 
 const filteredPosts = computed(() => {
     let filtered = [...posts.value];
@@ -91,10 +83,10 @@ const loadPosts = async () => {
                 }
             }
         } else {
-            showError(result.responseMessage || 'Failed to load posts');
+            notification.error(result.responseMessage || 'Failed to load posts');
         }
     } catch (error) {
-        showError('Error loading posts');
+        notification.error('Error loading posts');
     } finally {
         loading.value = false;
     }
@@ -127,7 +119,7 @@ const sendDirectMessage = async (post: PostBo, event: Event) => {
     event.stopPropagation();
 
     if (!currentUserUid.value) {
-        showError('Please log in to send messages');
+        notification.warning('Please log in to send messages');
         return;
     }
 
@@ -144,10 +136,10 @@ const sendDirectMessage = async (post: PostBo, event: Event) => {
         if (chatResult.isSuccess && chatResult.data) {
             router.push(`/chat/${chatResult.data.uid}`);
         } else {
-            showError(chatResult.responseMessage || 'Failed to open chat');
+            notification.error(chatResult.responseMessage || 'Failed to open chat');
         }
     } catch (err) {
-        showError('An error occurred while opening the chat');
+        notification.error('An error occurred while opening the chat');
     }
 };
 
@@ -162,11 +154,6 @@ watch([() => props.searchQuery, () => props.filterTags, () => props.sortBy], () 
 
 <template>
     <div class="w-100">
-        <div v-if="errorMessage" class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
-            {{ errorMessage }}
-            <button type="button" class="btn-close" @click="clearError" aria-label="Close"></button>
-        </div>
-
         <div v-if="loading" class="d-flex justify-content-center align-items-center py-5">
             <div class="text-center">
                 <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">

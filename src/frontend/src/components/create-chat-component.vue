@@ -3,36 +3,37 @@ import {ref} from 'vue';
 import {useRouter} from 'vue-router';
 import {services} from '../services/api';
 import { useAuthStore } from '../stores/auth-store';
+import { useNotification } from '../composables/use-notification.ts';
 
 const router = useRouter();
 const authStore = useAuthStore();
+const notification = useNotification();
 
 const otherUserMailOrName = ref('');
 const creating = ref(false);
-const error = ref('');
 
 const createChat = async () => {
     if (!otherUserMailOrName.value.trim()) {
-        error.value = 'Please enter a user ID';
+        notification.warning('Please enter a user ID');
         return;
     }
 
     creating.value = true;
-    error.value = '';
 
     try {
         const currentUserUid = authStore.userId.value || '';
         
         if (!currentUserUid) {
-            error.value = 'You must be logged in to create a chat';
+            notification.error('You must be logged in to create a chat');
             creating.value = false;
+            router.push('/login');
             return;
         }
 
         const userId = await services.users.getUserIdByUsernameOrEmail(otherUserMailOrName.value.trim());
         
         if (!userId.isSuccess || !userId.data) {
-            error.value = 'User not found';
+            notification.warning('User not found');
             creating.value = false;
             return;
         }
@@ -45,10 +46,10 @@ const createChat = async () => {
         if (chatResult.isSuccess && chatResult.data) {
             router.push(`/chat/${chatResult.data.uid}`);
         } else {
-            error.value = chatResult.responseMessage || 'Failed to open chat';
+            notification.error(chatResult.responseMessage || 'Failed to open chat');
         }
     } catch (err) {
-        error.value = 'An error occurred while opening the chat';
+        notification.error('An error occurred while opening the chat');
     } finally {
         creating.value = false;
     }
@@ -76,14 +77,10 @@ const cancel = () => {
                                     v-model="otherUserMailOrName"
                                     type="text"
                                     class="form-control"
-                                    :class="{'is-invalid': error}"
                                     placeholder="Username or Email"
                                     :disabled="creating"
                                     required
                                 />
-                                <div v-if="error" class="invalid-feedback d-block">
-                                    {{ error }}
-                                </div>
                                 <div class="form-text">
                                     Enter the username of an activist or the email of a journalist to start a chat.
                                 </div>

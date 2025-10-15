@@ -6,6 +6,7 @@ using Interface;
 using Microsoft.EntityFrameworkCore;
 using Shared.BusinessObjects;
 using Shared.DataTransferObjects;
+using Hermes.SituationRoom.Shared.Exceptions;
 
 public sealed class ActivistRepository(IHermessituationRoomContext context, IUserRepository userRepository)
     : IActivistRepository
@@ -13,6 +14,21 @@ public sealed class ActivistRepository(IHermessituationRoomContext context, IUse
     public async Task<Guid> AddAsync(ActivistBo activistBo)
     {
         ArgumentNullException.ThrowIfNull(activistBo);
+
+        if (string.IsNullOrWhiteSpace(activistBo.UserName))
+        {
+            throw new ValidationBusinessException("UserName", "Username is required for activists.");
+        }
+
+        var existingActivist = await context.Activists
+            .AsNoTracking()
+            .FirstOrDefaultAsync(a => a.Username == activistBo.UserName);
+
+        if (existingActivist is not null)
+        {
+            throw new DuplicateResourceException("Activist", activistBo.UserName, 
+                "An activist with this username already exists.");
+        }
 
         var userUid = await userRepository.AddAsync(activistBo);
 
@@ -40,7 +56,7 @@ public sealed class ActivistRepository(IHermessituationRoomContext context, IUse
                            .AsNoTracking()
                            .Include(a => a.UserU)
                            .FirstOrDefaultAsync(a => a.UserUid == activistUid)
-                       ?? throw new KeyNotFoundException($"Activist with UID {activistUid} was not found.")
+                       ?? throw new ResourceNotFoundException("Activist", activistUid.ToString())
         );
     }
     
@@ -85,7 +101,35 @@ public sealed class ActivistRepository(IHermessituationRoomContext context, IUse
                            .AsTracking()
                            .Include(a => a.UserU)
                            .FirstOrDefaultAsync(a => a.UserUid == updatedActivist.Uid)
-                       ?? throw new KeyNotFoundException($"Activist with UID {updatedActivist.Uid} was not found.");
+                       ?? throw new ResourceNotFoundException("Activist", updatedActivist.Uid.ToString());
+
+        if (!string.IsNullOrWhiteSpace(updatedActivist.UserName) && 
+            activist.Username != updatedActivist.UserName)
+        {
+            var existingActivist = await context.Activists
+                .AsNoTracking()
+                .FirstOrDefaultAsync(a => a.Username == updatedActivist.UserName && a.UserUid != updatedActivist.Uid);
+
+            if (existingActivist is not null)
+            {
+                throw new DuplicateResourceException("Activist", updatedActivist.UserName, 
+                    "An activist with this username already exists.");
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(updatedActivist.EmailAddress) &&
+            activist.UserU.EmailAddress != updatedActivist.EmailAddress)
+        {
+            var existingUserWithEmail = await context.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.EmailAddress == updatedActivist.EmailAddress && u.Uid != updatedActivist.Uid);
+
+            if (existingUserWithEmail is not null)
+            {
+                throw new DuplicateResourceException("User", updatedActivist.EmailAddress, 
+                    "A user with this email address already exists.");
+            }
+        }
 
         activist.UserU.FirstName = updatedActivist.FirstName;
         activist.UserU.LastName = updatedActivist.LastName;
@@ -111,7 +155,7 @@ public sealed class ActivistRepository(IHermessituationRoomContext context, IUse
                            .AsTracking()
                            .Include(a => a.UserU)
                            .FirstOrDefaultAsync(a => a.UserUid == activistUid)
-                       ?? throw new KeyNotFoundException($"Activist with UID {activistUid} was not found.");
+                       ?? throw new ResourceNotFoundException("Activist", activistUid.ToString());
 
         activist.IsFirstNameVisible = updateActivistPrivacyLevelDto.IsFirstNameVisible;
         activist.IsLastNameVisible = updateActivistPrivacyLevelDto.IsLastNameVisible;

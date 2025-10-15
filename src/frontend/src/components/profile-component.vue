@@ -4,14 +4,15 @@ import { useRoute, useRouter } from 'vue-router';
 import { services } from '../services/api';
 import type { UserProfileBo } from '../types/user';
 import { useAuthStore } from '../stores/auth-store';
+import { useNotification } from '../composables/use-notification.ts';
 
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
+const notification = useNotification();
 
 const userProfile = ref<UserProfileBo | null>(null);
 const loading = ref(false);
-const error = ref<string | null>(null);
 
 const isOwnProfile = computed(() => {
     const userId = route.query.id as string;
@@ -32,12 +33,11 @@ const loadUser = async () => {
     const consumerId = authStore.userId.value || '';
 
     if (!userId) {
-        error.value = 'User ID not found';
+        notification.error('User ID not found');
         return;
     }
 
     loading.value = true;
-    error.value = null;
     userProfile.value = null;
     
     try {
@@ -45,10 +45,10 @@ const loadUser = async () => {
         if (result.isSuccess && result.data) {
             userProfile.value = result.data;
         } else {
-            error.value = result.responseMessage || 'Failed to load user profile';
+            notification.error(result.responseMessage || 'Failed to load user profile');
         }
     } catch (err) {
-        error.value = 'Error loading user profile';
+        notification.error('Error loading user profile');
         console.error('Error loading user profile:', err);
     } finally {
         loading.value = false;
@@ -76,14 +76,6 @@ watch(() => route.query.id, () => {
                             <span class="visually-hidden">Loading...</span>
                         </div>
                         <div class="text-muted">Loading profile...</div>
-                    </div>
-                </div>
-
-                <div v-else-if="error" class="card">
-                    <div class="card-body text-center p-5">
-                        <i class="fas fa-exclamation-triangle mb-4 text-danger" style="font-size: 3rem;"></i>
-                        <h3 class="card-title">Error Loading Profile</h3>
-                        <p class="card-text text-muted">{{ error }}</p>
                     </div>
                 </div>
 

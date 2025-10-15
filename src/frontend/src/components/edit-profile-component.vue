@@ -4,16 +4,16 @@ import { useRouter } from 'vue-router';
 import { services } from '../services/api';
 import type {UserProfileBo, ActivistBo, JournalistBo} from '../types/user';
 import { useAuthStore } from '../stores/auth-store';
+import { useNotification } from '../composables/use-notification.ts';
 
 const router = useRouter();
 const authStore = useAuthStore();
+const notification = useNotification();
 
 const userProfile = ref<UserProfileBo | null>(null);
 const activistPrivacy = ref<ActivistBo | null>(null);
 const loading = ref(false);
 const saving = ref(false);
-const error = ref<string | null>(null);
-const successMessage = ref<string | null>(null);
 
 const firstName = ref('');
 const lastName = ref('');
@@ -37,7 +37,7 @@ const loadProfile = async () => {
     const userId = authStore.userId.value || '';
 
     if (!userId) {
-        error.value = 'You must be logged in to edit your profile';
+        notification.error('You must be logged in to edit your profile');
         router.push('/login');
         return;
     }
@@ -64,10 +64,10 @@ const loadProfile = async () => {
                 }
             }
         } else {
-            error.value = result.responseMessage || 'Failed to load profile';
+            notification.error(result.responseMessage || 'Failed to load profile');
         }
     } catch (err) {
-        error.value = 'Error loading profile';
+        notification.error('Error loading profile');
         console.error('Error loading profile:', err);
     } finally {
         loading.value = false;
@@ -78,20 +78,18 @@ const saveProfile = async () => {
     const userId = authStore.userId.value || '';
     
     if (!userId) {
-        error.value = 'You must be logged in';
+        notification.error('You must be logged in');
         return;
     }
 
     if (isJournalist.value) {
         if (!firstName.value.trim() || !lastName.value.trim() || !emailAddress.value.trim()) {
-            error.value = 'First Name, Last Name, and Email are required for journalists';
+            notification.warning('First Name, Last Name, and Email are required for journalists');
             return;
         }
     }
 
     saving.value = true;
-    error.value = null;
-    successMessage.value = null;
 
     try {
         let result;
@@ -122,23 +120,23 @@ const saveProfile = async () => {
 
             result = await services.users.updateJournalist(userId, journalistData);
         } else {
-            error.value = 'Unable to determine user type';
+            notification.error('Unable to determine user type');
             saving.value = false;
             return;
         }
 
         if (!result.isSuccess) {
-            error.value = result.responseMessage || 'Failed to update profile';
+            notification.error(result.responseMessage || 'Failed to update profile');
             saving.value = false;
             return;
         }
 
-        successMessage.value = 'Profile updated successfully!';
+        notification.updated('Profile updated successfully!');
         setTimeout(() => {
             router.push({ path: '/profile', query: { id: userId } });
         }, 1500);
     } catch (err) {
-        error.value = 'Error saving profile';
+        notification.error('Error saving profile');
         console.error('Error saving profile:', err);
     } finally {
         saving.value = false;
@@ -178,18 +176,6 @@ onMounted(() => {
                     </div>
 
                     <div class="card-body p-4">
-                        <div v-if="successMessage" class="alert alert-success alert-dismissible fade show" role="alert">
-                            <i class="fas fa-check-circle me-2"></i>
-                            {{ successMessage }}
-                            <button type="button" class="btn-close" @click="successMessage = null"></button>
-                        </div>
-
-                        <div v-if="error" class="alert alert-danger alert-dismissible fade show" role="alert">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            {{ error }}
-                            <button type="button" class="btn-close" @click="error = null"></button>
-                        </div>
-
                         <div class="text-center mb-4">
                             <span v-if="isActivist" class="badge border border-dark text-dark fs-6 px-3 py-2">
                                 <i class="fas fa-bullhorn me-2"></i>

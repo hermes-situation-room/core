@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
+import { watch } from "vue";
 import MainPostsComponent from "../components/main-posts-component.vue";
 import JournalistPostsComponent from "../components/journalist-posts-component.vue";
 import ActivistPostsComponent from "../components/activist-posts-component.vue";
@@ -89,8 +90,20 @@ const router = createRouter({
     ],
 });
 
-router.beforeEach((to, _, next) => {
+router.beforeEach(async (to, _, next) => {
     const authStore = useAuthStore();
+    
+    if (authStore.isLoading.value) {
+        await new Promise(resolve => {
+            const unwatch = watch(authStore.isLoading, (loading) => {
+                if (!loading) {
+                    unwatch();
+                    resolve(void 0);
+                }
+            });
+        });
+    }
+    
     const isAuthenticated = authStore.isAuthenticated.value;
 
     if (to.meta.requiresAuth && !isAuthenticated) {
