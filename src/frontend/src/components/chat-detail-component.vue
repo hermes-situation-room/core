@@ -76,7 +76,7 @@ const loadMessages = async (chatId: string) => {
                     chatUid: chatId,
                     senderUid: msg.senderUid || '',
                     content: msg.content || '',
-                    timestamp: msg.timestamp
+                    timestamp: msg.timestamp || new Date().toISOString()
                 }))
                 .sort((a, b) => {
                     const dateA = new Date(a.timestamp);
