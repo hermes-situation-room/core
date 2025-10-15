@@ -316,11 +316,8 @@ onMounted(() => {
                                     Edit Post
                                 </button>
                             </div>
-                            <span v-if="currentUserUid && post.creatorUid === currentUserUid" class="badge bg-secondary">
-                                Your Post
-                            </span>
                             <RouterLink 
-                                v-else-if="!currentUserUid"
+                                v-if="!currentUserUid"
                                 to="/login"
                                 class="btn btn-outline-primary btn-sm"
                             >
