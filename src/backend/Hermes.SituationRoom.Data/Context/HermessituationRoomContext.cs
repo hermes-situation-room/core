@@ -255,9 +255,7 @@ public partial class HermessituationRoomContext : DbContext
             entity.HasIndex(e => e.UserId, "IX_UserChatReadStatus_User");
 
             entity.Property(e => e.Uid)
-            entity.Property(e => e.Uid)
                 .ValueGeneratedNever()
-                .HasColumnName("UID");
                 .HasColumnName("UID");
             entity.Property(e => e.ChatId).HasColumnName("ChatID");
             entity.Property(e => e.ReadTime).HasColumnType("datetime");
