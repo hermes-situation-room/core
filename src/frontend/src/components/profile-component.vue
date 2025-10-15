@@ -56,6 +56,10 @@ const loadUser = async () => {
     }
 };
 
+const goBack = () => {
+    router.back();
+};
+
 const sendDirectMessage = async () => {
     if (!currentUserUid.value) {
         notification.warning('Please log in to send messages');
@@ -102,6 +106,10 @@ watch(() => route.query.id, () => {
     <div class="container py-4">
         <div class="row justify-content-center">
             <div class="col-12 col-lg-8 col-xl-6">
+                <button @click="goBack" class="btn btn-outline-secondary mb-4">
+                    <i class="fas fa-arrow-left me-2"></i>
+                    Back
+                </button>
 
                 <div v-if="loading" class="d-flex justify-content-center align-items-center py-5">
                     <div class="text-center">
