@@ -13,6 +13,7 @@ const post = ref<PostBo | null>(null);
 const loading = ref(false);
 const error = ref<string | null>(null);
 const creatingChat = ref(false);
+const creatorDisplayName = ref<string>('');
 
 const currentUserUid = computed(() => authStore.userId.value || '');
 
@@ -42,6 +43,14 @@ const loadPost = async () => {
         const result = await services.posts.getPostById(postId);
         if (result.isSuccess && result.data) {
             post.value = result.data;
+            
+            // Load display name for the creator
+            if (post.value.creatorUid && post.value.creatorUid !== currentUserUid.value) {
+                const displayNameResult = await services.users.getDisplayName(post.value.creatorUid);
+                if (displayNameResult.isSuccess && displayNameResult.data) {
+                    creatorDisplayName.value = displayNameResult.data;
+                }
+            }
         } else {
             error.value = result.responseMessage || 'Failed to load post';
         }
@@ -164,7 +173,17 @@ onMounted(() => {
                         <div class="d-flex justify-content-between align-items-center">
                             <div class="text-muted small d-flex align-items-center">
                             <i class="fas fa-user me-2"></i>
-                            Created by: {{ post.creatorUid }}
+                            <span v-if="currentUserUid && post.creatorUid === currentUserUid">Created by: You</span>
+                            <span v-else>
+                                Created by: 
+                                <a 
+                                    href="#" 
+                                    class="text-primary text-decoration-none"
+                                    @click.prevent="router.push({ path: '/profile', query: { id: post.creatorUid } })"
+                                >
+                                    {{ creatorDisplayName || post.creatorUid }}
+                                </a>
+                            </span>
                             </div>
                             <div class="d-flex gap-2">
                                 <button 

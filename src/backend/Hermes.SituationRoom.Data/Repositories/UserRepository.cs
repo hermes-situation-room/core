@@ -58,13 +58,33 @@ public sealed class UserRepository(IHermessituationRoomContext context) : IUserR
             throw new ArgumentException("GUID must not be empty.", nameof(userId));
 
         var userProfileBo = MapToUserProfileBo(await context.Users
-                           .AsNoTracking()
-                           .FirstOrDefaultAsync(u => u.Uid == userId)
-                       ?? throw new KeyNotFoundException($"User with UID {userId} was not found."));
+                                                   .AsNoTracking()
+                                                   .FirstOrDefaultAsync(u => u.Uid == userId)
+                                               ?? throw new KeyNotFoundException(
+                                                   $"User with UID {userId} was not found."
+                                               )
+        );
 
         userProfileBo = await ApplyUserPrivacyLevel(userProfileBo, userId, consumerId);
 
         return userProfileBo;
+    }
+
+    public async Task<string> GetDisplayNameAsync(Guid userId)
+    {
+        if (userId == Guid.Empty)
+            throw new ArgumentException("GUID must not be empty.", nameof(userId));
+
+        var user = await context.Users
+                       .AsNoTracking()
+                       .FirstOrDefaultAsync(u => u.Uid == userId)
+                   ?? throw new KeyNotFoundException($"User with UID {userId} was not found.");
+
+        var activist = await context.Activists
+            .AsNoTracking()
+            .FirstOrDefaultAsync(a => a.UserUid == userId);
+
+        return activist != null ? activist.Username : $"{user.FirstName} {user.LastName}";
     }
 
     public async Task<IReadOnlyList<UserBo>> GetAllUserBosAsync() => await context.Users

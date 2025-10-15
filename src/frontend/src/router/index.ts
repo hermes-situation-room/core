@@ -10,6 +10,7 @@ import ChatsListComponent from "../components/chats-list-component.vue";
 import ChatDetailComponent from "../components/chat-detail-component.vue";
 import CreateChatComponent from "../components/create-chat-component.vue";
 import ProfileComponent from "../components/profile-component.vue";
+import EditProfileComponent from "../components/edit-profile-component.vue";
 import { useAuthStore } from "../stores/auth-store";
 
 const router = createRouter({
@@ -78,6 +79,11 @@ const router = createRouter({
             path: "/profile",
             name: "Profile",
             component: ProfileComponent,
+        },
+        {
+            path: "/profile/edit",
+            name: "EditProfile",
+            component: EditProfileComponent,
             meta: { requiresAuth: true },
         },
     ],

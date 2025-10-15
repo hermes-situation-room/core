@@ -12,6 +12,8 @@ public class UserService(IUserRepository userRepository, IEncryptionService encr
 
     public Task<UserProfileBo> GetUserProfileAsync(Guid userUid, Guid consumerUid) => userRepository.GetUserProfileBoAsync(userUid, consumerUid);
 
+    public Task<string> GetDisplayNameAsync(Guid userUid) => userRepository.GetDisplayNameAsync(userUid);
+
     public Task<IReadOnlyList<UserBo>> GetUsersAsync() => userRepository.GetAllUserBosAsync();
 
     public Task<Guid> CreateUserAsync(UserBo userBo) 
