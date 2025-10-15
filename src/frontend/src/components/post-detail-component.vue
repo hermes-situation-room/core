@@ -52,7 +52,7 @@ const loadPost = async () => {
             if (post.value.creatorUid && post.value.creatorUid !== currentUserUid.value) {
                 const displayNameResult = await services.users.getDisplayName(post.value.creatorUid);
                 if (displayNameResult.isSuccess && displayNameResult.data) {
-                    creatorDisplayName.value = displayNameResult.data.displayName;
+                    creatorDisplayName.value = displayNameResult.data;
                 }
             }
         } else {
