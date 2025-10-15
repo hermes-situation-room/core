@@ -15,6 +15,7 @@ const loading = ref(false);
 const loadingComments = ref(false);
 const error = ref<string | null>(null);
 const creatingChat = ref(false);
+const creatorDisplayName = ref<string>('');
 const commentContent = ref()
 const comments = ref<CommentBo[] | null>(null);
 
@@ -23,6 +24,16 @@ const currentUserUid = computed(() => authStore.userId.value || '');
 const canSendMessage = computed(() => {
     return post.value && currentUserUid.value && post.value.creatorUid !== currentUserUid.value;
 });
+
+const isPostOwner = computed(() => {
+    return post.value && currentUserUid.value && post.value.creatorUid === currentUserUid.value;
+});
+
+const editPost = () => {
+    if (post.value) {
+        router.push(`/post/${post.value.uid}/edit`);
+    }
+};
 
 const loadPost = async () => {
     const postId = route.params.id as string;
@@ -36,6 +47,14 @@ const loadPost = async () => {
         const result = await services.posts.getPostById(postId);
         if (result.isSuccess && result.data) {
             post.value = result.data;
+            
+            // Load display name for the creator
+            if (post.value.creatorUid && post.value.creatorUid !== currentUserUid.value) {
+                const displayNameResult = await services.users.getDisplayName(post.value.creatorUid);
+                if (displayNameResult.isSuccess && displayNameResult.data) {
+                    creatorDisplayName.value = displayNameResult.data.displayName;
+                }
+            }
         } else {
             error.value = result.responseMessage || 'Failed to load post';
         }
@@ -203,7 +222,45 @@ onMounted(() => {
                         <div class="d-flex justify-content-between align-items-center">
                             <div class="text-muted small d-flex align-items-center">
                             <i class="fas fa-user me-2"></i>
-                            Created by: {{ post.creatorUid }}
+                            <span v-if="currentUserUid && post.creatorUid === currentUserUid">Created by: You</span>
+                            <span v-else>
+                                Created by: 
+                                <a 
+                                    href="#" 
+                                    class="text-primary text-decoration-none"
+                                    @click.prevent="router.push({ path: '/profile', query: { id: post.creatorUid } })"
+                                >
+                                    {{ creatorDisplayName || post.creatorUid }}
+                                </a>
+                            </span>
+                            </div>
+                                                        <div class="d-flex gap-2">
+                                <button 
+                                    v-if="canSendMessage"
+                                    class="btn btn-primary btn-sm"
+                                    :disabled="creatingChat"
+                                    @click="sendDirectMessage"
+                                >
+                                    <span v-if="creatingChat" class="spinner-border spinner-border-sm me-1"></span>
+                                    <i v-else class="fas fa-comment me-1"></i>
+                                    Direct Message
+                                </button>
+                                <button
+                                    v-if="isPostOwner"
+                                    class="btn btn-warning btn-sm"
+                                    @click="editPost"
+                                >
+                                    <i class="fas fa-edit me-1"></i>
+                                    Edit Post
+                                </button>
+                                <RouterLink 
+                                    v-if="!currentUserUid"
+                                    to="/login"
+                                    class="btn btn-outline-primary btn-sm"
+                                >
+                                    <i class="fas fa-sign-in-alt me-1"></i>
+                                    Login to Message
+                                </RouterLink>
                             </div>
                             <button 
                                 v-if="canSendMessage"

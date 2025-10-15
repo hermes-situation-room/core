@@ -6,7 +6,7 @@ using Interface;
 using Microsoft.EntityFrameworkCore;
 using Shared.BusinessObjects;
 
-public sealed class UserRepository(IHermessituationRoomContext context, IPrivacyLevelPersonalRepository privacyLevelPersonalRepository) : IUserRepository
+public sealed class UserRepository(IHermessituationRoomContext context) : IUserRepository
 {
     public async Task<Guid> AddAsync(UserBo userBo)
     {
@@ -42,7 +42,7 @@ public sealed class UserRepository(IHermessituationRoomContext context, IPrivacy
 
     public async Task<UserBo> GetUserBoByEmailAsync(string emailAddress)
     {
-        if(string.IsNullOrWhiteSpace(emailAddress))
+        if (string.IsNullOrWhiteSpace(emailAddress))
             throw new ArgumentException("Email address must not be empty.", nameof(emailAddress));
 
         return MapToBo(await context.Users
@@ -52,19 +52,39 @@ public sealed class UserRepository(IHermessituationRoomContext context, IPrivacy
         );
     }
 
-    public async Task<UserBo> GetUserProfileBoAsync(Guid userId, Guid consumerId)
+    public async Task<UserProfileBo> GetUserProfileBoAsync(Guid userId, Guid consumerId)
     {
         if (userId == Guid.Empty)
             throw new ArgumentException("GUID must not be empty.", nameof(userId));
 
-        var userBo = MapToBo(await context.Users
-                           .AsNoTracking()
-                           .FirstOrDefaultAsync(u => u.Uid == userId)
-                       ?? throw new KeyNotFoundException($"User with UID {userId} was not found."));
+        var userProfileBo = MapToUserProfileBo(await context.Users
+                                                   .AsNoTracking()
+                                                   .FirstOrDefaultAsync(u => u.Uid == userId)
+                                               ?? throw new KeyNotFoundException(
+                                                   $"User with UID {userId} was not found."
+                                               )
+        );
 
-        userBo = await ApplyUserPrivacyLevel(userBo, userId, consumerId);
+        userProfileBo = await ApplyUserPrivacyLevel(userProfileBo, userId, consumerId);
 
-        return userBo;
+        return userProfileBo;
+    }
+
+    public async Task<string> GetDisplayNameAsync(Guid userId)
+    {
+        if (userId == Guid.Empty)
+            throw new ArgumentException("GUID must not be empty.", nameof(userId));
+
+        var user = await context.Users
+                       .AsNoTracking()
+                       .FirstOrDefaultAsync(u => u.Uid == userId)
+                   ?? throw new KeyNotFoundException($"User with UID {userId} was not found.");
+
+        var activist = await context.Activists
+            .AsNoTracking()
+            .FirstOrDefaultAsync(a => a.UserUid == userId);
+
+        return activist != null ? activist.Username : $"{user.FirstName} {user.LastName}";
     }
 
     public async Task<IReadOnlyList<UserBo>> GetAllUserBosAsync() => await context.Users
@@ -114,37 +134,68 @@ public sealed class UserRepository(IHermessituationRoomContext context, IPrivacy
         user.EmailAddress
     );
 
+    private static UserProfileBo MapToUserProfileBo(User user) => new(user.Uid,
+        user.FirstName,
+        user.LastName,
+        user.EmailAddress,
+        null,
+        null
+    );
 
-    private async Task<UserBo> ApplyUserPrivacyLevel(UserBo userBo, Guid userId, Guid consumerId)
+    private async Task<UserProfileBo> ApplyUserPrivacyLevel(UserProfileBo userProfileBo, Guid userId, Guid consumerId)
     {
-        if (consumerId != Guid.Empty)
-        {
-            var privacyLevel = await privacyLevelPersonalRepository.GetPrivacyLevelPersonalBoAsync(userId, consumerId);
+        var activist = await context.Activists
+            .AsNoTracking()
+            .FirstOrDefaultAsync(a => a.UserUid == userId);
 
-            userBo = userBo with
+        if (activist is null)
+        {
+            var journalist = await context.Journalists
+                .AsNoTracking()
+                .FirstOrDefaultAsync(j => j.UserUid == userId);
+
+            if (journalist is not null)
             {
-                FirstName = privacyLevel.IsFirstNameVisible ? userBo.FirstName : null,
-                LastName = privacyLevel.IsLastNameVisible ? userBo.LastName : null,
-                EmailAddress = privacyLevel.IsEmailVisible ? userBo.EmailAddress : null
+                userProfileBo = userProfileBo with { Employer = journalist.Employer };
+            }
+
+            return userProfileBo;
+        }
+
+        if (userId == consumerId)
+        {
+            userProfileBo = userProfileBo with
+            {
+                UserName = activist.Username,
+                FirstName = userProfileBo.FirstName,
+                LastName = userProfileBo.LastName,
+                EmailAddress = userProfileBo.EmailAddress
             };
         }
         else
         {
-            var activist = await context.Activists
+            var privacyLevel = await context.PrivacyLevelPersonals
                 .AsNoTracking()
-                .FirstOrDefaultAsync(a => a.UserUid == userId);
+                .FirstOrDefaultAsync(p => p.OwnerUid == userId && p.ConsumerUid == consumerId);
 
-            if (activist is not null)
-            {
-                userBo = userBo with
+            if (privacyLevel is not null)
+                userProfileBo = userProfileBo with
                 {
-                    FirstName = activist.IsFirstNameVisible ? userBo.FirstName : null,
-                    LastName = activist.IsLastNameVisible ? userBo.LastName : null,
-                    EmailAddress = activist.IsEmailVisible ? userBo.EmailAddress : null
+                    UserName = activist.Username,
+                    FirstName = privacyLevel.IsFirstNameVisible ? userProfileBo.FirstName : "[REDACTED]",
+                    LastName = privacyLevel.IsLastNameVisible ? userProfileBo.LastName : "[REDACTED]",
+                    EmailAddress = privacyLevel.IsEmailVisible ? userProfileBo.EmailAddress : "[REDACTED]"
                 };
-            }
+            else
+                userProfileBo = userProfileBo with
+                {
+                    UserName = activist.Username,
+                    FirstName = activist.IsFirstNameVisible ? userProfileBo.FirstName : "[REDACTED]",
+                    LastName = activist.IsLastNameVisible ? userProfileBo.LastName : "[REDACTED]",
+                    EmailAddress = activist.IsEmailVisible ? userProfileBo.EmailAddress : "[REDACTED]"
+                };
         }
 
-        return userBo;
+        return userProfileBo;
     }
 }

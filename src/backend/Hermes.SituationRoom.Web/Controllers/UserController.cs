@@ -26,6 +26,13 @@ public class UserController(IControllerInfrastructure infra, IUserService userSe
     public async Task<ActionResult<UserBo>> GetUserProfile([FromQuery] Guid uid, [FromQuery] Guid consumerUid) =>
         Ok(await userService.GetUserProfileAsync(uid, consumerUid));
 
+    [HttpGet("internal/user/display-name/{uid:guid}")]
+    [AllowAnonymous]
+    [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_USER])]
+    [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<string>> GetDisplayName(Guid uid) => Ok(await userService.GetDisplayNameAsync(uid));
+
     [HttpGet("internal/user/")]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_USER])]
     [ProducesResponseType(typeof(IReadOnlyList<UserBo>), StatusCodes.Status200OK)]

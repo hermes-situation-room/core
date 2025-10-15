@@ -10,7 +10,9 @@ public class UserService(IUserRepository userRepository, IEncryptionService encr
 {
     public Task<UserBo> GetUserAsync(Guid userUid) => userRepository.GetUserBoAsync(userUid);
 
-    public Task<UserBo> GetUserProfileAsync(Guid userUid, Guid consumerUid) => userRepository.GetUserProfileBoAsync(userUid, consumerUid);
+    public Task<UserProfileBo> GetUserProfileAsync(Guid userUid, Guid consumerUid) => userRepository.GetUserProfileBoAsync(userUid, consumerUid);
+
+    public Task<string> GetDisplayNameAsync(Guid userUid) => userRepository.GetDisplayNameAsync(userUid);
 
     public Task<IReadOnlyList<UserBo>> GetUsersAsync() => userRepository.GetAllUserBosAsync();
 

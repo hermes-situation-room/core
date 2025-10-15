@@ -1,3 +1,12 @@
+export interface UserProfileBo {
+    uid: string;
+    firstName?: string;
+    lastName?: string;
+    emailAddress?: string;
+    userName?: string;
+    employer?: string;
+}
+
 export interface ActivistBo {
     uid: string;
     password: string;
