@@ -8,10 +8,18 @@ using Interfaces;
 
 public class JournalistService(IJournalistRepository journalistRepository, IEncryptionService encryptionService) : IJournalistService
 {
-    public Task<JournalistBo> GetJournalistAsync(Guid journalistUid) =>
-        journalistRepository.GetJournalistBoAsync(journalistUid);
+    public async Task<JournalistBo> GetJournalistAsync(Guid journalistUid)
+    {
+        var journalist = await journalistRepository.GetJournalistBoAsync(journalistUid);
 
-    public Task<IReadOnlyList<JournalistBo>> GetJournalistsAsync() => journalistRepository.GetAllJournalistBosAsync();
+        return journalist with { Password = null, PasswordHash = null, PasswordSalt = null };
+    }
+
+    public async Task<IReadOnlyList<JournalistBo>> GetJournalistsAsync()
+    {
+        var journalists = await journalistRepository.GetAllJournalistBosAsync();
+        return [ ..journalists.Select(journalist => journalist with { Password = null, PasswordHash = null, PasswordSalt = null })];
+    }
 
     public Task<Guid> CreateJournalistAsync(JournalistBo journalistBo) 
     {
@@ -22,8 +30,10 @@ public class JournalistService(IJournalistRepository journalistRepository, IEncr
         return journalistRepository.AddAsync(journalistBo);
     }
 
-    public Task<JournalistBo> UpdateJournalistAsync(JournalistBo updatedJournalist) =>
-        journalistRepository.UpdateAsync(updatedJournalist);
+    public async Task<JournalistBo> UpdateJournalistAsync(JournalistBo updatedJournalist) {
+        var journalist = await journalistRepository.UpdateAsync(updatedJournalist);
+        return journalist with { Password = null, PasswordHash = null, PasswordSalt = null };
+    }
 
     public Task DeleteJournalistAsync(Guid journalistUid) => journalistRepository.DeleteAsync(journalistUid);
 }

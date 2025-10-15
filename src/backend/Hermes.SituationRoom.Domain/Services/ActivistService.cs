@@ -1,6 +1,5 @@
 ﻿namespace Hermes.SituationRoom.Domain.Services;
 
-using System.Security.Cryptography;
 using Hermes.SituationRoom.Data.Interface;
 using Hermes.SituationRoom.Shared.BusinessObjects;
 using Hermes.SituationRoom.Shared.DataTransferObjects; 
@@ -8,9 +7,19 @@ using Interfaces;
 
 public class ActivistService(IActivistRepository activistRepository, IEncryptionService encryptionService) : IActivistService
 {
-    public Task<ActivistBo> GetActivistAsync(Guid activistUid) => activistRepository.GetActivistBoAsync(activistUid);
+    public async Task<ActivistBo> GetActivistAsync(Guid activistUid)
+    {
+        var activist = await activistRepository.GetActivistBoAsync(activistUid);
 
-    public Task<IReadOnlyList<ActivistBo>> GetActivistsAsync() => activistRepository.GetAllActivistBosAsync();
+        return activist with { Password = null, PasswordHash = null, PasswordSalt = null };
+    }
+
+    public async Task<IReadOnlyList<ActivistBo>> GetActivistsAsync()
+    {
+        var activists = await activistRepository.GetAllActivistBosAsync();
+
+        return [.. activists.Select((activist) => activist with { Password = null, PasswordHash = null, PasswordSalt = null })];
+    } 
 
     public Task<Guid> CreateActivistAsync(ActivistBo activistBo) 
     {
@@ -24,11 +33,19 @@ public class ActivistService(IActivistRepository activistRepository, IEncryption
     public Task<Guid?> FindActivistIdByUsernameAsync(string username) =>
         activistRepository.FindActivistIdByUsernameAsync(username);
 
-    public Task<ActivistBo> UpdateActivistAsync(ActivistBo updatedActivist) =>
-        activistRepository.UpdateAsync(updatedActivist);
+    public async Task<ActivistBo> UpdateActivistAsync(ActivistBo updatedActivist)
+    {
+        var activist = await activistRepository.UpdateAsync(updatedActivist);
 
-    public Task<ActivistBo> UpdateActivistVisibilityAsync(Guid activistUid, UpdateActivistPrivacyLevelDto updateActivistPrivacyLevelDto) =>
-        activistRepository.UpdateActivistVisibilityAsync(activistUid, updateActivistPrivacyLevelDto);
+        return activist with { Password = null, PasswordHash = null, PasswordSalt = null };
+    }
+
+    public async Task<ActivistBo> UpdateActivistVisibilityAsync(Guid activistUid, UpdateActivistPrivacyLevelDto updateActivistPrivacyLevelDto)
+    {
+        var activist = await activistRepository.UpdateActivistVisibilityAsync(activistUid, updateActivistPrivacyLevelDto);
+
+        return activist with { Password = null, PasswordHash = null, PasswordSalt = null };
+    }
 
     public Task DeleteActivistAsync(Guid activistUid) => activistRepository.DeleteAsync(activistUid);
 }
