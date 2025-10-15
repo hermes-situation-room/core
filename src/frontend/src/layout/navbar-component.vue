@@ -68,14 +68,19 @@ const handleLogout = async () => {
         <nav class="navbar py-2 px-3" style="background-color: #F5F5F5;">
             <div class="container-fluid">
                 <div class="d-flex align-items-center justify-content-between w-100">
-                    <RouterLink to="/" class="navbar-brand d-flex align-items-center me-3">
-                        <img
-                            :src="logoUrl"
-                            alt="Situation Room logo"
-                            class="logo"
-                            style="height: 2.5rem; width: auto;"
-                        />
-                    </RouterLink>
+                    <div class="logo-wrapper">
+                        <RouterLink to="/" class="navbar-brand d-flex align-items-center me-3">
+                            <img
+                                :src="logoUrl"
+                                alt="Situation Room logo"
+                                class="logo"
+                                style="height: 2.5rem; width: auto;"
+                            />
+                        </RouterLink>
+                        <span v-if="authStore.isAuthenticated.value" class="badge bg-dark text-white px-2 py-1 d-none d-lg-inline">
+                            {{ authStore.userType.value === 'journalist' ? 'Journalist' : 'Activist' }}
+                        </span>
+                    </div>
 
                     <div class="flex-grow-1 text-center d-none d-md-block fw-bold fs-6 fs-lg-5">
                         {{ pageTitle }}
@@ -112,9 +117,6 @@ const handleLogout = async () => {
                                 <i class="fas fa-user"></i>
                                 <span class="d-none d-xl-inline ms-1">Profile</span>
                             </button>
-                            <span class="badge bg-dark text-white px-2 py-1 d-none d-lg-inline">
-                                {{ authStore.userType.value === 'journalist' ? 'Journalist' : 'Activist' }}
-                            </span>
                             <button 
                                 @click="handleLogout"
                                 class="btn btn-outline-danger btn-sm d-flex align-items-center"
@@ -262,6 +264,16 @@ const handleLogout = async () => {
         right: -10px;
         border-radius: 50px;
         text-decoration: none;
+    }
+}
+
+.logo-wrapper {
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+    .badge {
+        position: relative;
+        bottom: 0.325rem;
     }
 }
 
