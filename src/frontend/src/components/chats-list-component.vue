@@ -1,7 +1,7 @@
 ﻿<script setup lang="ts">
 import {onMounted, ref} from 'vue';
 import {useRouter} from 'vue-router';
-import {services} from '../services/api';
+import {services, sockets} from '../services/api';
 import type {ChatBo} from '../types/chat';
 import { useAuthStore } from '../stores/auth-store';
 
@@ -10,6 +10,7 @@ const authStore = useAuthStore();
 
 const chats = ref<ChatBo[]>([]);
 const chatsWithLastMessage = ref<Array<ChatBo & { lastMessageTime?: string, lastMessage?: string }>>([]);
+const unreadCounts = ref<Record<string, number>>({});
 const loading = ref(false);
 const currentUserUid = ref<string>('');
 const errorMessage = ref<string>('');
@@ -50,7 +51,10 @@ const loadChats = async () => {
                 }
             }
             
-            await loadChatsWithLastMessage();
+            await Promise.all([
+                loadChatsWithLastMessage(),
+                loadUnreadCounts()
+            ]);
         } else {
             showError(result.responseMessage || 'Failed to load chats');
         }
@@ -103,6 +107,34 @@ const loadChatsWithLastMessage = async () => {
             lastMessageTime: chat.uid,
             lastMessage: 'No messages yet'
         }));
+    }
+};
+
+const loadUnreadCounts = async () => {
+    try {
+        const counts: Record<string, number> = {};
+        await Promise.all(
+            chats.value.map(async (chat) => {
+                try {
+                    const result = await services.userChatMessageStatus.getUnreadMessageCountPerChat(
+                        currentUserUid.value,
+                        chat.uid
+                    );
+                    const normalizedChatId = chat.uid.toLowerCase();
+                    if (result.isSuccess && result.data) {
+                        counts[normalizedChatId] = result.data.countUnreadMessages;
+                    } else {
+                        counts[normalizedChatId] = 0;
+                    }
+                } catch (error) {
+                    counts[chat.uid.toLowerCase()] = 0;
+                }
+            })
+        );
+        unreadCounts.value = counts;
+        console.log('Loaded unread counts:', counts);
+    } catch (error) {
+        console.error('Error loading unread counts:', error);
     }
 };
 
@@ -167,8 +199,24 @@ const formatLastMessageTime = (timestamp?: string) => {
     }
 };
 
-onMounted(() => {
-    loadChats();
+const handleUnreadMessageUpdate = (chatId: string, count: number) => {
+    const normalizedChatId = chatId.toLowerCase();
+    unreadCounts.value[normalizedChatId] = count;
+};
+
+const isSocketConnected = ref(false);
+
+onMounted(async () => {
+    await loadChats();
+        try {
+        await sockets.hub.initialize();
+        sockets.hub.registerToEvent('NewUnreadChatMessage', handleUnreadMessageUpdate);
+        sockets.hub.joinMessaging();
+        isSocketConnected.value = true;
+    } catch (error) {
+        console.warn('Failed to connect to real-time messaging. Badge counts will not update automatically:', error);
+        isSocketConnected.value = false;
+    }
 });
 </script>
 
@@ -208,15 +256,23 @@ onMounted(() => {
                                 <div class="d-flex justify-content-between align-items-start">
                                     <div class="flex-grow-1">
                                         <div class="d-flex justify-content-between align-items-start mb-2">
-                                            <h5 class="card-title mb-0" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                                <a 
-                                                    href="#" 
-                                                    class="text-primary text-decoration-none"
-                                                    @click.prevent.stop="router.push({ path: '/profile', query: { id: getOtherUserUid(chat) } })"
+                                            <div class="d-flex align-items-center gap-2">
+                                                <h5 class="card-title mb-0" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                                    <a 
+                                                        href="#" 
+                                                        class="text-primary text-decoration-none"
+                                                        @click.prevent.stop="router.push({ path: '/profile', query: { id: getOtherUserUid(chat) } })"
+                                                    >
+                                                        {{ getDisplayName(chat) }}
+                                                    </a>
+                                                </h5>
+                                                <span 
+                                                    v-if="unreadCounts[chat.uid.toLowerCase()] && unreadCounts[chat.uid.toLowerCase()]! > 0" 
+                                                    class="badge bg-primary rounded-pill"
                                                 >
-                                                    {{ getDisplayName(chat) }}
-                                                </a>
-                                            </h5>
+                                                    {{ unreadCounts[chat.uid.toLowerCase()] }}
+                                                </span>
+                                            </div>
                                             <small v-if="chat.lastMessage !== 'No messages yet'" class="text-muted">{{ formatLastMessageTime(chat.lastMessageTime) }}</small>
                                         </div>
                                         <p class="card-text text-muted small mb-0" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">

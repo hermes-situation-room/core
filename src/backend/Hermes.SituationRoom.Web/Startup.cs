@@ -1,4 +1,4 @@
-﻿namespace Hermes.SituationRoom.Api;
+namespace Hermes.SituationRoom.Api;
 
 using Configurations;
 using Data.Context;
@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Middlewares;
 using Serilog;
+using Microsoft.AspNetCore.SignalR;
 
 public class Startup
 {
@@ -83,6 +84,8 @@ public class Startup
         services.RegisterDependencies(Configuration);
 
         services.AddSignalR();
+
+        services.AddSingleton<IUserIdProvider, NameIdentifierUserIdProvider>();
         
         services.AddCors(options =>
         {
