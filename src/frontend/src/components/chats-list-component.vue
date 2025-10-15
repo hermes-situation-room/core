@@ -50,6 +50,7 @@ const loadChats = async () => {
                     }
                 }
             }
+            
             await Promise.all([
                 loadChatsWithLastMessage(),
                 loadUnreadCounts()
@@ -256,16 +257,16 @@ onMounted(async () => {
                                     <div class="flex-grow-1">
                                         <div class="d-flex justify-content-between align-items-start mb-2">
                                             <div class="d-flex align-items-center gap-2">
-                                            <h5 class="card-title mb-0" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                                <a 
-                                                    href="#" 
-                                                    class="text-primary text-decoration-none"
-                                                    @click.prevent.stop="router.push({ path: '/profile', query: { id: getOtherUserUid(chat) } })"
-                                                >
-                                                    {{ getDisplayName(chat) }}
-                                                </a>
-                                            </h5>
-                                            <span 
+                                                <h5 class="card-title mb-0" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                                    <a 
+                                                        href="#" 
+                                                        class="text-primary text-decoration-none"
+                                                        @click.prevent.stop="router.push({ path: '/profile', query: { id: getOtherUserUid(chat) } })"
+                                                    >
+                                                        {{ getDisplayName(chat) }}
+                                                    </a>
+                                                </h5>
+                                                <span 
                                                     v-if="unreadCounts[chat.uid.toLowerCase()] && unreadCounts[chat.uid.toLowerCase()]! > 0" 
                                                     class="badge bg-primary rounded-pill"
                                                 >

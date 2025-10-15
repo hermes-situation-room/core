@@ -23,6 +23,7 @@ const messageInputRef = ref<HTMLInputElement | null>(null);
 const errorMessage = ref('');
 const otherUserDisplayName = ref<string>('');
 const isSocketConnected = ref(false);
+const otherUserDisplayName = ref<string>('');
 
 const clearError = () => {
     errorMessage.value = '';
