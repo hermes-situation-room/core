@@ -15,11 +15,8 @@ public class CommentService(ICommentRepository commentRepository) : ICommentServ
 
     public Task<CommentBo> UpdateCommentAsync(CommentBo updatedComment) => commentRepository.UpdateAsync(updatedComment);
 
-    public Task DeleteCommentAsync(Guid commentUid)
-    {
+    public Task DeleteCommentAsync(Guid commentUid) =>
         commentRepository.DeleteAsync(commentUid);
-        return Task.CompletedTask;
-    }
 
     private static CommentBo MapToBo(CreateCommentDto createCommentDto, DateTime timestamp) => new(createCommentDto.Uid,
         timestamp,

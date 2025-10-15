@@ -22,7 +22,7 @@ public interface IUserRepository
 
     Task<IReadOnlyList<UserBo>> GetAllUserBosAsync();
 
-    Task<UserBo> Update(UserBo updatedUser);
+    Task<UserBo> UpdateAsync(UserBo updatedUser);
 
-    Task Delete(Guid userUid);
+    Task DeleteAsync(Guid userUid);
 }
