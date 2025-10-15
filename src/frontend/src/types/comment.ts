@@ -4,6 +4,7 @@
     creatorUid: string;
     content: string;
     timeStamp: Date;
+    displayName: string;
 }
 
 export interface CreateCommentDto {
