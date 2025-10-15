@@ -25,6 +25,8 @@ public interface IHermessituationRoomContext : ICurrentDbContext
     DbSet<PrivacyLevelPersonal> PrivacyLevelPersonals { get; set; }
 
     DbSet<User> Users { get; set; }
+    
+    DbSet<UserChatReadStatus> UserChatReadStatuses { get; set; }
 
     /// <summary>
     /// We use this method and interface to wrap the DbSet.Local property. Local is based on the EF Core internal type

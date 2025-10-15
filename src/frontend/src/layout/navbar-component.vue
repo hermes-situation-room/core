@@ -4,6 +4,12 @@ import faviconUrl from '../assets/logo_situation_room_URL.png'
 import logoUrl from '../assets/logo_situation_room.png'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth-store'
+const props = defineProps({
+    totalUnreadMessages: {
+        type: Number,
+        required: false
+    },
+});
 
 const route = useRoute()
 const router = useRouter()
@@ -87,13 +93,18 @@ const handleLogout = async () => {
                                 <i class="fas fa-newspaper"></i>
                                 <span class="d-none d-xl-inline ms-1">Posts</span>
                             </button>
-                            <RouterLink 
-                                to="/chats" 
-                                class="btn btn-outline-secondary btn-sm d-flex align-items-center"
-                            >
-                                <i class="fas fa-comments"></i>
-                                <span class="d-none d-xl-inline ms-1">Messages</span>
-                            </RouterLink>
+                            <div class="messages">
+                                <RouterLink 
+                                    to="/chats" 
+                                    class="btn btn-outline-secondary btn-sm d-flex align-items-center"
+                                >
+                                    <i class="fas fa-comments"></i>
+                                    <span class="d-none d-xl-inline ms-1">Messages</span>
+                                </RouterLink>
+                                <span class="unreadMessages" :class="['badge', 'bg-primary', 'text-white', 'px-2', 'py-1', { 'd-none': !props.totalUnreadMessages }]">
+                                    {{ props.totalUnreadMessages }}
+                                </span>
+                            </div>
                             <button 
                                 @click="viewUser"
                                 class="btn btn-outline-secondary btn-sm d-flex align-items-center"
@@ -173,14 +184,19 @@ const handleLogout = async () => {
                             <i class="fas fa-newspaper fs-5"></i>
                             <span>Posts</span>
                         </button>
-                        <RouterLink 
-                            to="/chats" 
-                            class="list-group-item list-group-item-action d-flex align-items-center gap-3"
-                            @click="closeMobileMenu"
-                        >
-                            <i class="fas fa-comments fs-5"></i>
-                            <span>Messages</span>
-                        </RouterLink>
+                        <div class="messages">
+                            <RouterLink 
+                                to="/chats" 
+                                class="list-group-item list-group-item-action d-flex align-items-center gap-3"
+                                @click="closeMobileMenu"
+                            >
+                                <i class="fas fa-comments fs-5"></i>
+                                <span>Messages</span>
+                            </RouterLink>
+                            <span class="unreadMessages" :class="['badge', 'bg-primary', 'text-white', 'px-2', 'py-1', { 'd-none': !props.totalUnreadMessages }]">
+                                {{ props.totalUnreadMessages }}
+                            </span>
+                        </div>
                         <button 
                             @click="viewUser(); closeMobileMenu()"
                             class="list-group-item list-group-item-action d-flex align-items-center gap-3"
@@ -217,7 +233,6 @@ const handleLogout = async () => {
                 </div>
             </div>
         </div>
-
         <div 
             v-if="showMobileMenu"
             class="offcanvas-backdrop fade show"
@@ -225,3 +240,16 @@ const handleLogout = async () => {
         ></div>
     </div>
 </template>
+
+<style scoped lang="scss">
+.messages {
+    position: relative;
+    .unreadMessages {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        border-radius: 50px;
+        text-decoration: none;
+    }
+}
+</style>

@@ -48,10 +48,7 @@ public class ChatRepository(IHermessituationRoomContext context) : IChatReposito
         await context.Chats
             .AsNoTracking()
             .Where(c => c.User1Uid == userId || c.User2Uid == userId)
-            .Select(c => new ChatBo(c.User1Uid, c.User2Uid)
-            {
-                Uid = c.Uid
-            })
+            .Select(c => new ChatBo(c.Uid, c.User1Uid, c.User2Uid))
             .ToListAsync();
 
     public async Task DeleteAsync(Guid chatId)
@@ -72,10 +69,7 @@ public class ChatRepository(IHermessituationRoomContext context) : IChatReposito
         User1Uid = newChatBo.User1Uid,
         User2Uid = newChatBo.User2Uid,
     };
-    
+
     private static ChatBo MapToChatBo(Chat chat) =>
-        new(chat.User1Uid, chat.User2Uid)
-        {
-            Uid = chat.Uid
-        };
+        new(chat.Uid, chat.User1Uid, chat.User2Uid);
 }

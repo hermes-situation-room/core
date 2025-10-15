@@ -21,6 +21,7 @@ const editingMessageId = ref<string | null>(null);
 const editingContent = ref('');
 const messageInputRef = ref<HTMLInputElement | null>(null);
 const errorMessage = ref('');
+const isSocketConnected = ref(false);
 const otherUserDisplayName = ref<string>('');
 
 const clearError = () => {
@@ -58,11 +59,19 @@ const loadChat = async () => {
             }
             
             await loadMessages(chatId);
-            await sockets.hub.ensureSocketInitialization();
-            sockets.hub.joinChat(currentUserUid.value, chatId);
-            sockets.hub.registerToEvent('ReceiveMessage', handleIncomingMessage);
-            sockets.hub.registerToEvent('UpdateMessage', handleMessageUpdate);
-            sockets.hub.registerToEvent('DeleteMessage', handleMessageDelete);
+            
+            // Try to initialize socket connection for real-time updates
+            try {
+                await sockets.hub.initialize();
+                sockets.hub.joinChat(chatId);
+                sockets.hub.registerToEvent('ReceiveMessage', handleIncomingMessage);
+                sockets.hub.registerToEvent('UpdateMessage', handleMessageUpdate);
+                sockets.hub.registerToEvent('DeleteMessage', handleMessageDelete);
+                isSocketConnected.value = true;
+            } catch (socketError) {
+                console.warn('Failed to connect to real-time messaging. Messages will not update automatically:', socketError);
+                isSocketConnected.value = false;
+            }
         } else {
             if (result.responseCode === 404) {
                 showError('Chat not found');
@@ -343,8 +352,12 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-    if (chat.value) {
-        sockets.hub.leaveChat(chat.value.uid);
+    if (chat.value && isSocketConnected.value) {
+        try {
+            sockets.hub.leaveChat(chat.value.uid);
+        } catch (error) {
+            console.warn('Error leaving chat:', error);
+        }
     }
 });
 </script>

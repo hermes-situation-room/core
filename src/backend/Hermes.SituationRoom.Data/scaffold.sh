@@ -17,6 +17,7 @@ dotnet ef dbcontext scaffold "Server=127.0.0.1,1434;User Id=sa;Password=Docker.S
   --table "dbo.PrivacyLevelPersonal" \
   --table "dbo.User" \
   --table "dbo.PostTag" \
+  --table "dbo.UserChatReadStatus" \
   --no-onconfiguring \
   -f
 

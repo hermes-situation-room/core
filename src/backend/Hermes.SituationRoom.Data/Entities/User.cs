@@ -34,4 +34,6 @@ public partial class User
     public virtual ICollection<PrivacyLevelPersonal> PrivacyLevelPersonalConsumerUs { get; set; } = new List<PrivacyLevelPersonal>();
 
     public virtual ICollection<PrivacyLevelPersonal> PrivacyLevelPersonalOwnerUs { get; set; } = new List<PrivacyLevelPersonal>();
+
+    public virtual ICollection<UserChatReadStatus> UserChatReadStatuses { get; set; } = new List<UserChatReadStatus>();
 }

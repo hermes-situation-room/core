@@ -8,7 +8,8 @@ using Shared.DataTransferObjects;
 using Hubs;
 using Microsoft.AspNetCore.SignalR;
 
-public class MessageService(IMessageRepository messageRepository, IHubContext<ChatHub> chatHub) : IMessageService
+public class MessageService(IMessageRepository messageRepository, IHubContext<ChatHub> chatHub,
+            IUserChatReadStatusService userChatStatusService, IChatService chatService) : IMessageService
 {
     public async Task<Guid> AddAsync(NewMessageDto newMessageDto)
     {
@@ -18,9 +19,21 @@ public class MessageService(IMessageRepository messageRepository, IHubContext<Ch
             DateTime.UtcNow
         );
         var newMessageGuid = await messageRepository.AddAsync(messageBo);
-
+        
+        var chat = await chatService.GetChatAsync(newMessageDto.ChatUid);
+        
         await chatHub.Clients.Group(newMessageDto.ChatUid.ToString())
             .SendAsync("ReceiveMessage", messageBo with { Uid = newMessageGuid, });
+
+        var receiverId = newMessageDto.SenderUid == chat.User1Uid ? chat.User2Uid : chat.User1Uid;
+        var countNewMessages = await userChatStatusService.GetUnreadMessageCountAsync(receiverId, chat.Uid);
+
+        await chatHub.Clients.Group(receiverId.ToString()).SendAsync("NewUnreadChatMessage", chat.Uid, countNewMessages);
+
+        var totalCountNewMessages = await userChatStatusService.GetUnreadMessageCountAsync(receiverId);
+        await chatHub.Clients.Group(receiverId.ToString()).SendAsync("NewTotalUnreadChatMessage", totalCountNewMessages);
+
+        await userChatStatusService.UpdateReadStatusAsync(newMessageDto.SenderUid, newMessageDto.ChatUid);
 
         return newMessageGuid;
     }

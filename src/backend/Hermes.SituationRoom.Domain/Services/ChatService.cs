@@ -4,7 +4,7 @@ using Shared.BusinessObjects;
 using Data.Interface;
 using Interfaces;
 
-public class ChatService(IChatRepository chatRepository) : IChatService
+public class ChatService(IChatRepository chatRepository, IUserChatReadStatusService userReadStatusService) : IChatService
 {
     public async Task<Guid> AddAsync(ChatBo newChatBo)
     {
@@ -15,7 +15,12 @@ public class ChatService(IChatRepository chatRepository) : IChatService
             return chatId.Value;
         }
 
-        return await chatRepository.AddAsync(newChatBo);
+        var newChatId = await chatRepository.AddAsync(newChatBo);
+
+        await userReadStatusService.CreateReadStatusAsync(newChatBo.User1Uid, newChatId);
+        await userReadStatusService.CreateReadStatusAsync(newChatBo.User2Uid, newChatId);
+
+        return newChatId;
     }
 
     public Task<ChatBo> GetChatAsync(Guid chatId) => chatRepository.GetChatAsync(chatId);
@@ -32,8 +37,11 @@ public class ChatService(IChatRepository chatRepository) : IChatService
             return await chatRepository.GetChatAsync(existingChatId.Value);
         }
 
-        var newChatBo = new ChatBo(user1Id, user2Id);
+        var newChatBo = new ChatBo(Guid.NewGuid(), user1Id, user2Id);
         var chatId = await chatRepository.AddAsync(newChatBo);
+
+        await userReadStatusService.CreateReadStatusAsync(newChatBo.User1Uid, chatId);
+        await userReadStatusService.CreateReadStatusAsync(newChatBo.User2Uid, chatId);
         return await chatRepository.GetChatAsync(chatId);
     }
 

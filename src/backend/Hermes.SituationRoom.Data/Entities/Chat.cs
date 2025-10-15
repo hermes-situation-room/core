@@ -16,4 +16,6 @@ public partial class Chat
     public virtual User User1U { get; set; }
 
     public virtual User User2U { get; set; }
+
+    public virtual ICollection<UserChatReadStatus> UserChatReadStatuses { get; set; } = new List<UserChatReadStatus>();
 }
