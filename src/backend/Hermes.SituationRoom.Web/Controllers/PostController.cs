@@ -23,7 +23,7 @@ public class PostController(IControllerInfrastructure infra, IPostService postSe
     [AllowAnonymous]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_POST])]
     [ProducesResponseType(typeof(IReadOnlyList<PostWithTagsDto>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<PostWithTagsDto>> GetActivistPostsByTags([FromQuery] string tags, [FromQuery] string privacyLevel, [FromQuery] int? limit, [FromQuery] int? offset)
+    public async Task<ActionResult<PostWithTagsDto>> GetActivistPostsByTags([FromQuery] string tags, [FromQuery] int? limit, [FromQuery] int? offset)
     {
         var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
         var userRoleClaim = User.FindFirst(System.Security.Claims.ClaimTypes.Role);
