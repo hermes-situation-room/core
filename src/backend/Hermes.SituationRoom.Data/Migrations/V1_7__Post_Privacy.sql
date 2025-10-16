@@ -1,0 +1,3 @@
+﻿
+ALTER TABLE dbo.[Post]
+ADD PrivacyLevel INT NOT NULL DEFAULT 0;
