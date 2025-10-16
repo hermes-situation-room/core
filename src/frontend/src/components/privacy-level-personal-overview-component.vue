@@ -28,9 +28,9 @@ const defaultPrivacyLevel = ref<PrivacyLevel>({
 });
 const personalPrivacyLevel = ref<PrivacyLevelPersonalBo>({
     uid: "",
-    isFirstNameVisible: false,
-    isLastNameVisible: false,
-    isEmailVisible: false,
+    isFirstNameVisible: undefined,
+    isLastNameVisible: undefined,
+    isEmailVisible: undefined,
     ownerUid: "",
     consumerUid: ""
 });
@@ -120,6 +120,7 @@ const updatePrivacy = async () => {
         notification.error('Error saving personal privacy settings');
     } finally {
         updatingPrivacy.value = false;
+        editingPrivacy.value = false;
     }
 }
 
@@ -129,8 +130,7 @@ onMounted(() => {
 </script>
 <template>
     <div>
-        <button v-if="!editingPrivacy" class="btn btn-primary btn-sm" @click="togglePrivacyEdit">Edit Privacy Settings for this User</button>
-        <form @submit.prevent="updatePrivacy" v-if="editingPrivacy" class="mb-4">
+        <form @submit.prevent="updatePrivacy" class="mb-4">
             <h5 class="border-bottom pb-2 mb-3">Privacy Settings</h5>
             <p class="text-muted small mb-3">
                 <i class="fas fa-shield-alt me-1"></i>
@@ -140,6 +140,7 @@ onMounted(() => {
             <div v-if="!defaultPrivacyLevel.isFirstNameVisible" class="mb-3">
                 <div class="form-check form-switch">
                     <input 
+                        :disabled="!editingPrivacy"
                         class="form-check-input" 
                         type="checkbox" 
                         id="firstNameVisible"
@@ -154,6 +155,7 @@ onMounted(() => {
             <div v-if="!defaultPrivacyLevel.isLastNameVisible" class="mb-3">
                 <div class="form-check form-switch">
                     <input 
+                        :disabled="!editingPrivacy"
                         class="form-check-input" 
                         type="checkbox" 
                         id="lastNameVisible"
@@ -168,6 +170,7 @@ onMounted(() => {
             <div v-if="!defaultPrivacyLevel.isEmailVisible" class="mb-3">
                 <div class="form-check form-switch">
                     <input 
+                        :disabled="!editingPrivacy"
                         class="form-check-input" 
                         type="checkbox" 
                         id="emailVisible"
@@ -179,12 +182,15 @@ onMounted(() => {
                 </div>
             </div>
 
-            <div class="alert alert-info">
+            <div 
+            v-if="defaultPrivacyLevel.isEmailVisible || defaultPrivacyLevel.isFirstNameVisible || defaultPrivacyLevel.isLastNameVisible"
+            class="alert alert-info"
+            >
                 <i class="fas fa-lightbulb me-2"></i>
-                <small>Your username is always visible. Privacy settings only affect First Name, Last Name, and Email.</small>
+                <small>Some of your Properties are set to public. This means anyone can see them. You can change this in your User Settings</small>
             </div>
-
-            <div class="d-flex gap-2 justify-content-end">
+            
+            <div v-if="editingPrivacy" class="d-flex gap-2 justify-content-end">
                 <button 
                     type="button" 
                     class="btn btn-secondary"
@@ -195,7 +201,7 @@ onMounted(() => {
                     Cancel
                 </button>
                 <button 
-                    type="submit" 
+                    type="submit"
                     class="btn btn-primary"
                     :disabled="updatingPrivacy"
                 >
@@ -203,6 +209,9 @@ onMounted(() => {
                     <i v-else class="fas fa-save me-1"></i>
                     Save Changes
                 </button>
+            </div>
+            <div v-else class="d-flex gap-2 justify-content-end">
+                <button type="button" class="btn btn-primary btn-sm" @click="togglePrivacyEdit"><i class="fas fa-edit me-1"></i> Edit Privacy Settings for this User</button>
             </div>
         </form>
     </div>
