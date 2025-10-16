@@ -5,10 +5,20 @@ import {services, sockets} from '../services/api';
 import type {ChatBo} from '../types/chat';
 import { useAuthStore } from '../stores/auth-store';
 import { useNotification } from '../composables/use-notification.ts';
+import { useContextMenu } from '../composables/use-context-menu';
 
 const router = useRouter();
 const authStore = useAuthStore();
 const notification = useNotification();
+const {
+    contextMenuItemId: contextMenuChatId,
+    contextMenuPosition,
+    showContextMenu,
+    showMobileMenu,
+    handleRightClick,
+    toggleMobileMenu,
+    closeAllMenus
+} = useContextMenu();
 
 const chats = ref<ChatBo[]>([]);
 const chatsWithLastMessage = ref<Array<ChatBo & { lastMessageTime?: string, lastMessage?: string }>>([]);
@@ -142,8 +152,43 @@ const getDisplayName = (chat: ChatBo): string => {
     return displayNames.value.get(otherUserUid) || otherUserUid.substring(0, 8) + '...';
 };
 
-const deleteChat = async (chatId: string, event: Event) => {
-    event.stopPropagation();
+const markChatAsRead = async (chatId: string, event?: Event) => {
+    if (event) {
+        event.stopPropagation();
+    }
+    
+    closeAllMenus();
+    
+    try {
+        await sockets.hub.updateReadChat(chatId);
+        const normalizedChatId = chatId.toLowerCase();
+        unreadCounts.value[normalizedChatId] = 0;
+        notification.success('Chat marked as read');
+    } catch (error) {
+        notification.error('Error marking chat as read');
+    }
+};
+
+const viewProfile = (chatId: string, event?: Event) => {
+    if (event) {
+        event.stopPropagation();
+    }
+    
+    closeAllMenus();
+    
+    const chat = chatsWithLastMessage.value.find(c => c.uid === chatId);
+    if (chat) {
+        const otherUserUid = getOtherUserUid(chat);
+        router.push({ path: '/profile', query: { id: otherUserUid } });
+    }
+};
+
+const deleteChat = async (chatId: string, event?: Event) => {
+    if (event) {
+        event.stopPropagation();
+    }
+    
+    closeAllMenus();
     
     if (!confirm('Are you sure you want to delete this chat?')) {
         return;
@@ -248,7 +293,12 @@ onMounted(async () => {
                         :key="chat.uid"
                         class="col-12"
                     >
-                        <div class="card shadow-sm" style="cursor: pointer;" @click="viewChat(chat.uid)">
+                        <div 
+                            class="card shadow-sm" 
+                            style="cursor: pointer;" 
+                            @click="viewChat(chat.uid)"
+                            @contextmenu="handleRightClick($event, chat.uid)"
+                        >
                             <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-start">
                                     <div class="flex-grow-1">
@@ -276,12 +326,41 @@ onMounted(async () => {
                                             {{ chat.lastMessage }}
                                         </p>
                                     </div>
-                                    <button 
-                                        class="btn btn-danger btn-sm ms-3" 
-                                        @click="deleteChat(chat.uid, $event)"
-                                    >
-                                        Delete
-                                    </button>
+                                    <div class="position-relative">
+                                        <button 
+                                            class="btn btn-link text-dark p-1 ms-2" 
+                                            @click="toggleMobileMenu($event, chat.uid)"
+                                            style="line-height: 1;"
+                                        >
+                                            <i class="fas fa-ellipsis-v"></i>
+                                        </button>
+                                        <div 
+                                            v-if="showMobileMenu === chat.uid"
+                                            class="dropdown-menu show position-absolute"
+                                            style="right: 0; top: 100%;"
+                                        >
+                                            <button 
+                                                class="dropdown-item"
+                                                @click="markChatAsRead(chat.uid, $event)"
+                                                v-if="unreadCounts[chat.uid.toLowerCase()] && unreadCounts[chat.uid.toLowerCase()]! > 0"
+                                            >
+                                                <i class="fas fa-check me-2"></i>Mark as Read
+                                            </button>
+                                            <button 
+                                                class="dropdown-item"
+                                                @click="viewProfile(chat.uid, $event)"
+                                            >
+                                                <i class="fas fa-user me-2"></i>View Profile
+                                            </button>
+                                            <div class="dropdown-divider"></div>
+                                            <button 
+                                                class="dropdown-item text-danger"
+                                                @click="deleteChat(chat.uid, $event)"
+                                            >
+                                                <i class="fas fa-trash me-2"></i>Delete
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -297,6 +376,36 @@ onMounted(async () => {
                     </button>
                 </div>
             </div>
+        </div>
+        
+        <div 
+            v-if="showContextMenu && contextMenuChatId"
+            class="dropdown-menu show position-fixed"
+            :style="{ 
+                left: contextMenuPosition.x + 'px', 
+                top: contextMenuPosition.y + 'px' 
+            }"
+        >
+            <button 
+                v-if="unreadCounts[contextMenuChatId.toLowerCase()] && unreadCounts[contextMenuChatId.toLowerCase()]! > 0"
+                class="dropdown-item"
+                @click="markChatAsRead(contextMenuChatId)"
+            >
+                <i class="fas fa-check me-2"></i>Mark as Read
+            </button>
+            <button 
+                class="dropdown-item"
+                @click="viewProfile(contextMenuChatId)"
+            >
+                <i class="fas fa-user me-2"></i>View Profile
+            </button>
+            <div class="dropdown-divider"></div>
+            <button 
+                class="dropdown-item text-danger"
+                @click="deleteChat(contextMenuChatId)"
+            >
+                <i class="fas fa-trash me-2"></i>Delete Chat
+            </button>
         </div>
     </div>
 </template>
