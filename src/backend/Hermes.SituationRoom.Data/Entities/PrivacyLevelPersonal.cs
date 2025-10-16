@@ -7,11 +7,11 @@ public partial class PrivacyLevelPersonal
 {
     public Guid Uid { get; set; }
 
-    public bool IsFirstNameVisible { get; set; }
+    public bool? IsFirstNameVisible { get; set; }
 
-    public bool IsLastNameVisible { get; set; }
+    public bool? IsLastNameVisible { get; set; }
 
-    public bool IsEmailVisible { get; set; }
+    public bool? IsEmailVisible { get; set; }
 
     public Guid OwnerUid { get; set; }
 

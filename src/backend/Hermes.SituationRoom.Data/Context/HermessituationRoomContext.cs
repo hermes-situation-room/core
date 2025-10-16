@@ -207,6 +207,9 @@ public partial class HermessituationRoomContext : DbContext
                 .ValueGeneratedNever()
                 .HasColumnName("UID");
             entity.Property(e => e.ConsumerUid).HasColumnName("ConsumerUID");
+            entity.Property(e => e.IsEmailVisible).HasDefaultValue(false);
+            entity.Property(e => e.IsFirstNameVisible).HasDefaultValue(false);
+            entity.Property(e => e.IsLastNameVisible).HasDefaultValue(false);
             entity.Property(e => e.OwnerUid).HasColumnName("OwnerUID");
 
             entity.HasOne(d => d.ConsumerU).WithMany(p => p.PrivacyLevelPersonalConsumerUs)
