@@ -1,38 +1,41 @@
 ﻿namespace Hermes.SituationRoom.Domain.Services;
 
-using Hermes.SituationRoom.Data.Entities;
+using AutoMapper;
 using Hermes.SituationRoom.Data.Interface;
-using Hermes.SituationRoom.Data.Repositories;
 using Hermes.SituationRoom.Shared.BusinessObjects;
+using Hermes.SituationRoom.Shared.DataTransferObjects;
 using Interfaces;
 
-public class JournalistService(IJournalistRepository journalistRepository, IEncryptionService encryptionService) : IJournalistService
+public class JournalistService(IJournalistRepository journalistRepository, IEncryptionService encryptionService, IMapper mapper) : IJournalistService
 {
-    public async Task<JournalistBo> GetJournalistAsync(Guid journalistUid)
+    public async Task<JournalistDto> GetJournalistAsync(Guid journalistUid)
     {
         var journalist = await journalistRepository.GetJournalistBoAsync(journalistUid);
-
-        return journalist with { Password = null, PasswordHash = null, PasswordSalt = null };
+        var journalistWithoutSensitiveData = journalist with { Password = null, PasswordHash = null, PasswordSalt = null };
+        return mapper.Map<JournalistDto>(journalistWithoutSensitiveData);
     }
 
-    public async Task<IReadOnlyList<JournalistBo>> GetJournalistsAsync()
+    public async Task<IReadOnlyList<JournalistDto>> GetJournalistsAsync()
     {
         var journalists = await journalistRepository.GetAllJournalistBosAsync();
-        return [ ..journalists.Select(journalist => journalist with { Password = null, PasswordHash = null, PasswordSalt = null })];
+        var journalistsWithoutSensitiveData = journalists.Select(journalist => journalist with { Password = null, PasswordHash = null, PasswordSalt = null }).ToList();
+        return mapper.Map<IReadOnlyList<JournalistDto>>(journalistsWithoutSensitiveData);
     }
 
-    public Task<Guid> CreateJournalistAsync(JournalistBo journalistBo) 
+    public Task<Guid> CreateJournalistAsync(CreateJournalistRequestDto createJournalistDto) 
     {
-        (byte[] hash, byte[] salt) = encryptionService.EncryptPassword(journalistBo.Password);
-
+        var journalistBo = mapper.Map<JournalistBo>(createJournalistDto);
+        (byte[] hash, byte[] salt) = encryptionService.EncryptPassword(createJournalistDto.Password);
         journalistBo = journalistBo with { PasswordHash = hash, PasswordSalt = salt };
-
         return journalistRepository.AddAsync(journalistBo);
     }
 
-    public async Task<JournalistBo> UpdateJournalistAsync(JournalistBo updatedJournalist) {
-        var journalist = await journalistRepository.UpdateAsync(updatedJournalist);
-        return journalist with { Password = null, PasswordHash = null, PasswordSalt = null };
+    public async Task<JournalistDto> UpdateJournalistAsync(UpdateJournalistRequestDto updateJournalistDto) 
+    {
+        var journalistBo = mapper.Map<JournalistBo>(updateJournalistDto);
+        var journalist = await journalistRepository.UpdateAsync(journalistBo);
+        var journalistWithoutSensitiveData = journalist with { Password = null, PasswordHash = null, PasswordSalt = null };
+        return mapper.Map<JournalistDto>(journalistWithoutSensitiveData);
     }
 
     public Task DeleteJournalistAsync(Guid journalistUid) => journalistRepository.DeleteAsync(journalistUid);

@@ -1,21 +1,20 @@
 ﻿namespace Hermes.SituationRoom.Domain.Interfaces;
 
-using Shared.BusinessObjects;
 using Shared.DataTransferObjects;
 
 public interface IActivistService
 {
-    Task<ActivistBo> GetActivistAsync(Guid activistUid);
+    Task<ActivistDto> GetActivistAsync(Guid activistUid);
 
-    Task<IReadOnlyList<ActivistBo>> GetActivistsAsync();
+    Task<IReadOnlyList<ActivistDto>> GetActivistsAsync();
     
     Task<Guid?> FindActivistIdByUsernameAsync(string username);
 
-    Task<Guid> CreateActivistAsync(ActivistBo activistBo);
+    Task<Guid> CreateActivistAsync(CreateActivistRequestDto createActivistDto);
 
-    Task<ActivistBo> UpdateActivistAsync(ActivistBo updatedActivist);
+    Task<ActivistDto> UpdateActivistAsync(UpdateActivistRequestDto updateActivistDto);
 
-    Task<ActivistBo> UpdateActivistVisibilityAsync(Guid activistUid, UpdateActivistPrivacyLevelDto updateActivistPrivacyLevelDto);
+    Task<ActivistDto> UpdateActivistVisibilityAsync(Guid activistUid, UpdateActivistPrivacyLevelRequestDto updateActivistPrivacyLevelRequestDto);
 
     Task DeleteActivistAsync(Guid activistUid);
 }

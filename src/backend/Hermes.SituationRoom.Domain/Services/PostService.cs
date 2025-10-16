@@ -1,5 +1,6 @@
 ﻿namespace Hermes.SituationRoom.Domain.Services;
 
+using AutoMapper;
 using Data.Entities;
 using Data.Interface;
 using Interfaces;
@@ -7,33 +8,52 @@ using Shared.BusinessObjects;
 using Shared.DataTransferObjects;
 using Shared.Enums;
 
-public class PostService(IPostRepository postRepository, ITagService tagService) : IPostService
+public class PostService(IPostRepository postRepository, ITagService tagService, IMapper mapper) : IPostService
 {
-    public async Task<PostWithTagsBo> GetPostAsync(Guid postUid)
+    public async Task<PostWithTagsDto> GetPostAsync(Guid postUid)
     {
         var post = await postRepository.GetPostBoAsync(postUid);
         var tags = await tagService.GetAllTagsFromPostAsync(postUid);
-        return MapToBo(post, tags);
+        var postWithTags = MapToBo(post, tags);
+        return mapper.Map<PostWithTagsDto>(postWithTags);
     }
 
-    public Task<IReadOnlyList<PostWithTagsBo>> GetActivistPostsByTagsAsync(string tags, int limit, int offset, string? query = null, string? sortBy = null) =>
-        postRepository.GetActivistPostsByTagsAsync(tags.Split(',').Select(TagService.MapToTag).ToList(), limit, offset, query, sortBy);
-
-    public Task<IReadOnlyList<PostWithTagsBo>> GetJournalistPostsByTagsAsync(string tags, int limit, int offset, string? query = null, string? sortBy = null) =>
-        postRepository.GetJournalistPostsByTagsAsync(tags.Split(',').Select(TagService.MapToTag).ToList(), limit, offset, query, sortBy);
-
-    public async Task<IReadOnlyList<PostWithTagsBo>> GetUserPostsAsync(Guid userUid, int limit, int offset, string? query = null, string? sortBy = null) =>
-        await GetTagsFromPosts(await postRepository.GetUserPostsAsync(userUid, limit, offset, query, sortBy));
-
-    public async Task<IReadOnlyList<PostWithTagsBo>> GetAllActivistPostsAsync(int limit, int offset, string? query = null, string? sortBy = null) =>
-        await GetTagsFromPosts(await postRepository.GetAllActivistPostsAsync(limit, offset, query, sortBy));
-
-    public async Task<IReadOnlyList<PostWithTagsBo>> GetAllJournalistPostsAsync(int limit, int offset, string? query = null, string? sortBy = null) =>
-        await GetTagsFromPosts(await postRepository.GetAllJournalistPostsAsync(limit, offset, query, sortBy));
-
-    public async Task<Guid> CreatePostAsync(CreatePostDto createPostDto)
+    public async Task<IReadOnlyList<PostWithTagsDto>> GetActivistPostsByTagsAsync(string tags, int limit, int offset, string? query = null, string? sortBy = null)
     {
-        var guid = await postRepository.AddAsync(MapToBo(createPostDto, DateTime.UtcNow));
+        var posts = await postRepository.GetActivistPostsByTagsAsync(tags.Split(',').Select(TagService.MapToTag).ToList(), limit, offset, query, sortBy);
+        return mapper.Map<IReadOnlyList<PostWithTagsDto>>(posts);
+    }
+
+    public async Task<IReadOnlyList<PostWithTagsDto>> GetJournalistPostsByTagsAsync(string tags, int limit, int offset, string? query = null, string? sortBy = null)
+    {
+        var posts = await postRepository.GetJournalistPostsByTagsAsync(tags.Split(',').Select(TagService.MapToTag).ToList(), limit, offset, query, sortBy);
+        return mapper.Map<IReadOnlyList<PostWithTagsDto>>(posts);
+    }
+
+    public async Task<IReadOnlyList<PostWithTagsDto>> GetUserPostsAsync(Guid userUid, int limit, int offset, string? query = null, string? sortBy = null)
+    {
+        var posts = await GetTagsFromPosts(await postRepository.GetUserPostsAsync(userUid, limit, offset, query, sortBy));
+        return mapper.Map<IReadOnlyList<PostWithTagsDto>>(posts);
+    }
+
+    public async Task<IReadOnlyList<PostWithTagsDto>> GetAllActivistPostsAsync(int limit, int offset, string? query = null, string? sortBy = null)
+    {
+        var posts = await GetTagsFromPosts(await postRepository.GetAllActivistPostsAsync(limit, offset, query, sortBy));
+        return mapper.Map<IReadOnlyList<PostWithTagsDto>>(posts);
+    }
+
+    public async Task<IReadOnlyList<PostWithTagsDto>> GetAllJournalistPostsAsync(int limit, int offset, string? query = null, string? sortBy = null)
+    {
+        var posts = await GetTagsFromPosts(await postRepository.GetAllJournalistPostsAsync(limit, offset, query, sortBy));
+        return mapper.Map<IReadOnlyList<PostWithTagsDto>>(posts);
+    }
+
+    public async Task<Guid> CreatePostAsync(CreatePostRequestDto createPostDto)
+    {
+        var postWithTags = mapper.Map<PostWithTagsBo>(createPostDto);
+        postWithTags = postWithTags with { Timestamp = DateTime.UtcNow };
+        
+        var guid = await postRepository.AddAsync(MapToBo(postWithTags));
         
         foreach (var tag in createPostDto.Tags)
         {
@@ -43,45 +63,42 @@ public class PostService(IPostRepository postRepository, ITagService tagService)
         return guid;
     }
 
-    public async Task<PostWithTagsBo> UpdatePostAsync(PostWithTagsBo updatedPost)
+    public async Task<PostWithTagsDto> UpdatePostAsync(UpdatePostRequestDto updatePostDto)
     {
-        await postRepository.UpdateAsync(MapToBo(updatedPost));
+        var existingPost = await postRepository.GetPostBoAsync(updatePostDto.Uid);
+        var postWithTags = mapper.Map<PostWithTagsBo>(updatePostDto);
+        postWithTags = postWithTags with { Timestamp = existingPost.Timestamp, CreatorUid = existingPost.CreatorUid };
+        
+        await postRepository.UpdateAsync(MapToBo(postWithTags));
 
-        var existingTags = await tagService.GetAllTagsFromPostAsync(updatedPost.Uid);
+        var existingTags = await tagService.GetAllTagsFromPostAsync(updatePostDto.Uid);
 
         var existingSet = existingTags?.ToHashSet() ?? new HashSet<Tag>();
-        var updatedSet = updatedPost.Tags.Select(TagService.MapToTag).ToList();
+        var updatedSet = updatePostDto.Tags.Select(TagService.MapToTag).ToList();
 
         var tagsToAdd = updatedSet.Except(existingSet).ToList();
         var tagsToRemove = existingSet.Except(updatedSet).ToList();
 
         foreach (var tag in tagsToAdd)
         {
-            await tagService.CreatePostTagAsync(new(updatedPost.Uid, tag.ToString()));
+            await tagService.CreatePostTagAsync(new(updatePostDto.Uid, tag.ToString()));
         }
 
         foreach (var tag in tagsToRemove)
         {
-            await tagService.DeletePostTagAsync(new(updatedPost.Uid, tag));
+            await tagService.DeletePostTagAsync(new(updatePostDto.Uid, tag));
         }
 
-        var finalTags = await tagService.GetAllTagsFromPostAsync(updatedPost.Uid);
+        var finalTags = await tagService.GetAllTagsFromPostAsync(updatePostDto.Uid);
+        var finalPostWithTags = postWithTags with { Tags = finalTags.Select(t => t.ToString()).ToList() };
 
-        return updatedPost with { Tags = finalTags.Select(t => t.ToString()).ToList() };
+        return mapper.Map<PostWithTagsDto>(finalPostWithTags);
     }
 
     public async Task DeletePostAsync(Guid postUid)
     {
         await postRepository.DeleteAsync(postUid);
     }
-
-    private static PostBo MapToBo(CreatePostDto createPostDto, DateTime timestamp) => new(createPostDto.Uid,
-        timestamp,
-        createPostDto.Title,
-        createPostDto.Description,
-        createPostDto.Content,
-        createPostDto.CreatorUid
-    );
 
     private static PostBo MapToBo(PostWithTagsBo postWithTagsPo) => new(postWithTagsPo.Uid,
         postWithTagsPo.Timestamp,

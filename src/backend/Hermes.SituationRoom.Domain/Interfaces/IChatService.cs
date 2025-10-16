@@ -1,18 +1,18 @@
 ﻿namespace Hermes.SituationRoom.Domain.Interfaces;
 
-using Shared.BusinessObjects;
+using Shared.DataTransferObjects;
 
 public interface IChatService
 {
-    Task<Guid> AddAsync(ChatBo newChatBo);
+    Task<Guid> AddAsync(CreateChatRequestDto createChatDto);
 
-    Task<ChatBo> GetChatAsync(Guid chatId);
+    Task<ChatDto> GetChatAsync(Guid chatId);
 
-    Task<ChatBo> GetChatByUserPairAsync(Guid user1Id, Guid user2Id);
+    Task<ChatDto> GetChatByUserPairAsync(Guid user1Id, Guid user2Id);
 
-    Task<ChatBo> GetOrCreateChatByUserPairAsync(Guid user1Id, Guid user2Id);
+    Task<ChatDto> GetOrCreateChatByUserPairAsync(Guid user1Id, Guid user2Id);
 
-    Task<IReadOnlyList<ChatBo>> GetChatsByUserAsync(Guid userId);
+    Task<IReadOnlyList<ChatDto>> GetChatsByUserAsync(Guid userId);
     
     Task DeleteAsync(Guid chatId);
 }

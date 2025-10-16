@@ -1,6 +1,7 @@
 ﻿#nullable enable
 namespace Hermes.SituationRoom.Domain.Services;
 
+using AutoMapper;
 using Hermes.SituationRoom.Data.Interface;
 using Interfaces;
 using Shared.BusinessObjects;
@@ -9,23 +10,21 @@ using Hubs;
 using Microsoft.AspNetCore.SignalR;
 
 public class MessageService(IMessageRepository messageRepository, IHubContext<ChatHub> chatHub,
-            IUserChatReadStatusService userChatStatusService, IChatService chatService) : IMessageService
+            IUserChatReadStatusService userChatStatusService, IChatService chatService, IMapper mapper) : IMessageService
 {
-    public async Task<Guid> AddAsync(NewMessageDto newMessageDto)
+    public async Task<Guid> AddAsync(CreateMessageRequestDto createMessageDto)
     {
-        var messageBo = new MessageBo(newMessageDto.Content,
-            newMessageDto.SenderUid,
-            newMessageDto.ChatUid,
-            DateTime.UtcNow
-        );
+        var messageBo = mapper.Map<MessageBo>(createMessageDto);
+        messageBo = messageBo with { Timestamp = DateTime.UtcNow };
+        
         var newMessageGuid = await messageRepository.AddAsync(messageBo);
         
-        var chat = await chatService.GetChatAsync(newMessageDto.ChatUid);
+        var chat = await chatService.GetChatAsync(createMessageDto.ChatUid);
         
-        await chatHub.Clients.Group(newMessageDto.ChatUid.ToString())
+        await chatHub.Clients.Group(createMessageDto.ChatUid.ToString())
             .SendAsync("ReceiveMessage", messageBo with { Uid = newMessageGuid, });
 
-        var receiverId = newMessageDto.SenderUid == chat.User1Uid ? chat.User2Uid : chat.User1Uid;
+        var receiverId = createMessageDto.SenderUid == chat.User1Uid ? chat.User2Uid : chat.User1Uid;
         var countNewMessages = await userChatStatusService.GetUnreadMessageCountAsync(receiverId, chat.Uid);
 
         await chatHub.Clients.Group(receiverId.ToString()).SendAsync("NewUnreadChatMessage", chat.Uid, countNewMessages);
@@ -33,15 +32,22 @@ public class MessageService(IMessageRepository messageRepository, IHubContext<Ch
         var totalCountNewMessages = await userChatStatusService.GetUnreadMessageCountAsync(receiverId);
         await chatHub.Clients.Group(receiverId.ToString()).SendAsync("NewTotalUnreadChatMessage", totalCountNewMessages);
 
-        await userChatStatusService.UpdateReadStatusAsync(newMessageDto.SenderUid, newMessageDto.ChatUid);
+        await userChatStatusService.UpdateReadStatusAsync(createMessageDto.SenderUid, createMessageDto.ChatUid);
 
         return newMessageGuid;
     }
 
-    public Task<MessageBo> GetMessageAsync(Guid messageId) => messageRepository.GetMessageAsync(messageId);
+    public async Task<MessageDto> GetMessageAsync(Guid messageId)
+    {
+        var message = await messageRepository.GetMessageAsync(messageId);
+        return mapper.Map<MessageDto>(message);
+    }
 
-    public Task<IReadOnlyList<MessageBo>> GetMessagesByChatAsync(Guid chatId) =>
-        messageRepository.GetMessagesByChatAsync(chatId);
+    public async Task<IReadOnlyList<MessageDto>> GetMessagesByChatAsync(Guid chatId)
+    {
+        var messages = await messageRepository.GetMessagesByChatAsync(chatId);
+        return mapper.Map<IReadOnlyList<MessageDto>>(messages);
+    }
 
     public async Task UpdateAsync(Guid messageId, string newContent)
     {

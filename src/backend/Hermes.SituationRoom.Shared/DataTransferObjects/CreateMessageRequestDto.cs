@@ -1,7 +1,7 @@
-﻿#nullable enable
+#nullable enable
 namespace Hermes.SituationRoom.Shared.DataTransferObjects;
 
-public record NewMessageDto(string Content,
+public record CreateMessageRequestDto(string Content,
     Guid SenderUid,
     Guid ChatUid
 );

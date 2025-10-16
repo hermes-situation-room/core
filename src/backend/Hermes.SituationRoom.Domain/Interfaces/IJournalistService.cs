@@ -1,16 +1,16 @@
 ﻿namespace Hermes.SituationRoom.Domain.Interfaces;
 
-using Shared.BusinessObjects;
+using Shared.DataTransferObjects;
 
 public interface IJournalistService
 {
-    Task<JournalistBo> GetJournalistAsync(Guid journalistUid);
+    Task<JournalistDto> GetJournalistAsync(Guid journalistUid);
 
-    Task<IReadOnlyList<JournalistBo>> GetJournalistsAsync();
+    Task<IReadOnlyList<JournalistDto>> GetJournalistsAsync();
 
-    Task<Guid> CreateJournalistAsync(JournalistBo journalistBo);
+    Task<Guid> CreateJournalistAsync(CreateJournalistRequestDto createJournalistDto);
 
-    Task<JournalistBo> UpdateJournalistAsync(JournalistBo updatedJournalist);
+    Task<JournalistDto> UpdateJournalistAsync(UpdateJournalistRequestDto updateJournalistDto);
 
     Task DeleteJournalistAsync(Guid journalistUid);
 }

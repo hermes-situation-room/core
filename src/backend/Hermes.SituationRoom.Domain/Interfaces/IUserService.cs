@@ -1,22 +1,22 @@
 ﻿namespace Hermes.SituationRoom.Domain.Interfaces;
 
-using Shared.BusinessObjects;
+using Shared.DataTransferObjects;
 
 public interface IUserService
 {
-    Task<UserBo> GetUserAsync(Guid userUid);
+    Task<UserDto> GetUserAsync(Guid userUid);
 
-    Task<UserProfileBo> GetUserProfileAsync(Guid userUid, Guid consumerUid);
+    Task<UserProfileDto> GetUserProfileAsync(Guid userUid, Guid consumerUid);
 
     Task<string> GetDisplayNameAsync(Guid userUid);
 
-    Task<IReadOnlyList<UserBo>> GetUsersAsync();
+    Task<IReadOnlyList<UserDto>> GetUsersAsync();
     
     Task<Guid> GetUserIdByEmailOrUsernameAsync(string identificationString);
 
-    Task<Guid> CreateUserAsync(UserBo userBo);
+    Task<Guid> CreateUserAsync(CreateUserRequestDto createUserDto);
 
-    Task<UserBo> UpdateUserAsync(UserBo updatedUser);
+    Task<UserDto> UpdateUserAsync(UpdateUserRequestDto updateUserDto);
 
     Task DeleteUserAsync(Guid userUid);
 }

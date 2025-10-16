@@ -5,7 +5,7 @@ using Configurations;
 using Domain.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Shared.BusinessObjects;
+using Shared.DataTransferObjects;
 using Swashbuckle.AspNetCore.Annotations;
 
 [Authorize]
@@ -14,16 +14,16 @@ public class UserController(IControllerInfrastructure infra, IUserService userSe
 {
     [HttpGet("internal/user/{uid:guid}")]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_USER])]
-    [ProducesResponseType(typeof(UserBo), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<UserBo>> GetUser(Guid uid) => Ok(await userService.GetUserAsync(uid));
+    public async Task<ActionResult<UserDto>> GetUser(Guid uid) => Ok(await userService.GetUserAsync(uid));
 
     [HttpGet("internal/user/profile/")]
     [AllowAnonymous]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_USER])]
-    [ProducesResponseType(typeof(UserBo), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(UserProfileDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<UserBo>> GetUserProfile([FromQuery] Guid uid, [FromQuery] Guid consumerUid) =>
+    public async Task<ActionResult<UserProfileDto>> GetUserProfile([FromQuery] Guid uid, [FromQuery] Guid consumerUid) =>
         Ok(await userService.GetUserProfileAsync(uid, consumerUid));
 
     [HttpGet("internal/user/display-name/{uid:guid}")]
@@ -35,8 +35,8 @@ public class UserController(IControllerInfrastructure infra, IUserService userSe
 
     [HttpGet("internal/user/")]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_USER])]
-    [ProducesResponseType(typeof(IReadOnlyList<UserBo>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<IReadOnlyList<UserBo>>> GetUsers() => Ok(await userService.GetUsersAsync());
+    [ProducesResponseType(typeof(IReadOnlyList<UserDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IReadOnlyList<UserDto>>> GetUsers() => Ok(await userService.GetUsersAsync());
     
     [HttpGet("internal/user/get-id-by-email-or-username/")]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_USER])]
@@ -49,16 +49,16 @@ public class UserController(IControllerInfrastructure infra, IUserService userSe
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_USER])]
     [ProducesResponseType(typeof(Guid), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<Guid>> CreateUser([FromBody] UserBo userBo) =>
-        Ok(await userService.CreateUserAsync(userBo));
+    public async Task<ActionResult<Guid>> CreateUser([FromBody] CreateUserRequestDto createUserDto) =>
+        Ok(await userService.CreateUserAsync(createUserDto));
 
     [HttpPut("internal/user/{uid:guid}")]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_USER])]
-    [ProducesResponseType(typeof(UserBo), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<UserBo>> UpdateUser([FromBody] UserBo userBo, Guid uid) =>
-        Ok(await userService.UpdateUserAsync(userBo with { Uid = uid, }));
+    public async Task<ActionResult<UserDto>> UpdateUser([FromBody] UpdateUserRequestDto updateUserDto, Guid uid) =>
+        Ok(await userService.UpdateUserAsync(updateUserDto with { Uid = uid }));
 
     [HttpDelete("internal/user/{uid:guid}")]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_USER])]

@@ -1,50 +1,56 @@
 ﻿namespace Hermes.SituationRoom.Domain.Services;
 
+using AutoMapper;
 using Hermes.SituationRoom.Data.Interface;
 using Hermes.SituationRoom.Shared.BusinessObjects;
 using Hermes.SituationRoom.Shared.DataTransferObjects; 
 using Interfaces;
 
-public class ActivistService(IActivistRepository activistRepository, IEncryptionService encryptionService) : IActivistService
+public class ActivistService(IActivistRepository activistRepository, IEncryptionService encryptionService, IMapper mapper) : IActivistService
 {
-    public async Task<ActivistBo> GetActivistAsync(Guid activistUid)
+    public async Task<ActivistDto> GetActivistAsync(Guid activistUid)
     {
         var activist = await activistRepository.GetActivistBoAsync(activistUid);
-
-        return activist with { Password = null, PasswordHash = null, PasswordSalt = null };
+        var activistWithoutSensitiveData = activist with { Password = null, PasswordHash = null, PasswordSalt = null };
+        return mapper.Map<ActivistDto>(activistWithoutSensitiveData);
     }
 
-    public async Task<IReadOnlyList<ActivistBo>> GetActivistsAsync()
+    public async Task<IReadOnlyList<ActivistDto>> GetActivistsAsync()
     {
         var activists = await activistRepository.GetAllActivistBosAsync();
-
-        return [.. activists.Select((activist) => activist with { Password = null, PasswordHash = null, PasswordSalt = null })];
+        var activistsWithoutSensitiveData = activists.Select((activist) => activist with { Password = null, PasswordHash = null, PasswordSalt = null }).ToList();
+        return mapper.Map<IReadOnlyList<ActivistDto>>(activistsWithoutSensitiveData);
     } 
 
-    public Task<Guid> CreateActivistAsync(ActivistBo activistBo) 
+    public Task<Guid> CreateActivistAsync(CreateActivistRequestDto createActivistDto) 
     {
-        (byte[] hash, byte[] salt) = encryptionService.EncryptPassword(activistBo.Password);
-
+        var activistBo = mapper.Map<ActivistBo>(createActivistDto);
+        (byte[] hash, byte[] salt) = encryptionService.EncryptPassword(createActivistDto.Password);
         activistBo = activistBo with { PasswordHash = hash, PasswordSalt = salt };
-
         return activistRepository.AddAsync(activistBo); 
     }
     
     public Task<Guid?> FindActivistIdByUsernameAsync(string username) =>
         activistRepository.FindActivistIdByUsernameAsync(username);
 
-    public async Task<ActivistBo> UpdateActivistAsync(ActivistBo updatedActivist)
+    public async Task<ActivistDto> UpdateActivistAsync(UpdateActivistRequestDto updateActivistDto)
     {
-        var activist = await activistRepository.UpdateAsync(updatedActivist);
-
-        return activist with { Password = null, PasswordHash = null, PasswordSalt = null };
+        var activistBo = mapper.Map<ActivistBo>(updateActivistDto);
+        var activist = await activistRepository.UpdateAsync(activistBo);
+        var activistWithoutSensitiveData = activist with { Password = null, PasswordHash = null, PasswordSalt = null };
+        return mapper.Map<ActivistDto>(activistWithoutSensitiveData);
     }
 
-    public async Task<ActivistBo> UpdateActivistVisibilityAsync(Guid activistUid, UpdateActivistPrivacyLevelDto updateActivistPrivacyLevelDto)
+    public async Task<ActivistDto> UpdateActivistVisibilityAsync(Guid activistUid, UpdateActivistPrivacyLevelRequestDto updateActivistPrivacyLevelRequestDto)
     {
-        var activist = await activistRepository.UpdateActivistVisibilityAsync(activistUid, updateActivistPrivacyLevelDto);
-
-        return activist with { Password = null, PasswordHash = null, PasswordSalt = null };
+        var activist = await activistRepository.UpdateActivistVisibilityAsync(
+            activistUid, 
+            updateActivistPrivacyLevelRequestDto.IsFirstNameVisible,
+            updateActivistPrivacyLevelRequestDto.IsLastNameVisible,
+            updateActivistPrivacyLevelRequestDto.IsEmailVisible
+        );
+        var activistWithoutSensitiveData = activist with { Password = null, PasswordHash = null, PasswordSalt = null };
+        return mapper.Map<ActivistDto>(activistWithoutSensitiveData);
     }
 
     public Task DeleteActivistAsync(Guid activistUid) => activistRepository.DeleteAsync(activistUid);

@@ -1,15 +1,14 @@
 ﻿namespace Hermes.SituationRoom.Domain.Interfaces;
 
-using Shared.BusinessObjects;
 using Shared.DataTransferObjects;
 
 public interface ICommentService
 {
-    Task<IReadOnlyList<CommentBo>> GetPostCommentsAsync(Guid postUid);
+    Task<IReadOnlyList<CommentDto>> GetPostCommentsAsync(Guid postUid);
     
-    Task<Guid> CreateCommentAsync(CreateCommentDto createCommentBo);
+    Task<Guid> CreateCommentAsync(CreateCommentRequestDto createCommentDto);
 
-    Task<CommentBo> UpdateCommentAsync(CommentBo updatedComment);
+    Task<CommentDto> UpdateCommentAsync(UpdateCommentRequestDto updateCommentDto);
 
     Task DeleteCommentAsync(Guid commentUid);
 }

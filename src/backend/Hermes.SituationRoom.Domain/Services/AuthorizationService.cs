@@ -1,22 +1,23 @@
 ﻿namespace Hermes.SituationRoom.Domain.Services;
 
-using System.Diagnostics;
 using System.Security.Claims;
-using Hermes.SituationRoom.Data.Entities;
+using AutoMapper;
 using Hermes.SituationRoom.Data.Interface;
 using Hermes.SituationRoom.Shared.BusinessObjects;
+using Hermes.SituationRoom.Shared.DataTransferObjects;
 using Interfaces;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
 
-public class AuthorizationService(IHttpContextAccessor httpContextAccessor, IUserRepository userRepository, IActivistRepository activistRepository, IJournalistRepository journalistRepository, IEncryptionService encryptionService) : IAuthorizationService
+public class AuthorizationService(IHttpContextAccessor httpContextAccessor, IUserRepository userRepository, IActivistRepository activistRepository, IJournalistRepository journalistRepository, IEncryptionService encryptionService, IMapper mapper) : IAuthorizationService
 {
 
     private HttpContext HttpContext => httpContextAccessor.HttpContext;
 
-    public async Task<Guid> LoginActivist(LoginActivistBo loginActivistBo)
+    public async Task<Guid> LoginActivist(LoginActivistRequestDto loginActivistDto)
     {
+        var loginActivistBo = mapper.Map<LoginActivistBo>(loginActivistDto);
         var activist = await activistRepository.GetActivistBoByUsernameAsync(loginActivistBo.UserName);
 
         if (!encryptionService.VerifyPassword(loginActivistBo.Password, activist.PasswordHash, activist.PasswordSalt))
@@ -51,8 +52,9 @@ public class AuthorizationService(IHttpContextAccessor httpContextAccessor, IUse
         return activist.Uid;
     }
 
-    public async Task<Guid> LoginJournalist(LoginJournalistBo loginJournalistBo)
+    public async Task<Guid> LoginJournalist(LoginJournalistRequestDto loginJournalistDto)
     {
+        var loginJournalistBo = mapper.Map<LoginJournalistBo>(loginJournalistDto);
         var journalist = await userRepository.GetUserBoByEmailAsync(loginJournalistBo.EmailAddress);
 
         if (!encryptionService.VerifyPassword(loginJournalistBo.Password, journalist.PasswordHash, journalist.PasswordSalt))
@@ -95,28 +97,29 @@ public class AuthorizationService(IHttpContextAccessor httpContextAccessor, IUse
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
     }
 
-    public Task<CurrentUserBo?> GetCurrentUser()
+    public Task<CurrentUserDto?> GetCurrentUser()
     {
         if (HttpContext?.User?.Identity?.IsAuthenticated != true)
-            return Task.FromResult<CurrentUserBo?>(null);
+            return Task.FromResult<CurrentUserDto?>(null);
 
         var userIdClaim = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier);
         var roleClaim = HttpContext.User.FindFirst(ClaimTypes.Role);
 
         if (userIdClaim == null || roleClaim == null)
-            return Task.FromResult<CurrentUserBo?>(null);
+            return Task.FromResult<CurrentUserDto?>(null);
 
         if (!Guid.TryParse(userIdClaim.Value, out var userId))
-            return Task.FromResult<CurrentUserBo?>(null);
+            return Task.FromResult<CurrentUserDto?>(null);
 
         var userType = roleClaim.Value.ToLower();
 
-        var currentUser = new CurrentUserBo
+        var currentUserBo = new CurrentUserBo
         {
             UserId = userId,
             UserType = userType
         };
 
-        return Task.FromResult<CurrentUserBo?>(currentUser);
+        var currentUserDto = mapper.Map<CurrentUserDto>(currentUserBo);
+        return Task.FromResult(currentUserDto);
     }
 }

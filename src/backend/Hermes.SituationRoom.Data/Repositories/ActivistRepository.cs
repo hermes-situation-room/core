@@ -5,7 +5,6 @@ using Entities;
 using Interface;
 using Microsoft.EntityFrameworkCore;
 using Shared.BusinessObjects;
-using Shared.DataTransferObjects;
 using Hermes.SituationRoom.Shared.Exceptions;
 
 public sealed class ActivistRepository(IHermessituationRoomContext context, IUserRepository userRepository)
@@ -145,9 +144,8 @@ public sealed class ActivistRepository(IHermessituationRoomContext context, IUse
         return MapToBo(activist);
     }
 
-    public async Task<ActivistBo> UpdateActivistVisibilityAsync(Guid activistUid, UpdateActivistPrivacyLevelDto updateActivistPrivacyLevelDto)
+    public async Task<ActivistBo> UpdateActivistVisibilityAsync(Guid activistUid, bool isFirstNameVisible, bool isLastNameVisible, bool isEmailVisible)
     {
-        ArgumentNullException.ThrowIfNull(updateActivistPrivacyLevelDto);
         if (activistUid == Guid.Empty)
             throw new ArgumentException("UID required.", nameof(activistUid));
 
@@ -157,9 +155,9 @@ public sealed class ActivistRepository(IHermessituationRoomContext context, IUse
                            .FirstOrDefaultAsync(a => a.UserUid == activistUid)
                        ?? throw new ResourceNotFoundException("Activist", activistUid.ToString());
 
-        activist.IsFirstNameVisible = updateActivistPrivacyLevelDto.IsFirstNameVisible;
-        activist.IsLastNameVisible = updateActivistPrivacyLevelDto.IsLastNameVisible;
-        activist.IsEmailVisible = updateActivistPrivacyLevelDto.IsEmailVisible;
+        activist.IsFirstNameVisible = isFirstNameVisible;
+        activist.IsLastNameVisible = isLastNameVisible;
+        activist.IsEmailVisible = isEmailVisible;
 
         await context.SaveChangesAsync();
 
