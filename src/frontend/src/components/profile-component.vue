@@ -5,7 +5,7 @@ import { services } from '../services/api';
 import type { UserProfileBo } from '../types/user';
 import { useAuthStore } from '../stores/auth-store';
 import { useNotification } from '../composables/use-notification.ts';
-import ProfileUserPostList from './profile-userPostList.vue';
+import ProfileUserPostListComponent from './profile-user-post-list-component.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -228,7 +228,7 @@ watch(() => route.query.id, () => {
                             Login to Message
                         </RouterLink>
                     </div>
-                    <ProfileUserPostList :userProfile="userProfile"></ProfileUserPostList>
+                    <ProfileUserPostListComponent :userProfile="userProfile"></ProfileUserPostListComponent>
                 </div>
             </div>
         </div>

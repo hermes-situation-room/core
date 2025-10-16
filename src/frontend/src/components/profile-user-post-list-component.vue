@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import {watch, onMounted, onBeforeUnmount, ref, computed} from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import {services} from '../services/api';
-import type {PostBo} from '../types/post'
-import { useAuthStore } from '../stores/auth-store';
+import {services} from '../services/api/index.ts';
+import type {PostBo} from '../types/post.ts'
+import { useAuthStore } from '../stores/auth-store.ts';
 import { useNotification } from '../composables/use-notification.ts';
 import type { UserProfileBo } from '../types/user.ts';
-import { useContextMenu } from '../composables/use-context-menu';
+import { useContextMenu } from '../composables/use-context-menu.ts';
 
+const props = defineProps<Props>()
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
@@ -34,6 +35,7 @@ const viewProfile = (postId: string, event?: Event) => {
         router.push({ path: '/profile', query: { id: post.creatorUid } });
     }
 };
+
 const sendDirectMessage = async (postId: string, event?: Event) => {
     if (event) {
         event.stopPropagation();
@@ -68,6 +70,7 @@ const sendDirectMessage = async (postId: string, event?: Event) => {
         notification.error('An error occurred while opening the chat');
     }
 };
+
 const editPost = (postId: string, event?: Event) => {
     if (event) {
         event.stopPropagation();
@@ -82,6 +85,7 @@ const editPost = (postId: string, event?: Event) => {
     
     router.push(`/post/${postId}/edit`);
 };
+
 const deletePost = async (postId: string, event?: Event) => {
     if (event) {
         event.stopPropagation();
@@ -109,6 +113,7 @@ const deletePost = async (postId: string, event?: Event) => {
         notification.error('Error deleting post');
     }
 };
+
 const isOwnPost = (postId: string): boolean => {
     const post = posts.value.find(p => p.uid === postId);
     return post ? post.creatorUid === currentUserUid.value : false;
@@ -119,7 +124,6 @@ interface Props {
     userProfile: UserProfileBo
 }
 
-const props = defineProps<Props>()
 
 const currentUserUid = computed(() => authStore.userId.value || '');
 const userType = computed(() => {
@@ -177,10 +181,8 @@ const loadPosts = async () => {
         if (postsResult.isSuccess && postsResult.data) {
             posts.value = postsResult.data; 
             
-            // Check if there are more posts (if we got less than postsPerPage, we're at the end)
             hasMorePosts.value = postsResult.data.length === postsPerPage;
             
-            // Update URL to show page 1 explicitly when pagination is needed
             if (currentPage.value === 1 && hasMorePosts.value && !route.query.page) {
                 router.replace({
                     query: {
