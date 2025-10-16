@@ -26,6 +26,16 @@ public sealed class CommentRepository(IHermessituationRoomContext context) : ICo
         return newComment.Uid;
     }
 
+    public async Task<CommentBo> GetCommentAsync(Guid commentUid)
+    {
+        var comment = await context.Comments
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.Uid == commentUid)
+            ?? throw new KeyNotFoundException($"Comment with UID {commentUid} was not found.");
+
+        return MapToBo(comment);
+    }
+
     public async Task<IReadOnlyList<CommentBo>> GetPostCommentsAsync(Guid postUid) => await context.Comments
         .AsNoTracking()
         .Where(c => c.PostUid == postUid)

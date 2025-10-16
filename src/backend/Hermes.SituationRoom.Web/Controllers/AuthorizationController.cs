@@ -5,7 +5,7 @@ using Configurations;
 using Domain.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Shared.BusinessObjects;
+using Shared.DataTransferObjects;
 using Swashbuckle.AspNetCore.Annotations;
 using IAuthorizationService = Domain.Interfaces.IAuthorizationService;
 
@@ -15,22 +15,22 @@ public class AuthorizationController(IControllerInfrastructure infra, IAuthoriza
     [HttpPost("internal/authorization/login/activist")]
     [AllowAnonymous]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_AUTHORIZATION])]
-    [ProducesResponseType(typeof(Task<IActionResult>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Guid), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<ActionResult<Guid>> LoginActivist(LoginActivistBo loginActivistBo)
+    public async Task<ActionResult<Guid>> LoginActivist([FromBody] LoginActivistRequestDto loginActivistDto)
     {
-        var activistGuid = await authorizationService.LoginActivist(loginActivistBo);
+        var activistGuid = await authorizationService.LoginActivist(loginActivistDto);
         return Ok(activistGuid);
     }
 
     [HttpPost("internal/authorization/login/journalist")]
     [AllowAnonymous]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_AUTHORIZATION])]
-    [ProducesResponseType(typeof(Task<IActionResult>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Guid), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<ActionResult<Guid>> LoginJournalist(LoginJournalistBo loginJournalistBo)
+    public async Task<ActionResult<Guid>> LoginJournalist([FromBody] LoginJournalistRequestDto loginJournalistDto)
     {
-        var journalistGuid = await authorizationService.LoginJournalist(loginJournalistBo);
+        var journalistGuid = await authorizationService.LoginJournalist(loginJournalistDto);
         return Ok(journalistGuid);
     }
 
@@ -45,9 +45,9 @@ public class AuthorizationController(IControllerInfrastructure infra, IAuthoriza
 
     [HttpGet("internal/authorization/me")]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_AUTHORIZATION])]
-    [ProducesResponseType(typeof(CurrentUserBo), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(CurrentUserDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<ActionResult<CurrentUserBo>> GetCurrentUser()
+    public async Task<ActionResult<CurrentUserDto>> GetCurrentUser()
     {
         var currentUser = await authorizationService.GetCurrentUser();
         

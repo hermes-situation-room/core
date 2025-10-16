@@ -7,7 +7,6 @@ using Configurations;
 using Domain.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Shared.BusinessObjects;
 using Shared.DataTransferObjects;
 using Swashbuckle.AspNetCore.Annotations;
 
@@ -19,28 +18,28 @@ public class MessageController(IControllerInfrastructure controllerInfrastructur
 {
     [HttpPost("internal/message")]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_MESSAGE])]
-    [ProducesResponseType(typeof(string), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(Guid), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> AddMessageAsync([FromBody] NewMessageDto newMessage)
+    public async Task<IActionResult> AddMessageAsync([FromBody] CreateMessageRequestDto createMessageDto)
     {
-        var newMessageId = await messageService.AddAsync(newMessage);
+        var newMessageId = await messageService.AddAsync(createMessageDto);
         return Ok(newMessageId);
     }
     
     [HttpGet("internal/message/{messageId:guid}")]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_MESSAGE])]
-    [ProducesResponseType(typeof(MessageBo), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(MessageDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<MessageBo>> GetMessageAsync([FromRoute] Guid messageId)
+    public async Task<ActionResult<MessageDto>> GetMessageAsync([FromRoute] Guid messageId)
     {
-            var message = await messageService.GetMessageAsync(messageId);
-            return Ok(message);
+        var message = await messageService.GetMessageAsync(messageId);
+        return Ok(message);
     }
     
     [HttpGet("internal/message/get-messages-by-chat/{chatId:guid}")]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_MESSAGE])]
-    [ProducesResponseType(typeof(IReadOnlyList<MessageBo>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<IReadOnlyList<MessageBo>>> GetMessagesByChatAsync([FromRoute] Guid chatId)
+    [ProducesResponseType(typeof(IReadOnlyList<MessageDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IReadOnlyList<MessageDto>>> GetMessagesByChatAsync([FromRoute] Guid chatId)
     {
         var messages = await messageService.GetMessagesByChatAsync(chatId);
         return Ok(messages);
@@ -52,10 +51,10 @@ public class MessageController(IControllerInfrastructure controllerInfrastructur
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateMessageAsync(
         [FromRoute] Guid messageId,
-        [FromBody] UpdateMessageDto updateDto)
+        [FromBody] UpdateMessageRequestDto updateDto)
     {
-            await messageService.UpdateAsync(messageId, updateDto.Content);
-            return NoContent();
+        await messageService.UpdateAsync(messageId, updateDto.Content);
+        return NoContent();
     }
 
     [HttpDelete("internal/message/{messageId:guid}")]

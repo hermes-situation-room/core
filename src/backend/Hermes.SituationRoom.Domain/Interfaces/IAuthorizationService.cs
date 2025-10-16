@@ -1,10 +1,11 @@
 ﻿namespace Hermes.SituationRoom.Domain.Interfaces;
 
-using Shared.BusinessObjects;
+using Shared.DataTransferObjects;
+
 public interface IAuthorizationService
 {
-    Task<Guid> LoginActivist(LoginActivistBo activistLoginBo);
-    Task<Guid> LoginJournalist(LoginJournalistBo journalistLoginBo);
+    Task<Guid> LoginActivist(LoginActivistRequestDto activistLoginDto);
+    Task<Guid> LoginJournalist(LoginJournalistRequestDto journalistLoginDto);
     Task Logout();
-    Task<CurrentUserBo?> GetCurrentUser();
+    Task<CurrentUserDto?> GetCurrentUser();
 }

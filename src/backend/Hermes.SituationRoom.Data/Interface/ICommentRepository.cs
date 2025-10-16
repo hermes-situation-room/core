@@ -7,6 +7,8 @@ public interface ICommentRepository
 {
     Task<Guid> AddAsync(CommentBo commentBo);
 
+    Task<CommentBo> GetCommentAsync(Guid commentUid);
+
     Task<IReadOnlyList<CommentBo>> GetPostCommentsAsync(Guid postUid);
 
     Task<CommentBo> UpdateAsync(CommentBo updatedComment);

@@ -28,6 +28,19 @@ public sealed class PrivacyLevelPersonalRepository(IHermessituationRoomContext c
         return newPrivacyLevelPersonal.Uid;
     }
 
+    public async Task<PrivacyLevelPersonalBo> GetPrivacyLevelPersonalBoAsync(Guid uid)
+    {
+        if (uid == Guid.Empty)
+            throw new ArgumentException("GUID must not be empty.");
+
+        var privacyLevelPersonal = await context.PrivacyLevelPersonals
+                       .AsNoTracking()
+                       .FirstOrDefaultAsync(p => p.Uid == uid)
+                   ?? throw new KeyNotFoundException("PrivacyLevelPersonal was not found.");
+
+        return MapToBo(privacyLevelPersonal);
+    }
+
     public async Task<PrivacyLevelPersonalBo> GetPrivacyLevelPersonalBoAsync(Guid ownerUid, Guid consumerUid)
     {
         if (ownerUid == Guid.Empty || consumerUid == Guid.Empty)

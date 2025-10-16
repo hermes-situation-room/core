@@ -1,34 +1,40 @@
 ﻿namespace Hermes.SituationRoom.Domain.Services;
 
-using Hermes.SituationRoom.Data.Entities;
+using AutoMapper;
 using Hermes.SituationRoom.Data.Interface;
-using Hermes.SituationRoom.Data.Repositories;
 using Hermes.SituationRoom.Shared.BusinessObjects;
+using Hermes.SituationRoom.Shared.DataTransferObjects;
 using Interfaces;
 
-public class UserService(IUserRepository userRepository, IActivistRepository activistRepository, IEncryptionService encryptionService) : IUserService
+public class UserService(IUserRepository userRepository, IActivistRepository activistRepository, IEncryptionService encryptionService, IMapper mapper) : IUserService
 {
-    public async Task<UserBo> GetUserAsync(Guid userUid) {
+    public async Task<UserDto> GetUserAsync(Guid userUid) 
+    {
         var user = await userRepository.GetUserBoAsync(userUid);
-        return user with { Password = null, PasswordHash = null, PasswordSalt = null };
+        var userWithoutSensitiveData = user with { Password = null, PasswordHash = null, PasswordSalt = null };
+        return mapper.Map<UserDto>(userWithoutSensitiveData);
     }
 
-    public Task<UserProfileBo> GetUserProfileAsync(Guid userUid, Guid consumerUid) => userRepository.GetUserProfileBoAsync(userUid, consumerUid);
+    public async Task<UserProfileDto> GetUserProfileAsync(Guid userUid, Guid consumerUid)
+    {
+        var userProfile = await userRepository.GetUserProfileBoAsync(userUid, consumerUid);
+        return mapper.Map<UserProfileDto>(userProfile);
+    }
 
     public Task<string> GetDisplayNameAsync(Guid userUid) => userRepository.GetDisplayNameAsync(userUid);
 
-    public async Task<IReadOnlyList<UserBo>> GetUsersAsync()
+    public async Task<IReadOnlyList<UserDto>> GetUsersAsync()
     {
         var users = await userRepository.GetAllUserBosAsync();
-        return [ ..users.Select(user => user with {Password = null, PasswordHash = null, PasswordSalt = null})];
+        var usersWithoutSensitiveData = users.Select(user => user with {Password = null, PasswordHash = null, PasswordSalt = null}).ToList();
+        return mapper.Map<IReadOnlyList<UserDto>>(usersWithoutSensitiveData);
     }
 
-    public Task<Guid> CreateUserAsync(UserBo userBo) 
+    public Task<Guid> CreateUserAsync(CreateUserRequestDto createUserDto) 
     {
-        (byte[] hash, byte[] salt) = encryptionService.EncryptPassword(userBo.Password);
-
+        var userBo = mapper.Map<UserBo>(createUserDto);
+        (byte[] hash, byte[] salt) = encryptionService.EncryptPassword(createUserDto.Password);
         userBo = userBo with { PasswordHash = hash, PasswordSalt = salt };
-
         return userRepository.AddAsync(userBo);
     }
 
@@ -49,10 +55,12 @@ public class UserService(IUserRepository userRepository, IActivistRepository act
         throw new KeyNotFoundException($"No user with the username or email '{usernameOrEmail}' was found.");
     }
 
-    public async Task<UserBo> UpdateUserAsync(UserBo updatedUser)
+    public async Task<UserDto> UpdateUserAsync(UpdateUserRequestDto updateUserDto)
     {
-        var user = await userRepository.UpdateAsync(updatedUser);
-        return user with { Password = null, PasswordHash = null, PasswordSalt = null };
+        var userBo = mapper.Map<UserBo>(updateUserDto);
+        var user = await userRepository.UpdateAsync(userBo);
+        var userWithoutSensitiveData = user with { Password = null, PasswordHash = null, PasswordSalt = null };
+        return mapper.Map<UserDto>(userWithoutSensitiveData);
     }
 
     public Task DeleteUserAsync(Guid userUid) =>

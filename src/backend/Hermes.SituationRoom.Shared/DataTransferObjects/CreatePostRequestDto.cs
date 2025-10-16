@@ -1,7 +1,6 @@
 namespace Hermes.SituationRoom.Shared.DataTransferObjects;
 
-public record CreatePostDto(Guid Uid,
-    string Title,
+public record CreatePostRequestDto(string Title,
     string Description,
     string Content,
     Guid CreatorUid,

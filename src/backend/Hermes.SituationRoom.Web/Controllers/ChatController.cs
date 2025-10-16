@@ -1,6 +1,6 @@
 ﻿namespace Hermes.SituationRoom.Api.Controllers;
 
-using Shared.BusinessObjects;
+using Shared.DataTransferObjects;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Mime;
@@ -18,15 +18,15 @@ public class ChatController(IControllerInfrastructure controllerInfrastructure, 
 {
     [HttpPost("internal/chats")]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_CHAT])]
-    [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Guid), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<Guid>> AddAsync([FromBody] ChatBo newChatBo) => Ok(await chatService.AddAsync(newChatBo));
+    public async Task<ActionResult<Guid>> AddAsync([FromBody] CreateChatRequestDto createChatDto) => Ok(await chatService.AddAsync(createChatDto));
 
     [HttpGet("internal/chats/{chatId:guid}")]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_CHAT])]
-    [ProducesResponseType(typeof(ChatBo), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ChatDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ChatBo>> GetChatAsync([FromRoute] Guid chatId)
+    public async Task<ActionResult<ChatDto>> GetChatAsync([FromRoute] Guid chatId)
     {
         var chat = await chatService.GetChatAsync(chatId);
         return Ok(chat);
@@ -34,9 +34,9 @@ public class ChatController(IControllerInfrastructure controllerInfrastructure, 
 
     [HttpGet("internal/chats/by-user-pair")]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_CHAT])]
-    [ProducesResponseType(typeof(ChatBo), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ChatDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ChatBo>> GetChatByUserPairAsync([FromQuery] [Required] Guid user1Id,
+    public async Task<ActionResult<ChatDto>> GetChatByUserPairAsync([FromQuery] [Required] Guid user1Id,
         [FromQuery] [Required] Guid user2Id
     )
     {
@@ -46,8 +46,8 @@ public class ChatController(IControllerInfrastructure controllerInfrastructure, 
 
     [HttpGet("internal/chats/by-user/{userId:guid}")]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_CHAT])]
-    [ProducesResponseType(typeof(IReadOnlyList<ChatBo>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<IReadOnlyList<ChatBo>>> GetChatsByUserAsync([FromRoute] Guid userId) =>
+    [ProducesResponseType(typeof(IReadOnlyList<ChatDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IReadOnlyList<ChatDto>>> GetChatsByUserAsync([FromRoute] Guid userId) =>
         Ok(await chatService.GetChatsByUserAsync(userId));
 
     [HttpDelete("internal/chats/{chatId:guid}")]
