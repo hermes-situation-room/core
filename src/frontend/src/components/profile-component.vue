@@ -23,6 +23,10 @@ const isOwnProfile = computed(() => {
     return userId === currentUserId;
 });
 
+const currentUserType = computed(() =>{
+    return authStore.userType.value
+})
+
 const isActivist = computed(() => {
     return userProfile.value?.userName != null;
 });
@@ -228,7 +232,7 @@ watch(() => route.query.id, () => {
                             <i class="fas fa-sign-in-alt me-1"></i>
                             Login to Message
                         </RouterLink>
-                        <PrivacyLevelPersonalOverviewComponent class="mt-2" v-if="isActivist && !isOwnProfile" :userProfile="userProfile"></PrivacyLevelPersonalOverviewComponent>
+                        <PrivacyLevelPersonalOverviewComponent class="mt-5" v-if="currentUserType == 'activist' && !isOwnProfile" :userProfile="userProfile"></PrivacyLevelPersonalOverviewComponent>
                         <ProfileUserPostListComponent :userProfile="userProfile"></ProfileUserPostListComponent>
                     </div>
                 </div>

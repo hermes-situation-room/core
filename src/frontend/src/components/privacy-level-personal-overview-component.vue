@@ -131,7 +131,7 @@ onMounted(() => {
 <template>
     <div>
         <form @submit.prevent="updatePrivacy" class="mb-4">
-            <h5 class="border-bottom pb-2 mb-3">Privacy Settings</h5>
+            <h5 class="border-bottom pb-2 mb-3">Personal Privacy Settings</h5>
             <p class="text-muted small mb-3">
                 <i class="fas fa-shield-alt me-1"></i>
                 Control what information is visible to this User.
@@ -211,7 +211,7 @@ onMounted(() => {
                 </button>
             </div>
             <div v-else class="d-flex gap-2 justify-content-end">
-                <button type="button" class="btn btn-primary btn-sm" @click="togglePrivacyEdit"><i class="fas fa-edit me-1"></i> Edit Privacy Settings for this User</button>
+                <button type="button" class="btn btn-primary" @click="togglePrivacyEdit"><i class="fas fa-edit me-1"></i> Edit Privacy Settings for this User</button>
             </div>
         </form>
     </div>
