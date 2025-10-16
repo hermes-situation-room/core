@@ -12,85 +12,178 @@ public class SituationRoomProfile : Profile
         CreateMap<ActivistBo, ActivistDto>();
         CreateMap<ActivistDto, ActivistBo>();
         CreateMap<CreateActivistRequestDto, ActivistBo>()
-            .ForMember(dest => dest.Uid, opt => opt.MapFrom(src => Guid.NewGuid()))
-            .ForMember(dest => dest.PasswordHash, opt => opt.Ignore())
-            .ForMember(dest => dest.PasswordSalt, opt => opt.Ignore());
+            .ConstructUsing(src => new(
+                Guid.NewGuid(),
+                src.Password,
+                null,
+                null,
+                src.FirstName,
+                src.LastName,
+                src.EmailAddress,
+                src.UserName,
+                src.IsFirstNameVisible,
+                src.IsLastNameVisible,
+                src.IsEmailVisible
+            ));
         CreateMap<UpdateActivistRequestDto, ActivistBo>()
-            .ForMember(dest => dest.Password, opt => opt.Ignore())
-            .ForMember(dest => dest.PasswordHash, opt => opt.Ignore())
-            .ForMember(dest => dest.PasswordSalt, opt => opt.Ignore());
+            .ConstructUsing(src => new(
+                src.Uid,
+                null,
+                null,
+                null,
+                src.FirstName,
+                src.LastName,
+                src.EmailAddress,
+                src.UserName,
+                src.IsFirstNameVisible,
+                src.IsLastNameVisible,
+                src.IsEmailVisible
+            ));
 
         // Journalist mappings
         CreateMap<JournalistBo, JournalistDto>();
         CreateMap<JournalistDto, JournalistBo>();
         CreateMap<CreateJournalistRequestDto, JournalistBo>()
-            .ForMember(dest => dest.Uid, opt => opt.MapFrom(src => Guid.NewGuid()))
-            .ForMember(dest => dest.PasswordHash, opt => opt.Ignore())
-            .ForMember(dest => dest.PasswordSalt, opt => opt.Ignore());
+            .ConstructUsing(src => new(
+                Guid.NewGuid(),
+                src.Password,
+                null,
+                null,
+                src.FirstName,
+                src.LastName,
+                src.EmailAddress,
+                src.Employer
+            ));
         CreateMap<UpdateJournalistRequestDto, JournalistBo>()
-            .ForMember(dest => dest.Password, opt => opt.Ignore())
-            .ForMember(dest => dest.PasswordHash, opt => opt.Ignore())
-            .ForMember(dest => dest.PasswordSalt, opt => opt.Ignore());
+            .ConstructUsing(src => new(
+                src.Uid,
+                null,
+                null,
+                null,
+                src.FirstName,
+                src.LastName,
+                src.EmailAddress,
+                src.Employer
+            ));
 
         // User mappings
         CreateMap<UserBo, UserDto>();
         CreateMap<UserDto, UserBo>();
         CreateMap<CreateUserRequestDto, UserBo>()
-            .ForMember(dest => dest.Uid, opt => opt.MapFrom(src => Guid.NewGuid()))
-            .ForMember(dest => dest.PasswordHash, opt => opt.Ignore())
-            .ForMember(dest => dest.PasswordSalt, opt => opt.Ignore());
+            .ConstructUsing(src => new(
+                Guid.NewGuid(),
+                src.Password,
+                null,
+                null,
+                src.FirstName,
+                src.LastName,
+                src.EmailAddress
+            ));
         CreateMap<UpdateUserRequestDto, UserBo>()
-            .ForMember(dest => dest.Password, opt => opt.Ignore())
-            .ForMember(dest => dest.PasswordHash, opt => opt.Ignore())
-            .ForMember(dest => dest.PasswordSalt, opt => opt.Ignore());
+            .ConstructUsing(src => new(
+                src.Uid,
+                null,
+                null,
+                null,
+                src.FirstName,
+                src.LastName,
+                src.EmailAddress
+            ));
 
         // Post mappings
         CreateMap<PostWithTagsBo, PostWithTagsDto>();
         CreateMap<PostWithTagsDto, PostWithTagsBo>();
         CreateMap<CreatePostRequestDto, PostWithTagsBo>()
-            .ForMember(dest => dest.Uid, opt => opt.MapFrom(src => Guid.NewGuid()))
-            .ForMember(dest => dest.Timestamp, opt => opt.Ignore());
+            .ConstructUsing(src => new(
+                Guid.NewGuid(),
+                DateTime.UtcNow,
+                src.Title,
+                src.Description,
+                src.Content,
+                src.CreatorUid,
+                src.Tags
+            ));
         CreateMap<UpdatePostRequestDto, PostWithTagsBo>()
-            .ForMember(dest => dest.Timestamp, opt => opt.Ignore())
-            .ForMember(dest => dest.CreatorUid, opt => opt.Ignore());
+            .ConstructUsing(src => new(
+                src.Uid,
+                DateTime.UtcNow,
+                src.Title,
+                src.Description,
+                src.Content,
+                Guid.Empty,
+                src.Tags
+            ));
 
         // Comment mappings
         CreateMap<CommentBo, CommentDto>();
         CreateMap<CommentDto, CommentBo>();
         CreateMap<CreateCommentRequestDto, CommentBo>()
-            .ForMember(dest => dest.Uid, opt => opt.MapFrom(src => Guid.NewGuid()))
-            .ForMember(dest => dest.Timestamp, opt => opt.Ignore());
+            .ConstructUsing(src => new(
+                Guid.NewGuid(),
+                DateTime.UtcNow,
+                src.CreatorUid,
+                src.PostUid,
+                src.Content
+            ));
         CreateMap<UpdateCommentRequestDto, CommentBo>()
-            .ForMember(dest => dest.Timestamp, opt => opt.Ignore())
-            .ForMember(dest => dest.CreatorUid, opt => opt.Ignore())
-            .ForMember(dest => dest.PostUid, opt => opt.Ignore());
+            .ConstructUsing(src => new(
+                src.Uid,
+                DateTime.UtcNow,
+                Guid.Empty,
+                Guid.Empty,
+                src.Content
+            ));
 
         // Chat mappings
         CreateMap<ChatBo, ChatDto>();
         CreateMap<ChatDto, ChatBo>();
         CreateMap<CreateChatRequestDto, ChatBo>()
-            .ForMember(dest => dest.Uid, opt => opt.MapFrom(src => Guid.NewGuid()));
+            .ConstructUsing(src => new(
+                Guid.NewGuid(),
+                src.User1Uid,
+                src.User2Uid
+            ));
 
         // Message mappings
         CreateMap<MessageBo, MessageDto>()
             .ForMember(dest => dest.Uid, opt => opt.MapFrom(src => src.Uid ?? Guid.Empty));
         CreateMap<MessageDto, MessageBo>();
         CreateMap<CreateMessageRequestDto, MessageBo>()
-            .ForMember(dest => dest.Uid, opt => opt.Ignore())
-            .ForMember(dest => dest.Timestamp, opt => opt.Ignore());
+            .ConstructUsing(src => new(
+                src.Content,
+                src.SenderUid,
+                src.ChatUid,
+                DateTime.UtcNow
+            ));
         CreateMap<UpdateMessageRequestDto, MessageBo>()
-            .ForMember(dest => dest.SenderUid, opt => opt.Ignore())
-            .ForMember(dest => dest.ChatUid, opt => opt.Ignore())
-            .ForMember(dest => dest.Timestamp, opt => opt.Ignore());
+            .ConstructUsing(src => new(
+                src.Content,
+                Guid.Empty,
+                Guid.Empty,
+                DateTime.UtcNow
+            ) { Uid = src.Uid });
 
         // PrivacyLevelPersonal mappings
         CreateMap<PrivacyLevelPersonalBo, PrivacyLevelPersonalDto>();
         CreateMap<PrivacyLevelPersonalDto, PrivacyLevelPersonalBo>();
         CreateMap<CreatePrivacyLevelPersonalRequestDto, PrivacyLevelPersonalBo>()
-            .ForMember(dest => dest.Uid, opt => opt.MapFrom(src => Guid.NewGuid()));
+            .ConstructUsing(src => new(
+                Guid.NewGuid(),
+                src.IsFirstNameVisible,
+                src.IsLastNameVisible,
+                src.IsEmailVisible,
+                src.OwnerUid,
+                src.ConsumerUid
+            ));
         CreateMap<UpdatePrivacyLevelPersonalRequestDto, PrivacyLevelPersonalBo>()
-            .ForMember(dest => dest.OwnerUid, opt => opt.Ignore())
-            .ForMember(dest => dest.ConsumerUid, opt => opt.Ignore());
+            .ConstructUsing(src => new(
+                src.Uid,
+                src.IsFirstNameVisible,
+                src.IsLastNameVisible,
+                src.IsEmailVisible,
+                Guid.Empty,
+                Guid.Empty
+            ));
 
         // Current User mappings
         CreateMap<CurrentUserBo, CurrentUserDto>();
