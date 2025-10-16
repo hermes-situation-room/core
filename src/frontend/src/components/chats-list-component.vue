@@ -20,6 +20,11 @@ const {
     closeAllMenus
 } = useContextMenu();
 
+const emit = defineEmits<{
+    (e: 'update:chatSelected', chatId: string | undefined): void
+}>();
+
+
 const chats = ref<ChatBo[]>([]);
 const chatsWithLastMessage = ref<Array<ChatBo & { lastMessageTime?: string, lastMessage?: string }>>([]);
 const unreadCounts = ref<Record<string, number>>({});
@@ -140,7 +145,8 @@ const loadUnreadCounts = async () => {
 };
 
 const viewChat = (chatId: string) => {
-    router.push(`/chat/${chatId}`);
+    emit('update:chatSelected', chatId);
+    router.replace(`/chat/${chatId}`);
 };
 
 const getOtherUserUid = (chat: ChatBo) => {
@@ -268,16 +274,19 @@ onMounted(async () => {
 </script>
 
 <template>
-    <div class="container py-4">
-        <div class="row justify-content-center">
-            <div class="col-12 col-lg-10">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2>My Chats</h2>
-                    <button class="btn btn-primary" @click="router.push('/chat/new')">
-                        New Chat
-                    </button>
-                </div>
-
+    <div class="pb-4 flex-column">
+        <div class="d-flex p-2 chat-list-header">
+            <div class="col-6 align-items-center">
+                <h2>My Chats</h2>
+            </div>
+            <div class="col-6 d-flex justify-content-end">
+                <button class="btn btn-primary" @click="router.push('/chat/new')">
+                    New Chat
+                </button>
+            </div>
+        </div>
+        <div class="d-flex">
+            <div class="col-12">
                 <div v-if="loading" class="d-flex justify-content-center align-items-center py-5">
                     <div class="text-center">
                         <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
@@ -287,14 +296,14 @@ onMounted(async () => {
                     </div>
                 </div>
 
-                <div v-else-if="chatsWithLastMessage.length > 0" class="row g-3">
+                <div v-else-if="chatsWithLastMessage.length > 0" class="d-flex flex-column g-3 chat-list scrollable">
                     <div 
                         v-for="chat in chatsWithLastMessage" 
                         :key="chat.uid"
                         class="col-12"
                     >
                         <div 
-                            class="card shadow-sm" 
+                            class="shadow-sm" 
                             style="cursor: pointer;" 
                             @click="viewChat(chat.uid)"
                             @contextmenu="handleRightClick($event, chat.uid)"
