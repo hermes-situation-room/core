@@ -6,6 +6,7 @@ import type { UserProfileBo } from '../types/user';
 import { useAuthStore } from '../stores/auth-store';
 import { useNotification } from '../composables/use-notification.ts';
 import ProfileUserPostListComponent from './profile-user-post-list-component.vue';
+import PrivacyLevelPersonalOverviewComponent from './privacy-level-personal-overview-component.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -21,6 +22,10 @@ const isOwnProfile = computed(() => {
     const currentUserId = authStore.userId.value || '';
     return userId === currentUserId;
 });
+
+const currentUserType = computed(() =>{
+    return authStore.userType.value
+})
 
 const isActivist = computed(() => {
     return userProfile.value?.userName != null;
@@ -227,8 +232,9 @@ watch(() => route.query.id, () => {
                             <i class="fas fa-sign-in-alt me-1"></i>
                             Login to Message
                         </RouterLink>
+                        <PrivacyLevelPersonalOverviewComponent class="mt-5" v-if="currentUserType == 'activist' && !isOwnProfile" :userProfile="userProfile"></PrivacyLevelPersonalOverviewComponent>
+                        <ProfileUserPostListComponent :userProfile="userProfile"></ProfileUserPostListComponent>
                     </div>
-                    <ProfileUserPostListComponent :userProfile="userProfile"></ProfileUserPostListComponent>
                 </div>
             </div>
         </div>

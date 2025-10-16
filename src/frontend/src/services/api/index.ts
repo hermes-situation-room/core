@@ -9,6 +9,7 @@ import authApi from "./auth-api.ts";
 import usersApi from "./users-api";
 import messageStatusApi from "./messageStatus-api.ts";
 import commentsApi from "./comments-api.ts";
+import privacyLevelPersonalApi from "./privacy-level-personal-api.ts";
 
 const apiBaseClient = new ApiBaseClient();
 
@@ -22,6 +23,7 @@ export const services = {
     auth: authApi(apiBaseClient),
     users: usersApi(apiBaseClient),
     userChatMessageStatus: messageStatusApi(apiBaseClient),
+    privacyLevelPersonal: privacyLevelPersonalApi(apiBaseClient),
 }
 
 const socketBaseClient = new SocketBaseClient();
