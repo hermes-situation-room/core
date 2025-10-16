@@ -39,7 +39,7 @@ const loadingPrivacyLevels = ref(false);
 const error = ref('');
 const showPrivacyDropdown = ref(false);
 
-const loadPrivacyLevels = async () => {
+const loadPostPrivacyLevels = async () => {
     loadingPrivacyLevels.value = true;
     try {
         const result = await services.posts.getPostPrivacyLevels();
@@ -97,7 +97,7 @@ const loadPost = async () => {
             console.log(originalPost)
             console.log(originalPost.value?.privacyLevel)
             selectedPrivacyLevel.value = Number(originalPost.value?.privacyLevel);
-            loadPrivacyLevels();
+            loadPostPrivacyLevels();
         } else {
             notification.error(result.responseMessage || 'Failed to load post');
         }

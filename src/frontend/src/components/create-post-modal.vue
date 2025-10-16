@@ -44,7 +44,7 @@ const loadingPrivacyLevels = ref(false);
 const error = ref('');
 const showPrivacyDropdown = ref(false);
 
-const loadPrivacyLevels = async () => {
+const loadPostPrivacyLevels = async () => {
     loadingPrivacyLevels.value = true;
     try {
         const result = await services.posts.getPostPrivacyLevels();
@@ -180,7 +180,7 @@ const selectPrivacyLevel = (level: string) => {
 
 onMounted(() => {
     loadTags();
-    loadPrivacyLevels();
+    loadPostPrivacyLevels();
 
     document.addEventListener('click', (e) => {
         const target = e.target as HTMLElement;
