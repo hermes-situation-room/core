@@ -52,18 +52,20 @@ const loadPrivacyLevels = async () => {
 }
 
 const loadPrivacyLevelPersonal = async () => {
-  try {
+    try {
     const result = await services.privacyLevelPersonal.getPrivacyLevelPersonal(ownerId.value, consumerId);
     if (result.isSuccess && result.data) {
-      return result.data;
+        return result.data;
+    } else if (result.responseCode == 404) {
+        return null
     } else {
-      notification.error(result.responseMessage || 'Failed to load personal privacy levels');
-      return null;
+        notification.error(result.responseMessage || 'Failed to load personal privacy levels');
+        return null;
     }
-  } catch (err) {
-    notification.error('Error loading personal privacy levels');
-    return null;
-  }
+    } catch (err) {
+        notification.error('Error loading personal privacy levels');
+        return null;
+    }
 };
 
 const loadDefaultPrivacyLevel = async () => {
@@ -201,7 +203,7 @@ onMounted(() => {
                     Cancel
                 </button>
                 <button 
-                    type="submit"
+                    type="submit" 
                     class="btn btn-primary"
                     :disabled="updatingPrivacy"
                 >
