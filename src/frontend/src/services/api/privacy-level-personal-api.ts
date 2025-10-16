@@ -9,7 +9,7 @@ export default function privacyLevelPersonalApi(apiBaseClient: ApiBaseClient) {
          */
         async getPrivacyLevelPersonal(ownerUid: string, consumerUid: string): Promise<BaseResultBo<PrivacyLevelPersonalBo>> {
             const params: Record<string, string> = {};
-            params.uid = ownerUid;
+            params.ownerUid = ownerUid;
             params.consumerUid = consumerUid;
             return await apiBaseClient.get<PrivacyLevelPersonalBo>('services/api/internal/privacylevelpersonal', params);
         },
