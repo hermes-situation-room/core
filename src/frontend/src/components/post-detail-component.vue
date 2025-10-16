@@ -396,9 +396,6 @@ onMounted(() => {
                             </RouterLink>
                             
                             <span class="text-muted small d-flex align-items-center" v-if="currentUserUid && post.creatorUid === currentUserUid">
-                                <!-- <span v-if="post.privacyLevel === 2">This post is visible for journalists</span>
-                                <span v-if="post.privacyLevel === 1">This post is visible for logged in</span>
-                                <span v-else>This post is visible for everyone</span> -->
                                 {{ privacyText }}
                             </span>
                         </div>
