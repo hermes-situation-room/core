@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import {computed, ref} from 'vue'
 import {RouterLink, useRouter} from 'vue-router'
-import type {LoginFormData, UserType} from '../types/User.ts'
+import type {LoginFormData, UserType} from '../types/user.ts'
 import {useAuthStore} from '../stores/auth-store'
 import {services} from "../services/api";
 import {useNotification} from '../composables/use-notification.ts';
 import ProfileIconSelector from './profile-icon-selector.vue';
 import ProfileIconDisplay from './profile-icon-display.vue';
-import {ProfileIcon, ProfileIconColor} from '../types/ProfileIcon.ts';
+import {ProfileIcon, DEFAULT_COLOR} from '../types/profileIcon.ts';
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -26,14 +26,14 @@ const formData = ref<LoginFormData>({
     isLastNameVisible: true,
     isEmailVisible: true,
     profileIcon: ProfileIcon.User,
-    profileIconColor: ProfileIconColor.Blue
+    profileIconColor: DEFAULT_COLOR
 })
 const isLoading = ref(false)
-const showIconSelector = ref(false)
 const iconSelection = ref({
     icon: ProfileIcon.User,
-    color: ProfileIconColor.Blue
+    color: DEFAULT_COLOR
 })
+const profileIconModalRef = ref<HTMLDivElement | null>(null)
 
 const isJournalist = computed(() => selectedUserType.value === 'journalist')
 const isActivist = computed(() => selectedUserType.value === 'activist')
@@ -62,23 +62,23 @@ function selectUserType(type: UserType) {
         isLastNameVisible: true,
         isEmailVisible: true,
         profileIcon: ProfileIcon.User,
-        profileIconColor: ProfileIconColor.Blue
+        profileIconColor: DEFAULT_COLOR
     }
     
     iconSelection.value = {
         icon: ProfileIcon.User,
-        color: ProfileIconColor.Blue
+        color: DEFAULT_COLOR
     }
-}
-
-function toggleIconSelector() {
-    showIconSelector.value = !showIconSelector.value
 }
 
 function updateIconSelection() {
     formData.value.profileIcon = iconSelection.value.icon
     formData.value.profileIconColor = iconSelection.value.color
-    showIconSelector.value = false
+    
+    const closeButton = profileIconModalRef.value?.querySelector('[data-bs-dismiss="modal"]') as HTMLButtonElement
+    if (closeButton) {
+        closeButton.click()
+    }
 }
 
 async function handleRegister() {
@@ -100,7 +100,7 @@ async function handleRegister() {
                 isLastNameVisible: formData.value.isLastNameVisible ?? true,
                 isEmailVisible: formData.value.isEmailVisible ?? true,
                 profileIcon: formData.value.profileIcon || ProfileIcon.User,
-                profileIconColor: formData.value.profileIconColor || ProfileIconColor.Blue
+                profileIconColor: formData.value.profileIconColor || DEFAULT_COLOR
             })
         } else {
             if (!formData.value.firstName || !formData.value.lastName ||
@@ -117,7 +117,7 @@ async function handleRegister() {
                 password: formData.value.password,
                 employer: formData.value.employer,
                 profileIcon: formData.value.profileIcon || ProfileIcon.User,
-                profileIconColor: formData.value.profileIconColor || ProfileIconColor.Blue
+                profileIconColor: formData.value.profileIconColor || DEFAULT_COLOR
             })
         }
 
@@ -180,7 +180,6 @@ async function handleRegister() {
                             </div>
 
                             <form @submit.prevent="handleRegister">
-                                <!-- Profile Icon Section - First Input -->
                                 <div class="mb-3">
                                     <label class="form-label">Profile Icon</label>
                                     <div class="d-flex align-items-center gap-3">
@@ -192,41 +191,13 @@ async function handleRegister() {
                                         <button 
                                             type="button" 
                                             class="btn btn-outline-secondary btn-sm"
-                                            @click="toggleIconSelector"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#profileIconModal"
                                             :disabled="isLoading"
                                         >
                                             <i class="fas fa-edit me-1"></i>
                                             Edit Profile Icon
                                         </button>
-                                    </div>
-                                    
-                                    <!-- Icon Selector Modal -->
-                                    <div v-if="showIconSelector" class="mt-3 p-3 border rounded bg-light">
-                                        <div class="d-flex justify-content-between align-items-center mb-3">
-                                            <h6 class="mb-0">Choose Your Profile Icon</h6>
-                                            <button 
-                                                type="button" 
-                                                class="btn-close" 
-                                                @click="showIconSelector = false"
-                                            ></button>
-                                        </div>
-                                        <ProfileIconSelector v-model="iconSelection" />
-                                        <div class="d-flex justify-content-end gap-2 mt-3">
-                                            <button 
-                                                type="button" 
-                                                class="btn btn-secondary btn-sm"
-                                                @click="showIconSelector = false"
-                                            >
-                                                Cancel
-                                            </button>
-                                            <button 
-                                                type="button" 
-                                                class="btn btn-primary btn-sm"
-                                                @click="updateIconSelection"
-                                            >
-                                                Select Icon
-                                            </button>
-                                        </div>
                                     </div>
                                 </div>
 
@@ -386,6 +357,24 @@ async function handleRegister() {
                                 </RouterLink>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div ref="profileIconModalRef" class="modal fade" id="profileIconModal" tabindex="-1" aria-labelledby="profileIconModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="profileIconModalLabel">Choose Your Profile Icon</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <ProfileIconSelector v-model="iconSelection" />
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" @click="updateIconSelection">Select Icon</button>
                     </div>
                 </div>
             </div>

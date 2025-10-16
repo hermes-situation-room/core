@@ -6,7 +6,7 @@ import type {UserProfileBo, ActivistBo, JournalistBo} from '../types/user';
 import { useAuthStore } from '../stores/auth-store';
 import { useNotification } from '../composables/use-notification.ts';
 import ProfileIconSelector from './profile-icon-selector.vue';
-import { ProfileIcon, ProfileIconColor } from '../types/profile-icon.ts';
+import { ProfileIcon, DEFAULT_COLOR } from '../types/profileIcon.ts';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -29,7 +29,7 @@ const isEmailVisible = ref(true);
 
 const iconSelection = ref({
     icon: ProfileIcon.User,
-    color: ProfileIconColor.Blue
+    color: DEFAULT_COLOR
 });
 
 const isActivist = computed(() => {

@@ -1,6 +1,6 @@
 ﻿<script setup lang="ts">
 import { computed } from 'vue';
-import { ProfileIcon, ProfileIconColor, ICON_MAP, COLOR_MAP } from '../types/profile-icon.ts';
+import { ProfileIcon, ICON_MAP, DEFAULT_COLOR } from '../types/profileIcon.ts';
 
 interface Props {
     icon?: string;
@@ -10,7 +10,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
     icon: ProfileIcon.User,
-    color: ProfileIconColor.Blue,
+    color: DEFAULT_COLOR,
     size: 'md'
 });
 
@@ -20,8 +20,10 @@ const iconClass = computed(() => {
 });
 
 const iconColor = computed(() => {
-    const colorKey = props.color as ProfileIconColor;
-    return COLOR_MAP[colorKey] || COLOR_MAP[ProfileIconColor.Blue];
+    if (props.color && /^#[0-9A-Fa-f]{6}$/.test(props.color)) {
+        return props.color;
+    }
+    return DEFAULT_COLOR;
 });
 
 const sizeStyle = computed(() => {
