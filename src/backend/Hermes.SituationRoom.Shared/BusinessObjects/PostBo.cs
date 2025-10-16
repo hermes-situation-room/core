@@ -5,5 +5,6 @@ public record PostBo(Guid Uid,
     string Title,
     string Description,
     string Content,
-    Guid CreatorUid
+    Guid CreatorUid,
+    int PrivacyLevel
 );

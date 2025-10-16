@@ -99,8 +99,9 @@ public class SituationRoomProfile : Profile
                 DateTime.UtcNow,
                 src.Title,
                 src.Description,
-                src.Content,
+                src.Content,                
                 src.CreatorUid,
+                src.PrivacyLevel,
                 src.Tags
             ));
         CreateMap<UpdatePostRequestDto, PostWithTagsBo>()
@@ -111,6 +112,7 @@ public class SituationRoomProfile : Profile
                 src.Description,
                 src.Content,
                 Guid.Empty,
+                src.PrivacyLevel,
                 src.Tags
             ));
 

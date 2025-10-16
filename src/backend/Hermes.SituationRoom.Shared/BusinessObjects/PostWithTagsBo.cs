@@ -6,5 +6,6 @@ public record PostWithTagsBo(Guid Uid,
     string Description,
     string Content,
     Guid CreatorUid,
+    int PrivacyLevel,
     IReadOnlyList<string> Tags
 );

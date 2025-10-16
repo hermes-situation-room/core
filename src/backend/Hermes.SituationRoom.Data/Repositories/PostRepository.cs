@@ -21,6 +21,7 @@ public sealed class PostRepository(IHermessituationRoomContext context) : IPostR
             Title = postBo.Title,
             Description = postBo.Description,
             Content = postBo.Content,
+            PrivacyLevel = postBo.PrivacyLevel,
         };
 
         context.Posts.Add(newPost);
@@ -41,14 +42,16 @@ public sealed class PostRepository(IHermessituationRoomContext context) : IPostR
         );
     }
 
-    public async Task<IReadOnlyList<PostWithTagsBo>> GetActivistPostsByTagsAsync(IReadOnlyList<Tag> tags, int limit, int offset, string? query = null, string? sortBy = null)
+    public async Task<IReadOnlyList<PostWithTagsBo>> GetActivistPostsByTagsAsync(IReadOnlyList<Tag> tags, int privacyLevel, Guid userUid, int limit, int offset, string? query = null, string? sortBy = null)
     {
         var tagSet = tags.Distinct().Select(t => t.ToString()).ToList();
 
         var queryable = context.Posts
             .AsNoTracking()
             .Where(p => p.PostTags.Any(pt => tagSet.Contains(pt.Tag)) &&
-                       context.Activists.Any(a => a.UserUid == p.CreatorUid));
+                        p.PrivacyLevel <= privacyLevel &&
+                        context.Activists.Any(a => a.UserUid == p.CreatorUid) ||
+                        p.CreatorUid == userUid);
 
         if (!string.IsNullOrWhiteSpace(query))
         {
@@ -120,11 +123,11 @@ public sealed class PostRepository(IHermessituationRoomContext context) : IPostR
             .ToListAsync();
     }
 
-    public async Task<IReadOnlyList<PostBo>> GetAllActivistPostsAsync(int limit, int offset, string? query = null, string? sortBy = null)
+    public async Task<IReadOnlyList<PostBo>> GetAllActivistPostsAsync(int privacyLevel, Guid userUid, int limit, int offset, string? query = null, string? sortBy = null)
     {
         var queryable = context.Posts
             .AsNoTracking()
-            .Where(p => context.Activists.Any(a => a.UserUid == p.CreatorUid));
+            .Where(p => context.Activists.Any(a => a.UserUid == p.CreatorUid) && p.PrivacyLevel <= privacyLevel || p.CreatorUid == userUid);
 
         if (!string.IsNullOrWhiteSpace(query))
         {
@@ -178,6 +181,7 @@ public sealed class PostRepository(IHermessituationRoomContext context) : IPostR
         post.Title = updatedPost.Title;
         post.Description = updatedPost.Description;
         post.Content = updatedPost.Content;
+        post.PrivacyLevel = updatedPost.PrivacyLevel;
 
         await context.SaveChangesAsync();
 
@@ -197,12 +201,18 @@ public sealed class PostRepository(IHermessituationRoomContext context) : IPostR
         await context.SaveChangesAsync();
     }
 
+    public async Task<IReadOnlyList<string>> GetPostPrivaciesAsync()
+    {
+        return [.. Enum.GetNames<PostPrivacy>()];
+    }
+
     private static PostBo MapToBo(Post post) => new(post.Uid,
         post.Timestamp,
         post.Title,
         post.Description,
         post.Content,
-        post.CreatorUid
+        post.CreatorUid,
+        post.PrivacyLevel
     );
 
     private static PostWithTagsBo MapToBoWithTags(Post post) => new(post.Uid,
@@ -211,6 +221,7 @@ public sealed class PostRepository(IHermessituationRoomContext context) : IPostR
         post.Description,
         post.Content,
         post.CreatorUid,
+        post.PrivacyLevel,
         post.PostTags.Select(pt => pt.Tag).Distinct().ToList()
     );
 

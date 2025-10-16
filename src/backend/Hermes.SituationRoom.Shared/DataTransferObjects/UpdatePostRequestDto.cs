@@ -4,5 +4,6 @@ public record UpdatePostRequestDto(Guid Uid,
     string Title,
     string Description,
     string Content,
+    int PrivacyLevel,
     IReadOnlyList<string> Tags
 );
