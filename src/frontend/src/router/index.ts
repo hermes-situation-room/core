@@ -7,12 +7,11 @@ import PostDetailComponent from "../components/post-detail-component.vue";
 import EditPostComponent from "../components/edit-post-component.vue";
 import LoginComponent from "../components/login-component.vue";
 import RegisterComponent from "../components/register-component.vue";
-import ChatsListComponent from "../components/chats-list-component.vue";
-import ChatDetailComponent from "../components/chat-detail-component.vue";
 import CreateChatComponent from "../components/create-chat-component.vue";
 import ProfileComponent from "../components/profile-component.vue";
 import EditProfileComponent from "../components/edit-profile-component.vue";
 import { useAuthStore } from "../stores/auth-store";
+import ChatsComponent from "../components/chats-component.vue";
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -61,7 +60,7 @@ const router = createRouter({
         {
             path: "/chats",
             name: "Chats",
-            component: ChatsListComponent,
+            component: ChatsComponent,
             meta: { requiresAuth: true },
         },
         {
@@ -73,7 +72,7 @@ const router = createRouter({
         {
             path: "/chat/:id",
             name: "Chat Detail",
-            component: ChatDetailComponent,
+            component: ChatsComponent,
             meta: { requiresAuth: true },
         },
         {

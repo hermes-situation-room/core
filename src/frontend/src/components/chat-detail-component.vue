@@ -1,16 +1,26 @@
 ﻿<script setup lang="ts">
-import {nextTick, onMounted, onUnmounted, ref} from 'vue';
-import {useRoute, useRouter} from 'vue-router';
+import {nextTick, onMounted, onUnmounted, ref, watch} from 'vue';
+import {useRouter} from 'vue-router';
 import {services, sockets} from '../services/api';
 import type {ChatBo} from '../types/chat';
 import { useAuthStore } from '../stores/auth-store';
 import type {CreateMessageDto, MessageBo} from "../types/message.ts";
 import { useNotification } from '../composables/use-notification.ts';
 
-const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
 const notification = useNotification();
+
+const props = defineProps({
+    chatId: {
+        type: String,
+        required: false,
+    },
+    isMobile: {
+        type: Boolean,
+        required: false
+    }
+});
 
 const chat = ref<ChatBo | null>(null);
 const messages = ref<MessageBo[]>([]);
@@ -25,15 +35,28 @@ const messageInputRef = ref<HTMLInputElement | null>(null);
 const isSocketConnected = ref(false);
 const otherUserDisplayName = ref<string>('');
 
+const noChat = ref<boolean>(true);
+
+
+watch(
+    () => props.chatId, 
+    async (_) => {
+        await loadChat();
+    }
+)
+
 const loadChat = async () => {
     loading.value = true;
     try {
-        const chatId = route.params.id as string;
+        const chatId = props.chatId;
+        if (!chatId) {
+            noChat.value = true;
+            return;
+        }
         currentUserUid.value = authStore.userId.value || '';
 
         if (!currentUserUid.value) {
             notification.error('You must be logged in to view chats');
-            router.push('/chats');
             return;
         }
 
@@ -64,10 +87,10 @@ const loadChat = async () => {
                 console.warn('Failed to connect to real-time messaging. Messages will not update automatically:', socketError);
                 isSocketConnected.value = false;
             }
+            noChat.value = false;
         } else {
             if (result.responseCode === 404) {
                 notification.error('Chat not found');
-                router.push('/chats');
             }
         }
     } catch (error) {
@@ -345,9 +368,9 @@ onUnmounted(async () => {
 </script>
 
 <template>
-  <div class="container-fluid py-4" style="height: calc(100vh - 80px);">
-    <div class="row justify-content-center h-100">
-      <div class="col-12 col-lg-8 d-flex flex-column h-100">
+  <div style="height: calc(100vh - 80px);">
+    <div class="d-flex justify-content-center h-100">
+      <div class="col-12 d-flex flex-column h-100">
         <div v-if="loading" class="d-flex justify-content-center align-items-center flex-grow-1">
           <div class="text-center">
             <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
@@ -358,11 +381,11 @@ onUnmounted(async () => {
         </div>
 
         <template v-else-if="chat">
-          <div class="card mb-3">
+          <div class="chat-header">
             <div class="card-body py-3">
               <div class="d-flex justify-content-between align-items-center">
                 <div>
-                  <button class="btn btn-link text-decoration-none p-0 me-3" @click="router.push('/chats')">
+                  <button v-if="props.isMobile" class="btn btn-link text-decoration-none p-0 me-3" @click="router.replace('/chats')">
                     ← Back
                   </button>
                   <span class="fw-bold">
@@ -380,7 +403,7 @@ onUnmounted(async () => {
             </div>
           </div>
 
-          <div class="card flex-grow-1 d-flex flex-column" style="min-height: 0;">
+          <div class="flex-grow-1 d-flex flex-column" style="min-height: 0;">
             <div
                 id="messages-container"
                 class="card-body overflow-auto flex-grow-1"
@@ -498,10 +521,15 @@ onUnmounted(async () => {
           </div>
         </template>
 
+        <div v-else-if="noChat" class="text-center py-5">
+            <i class="fas fa-info-circle fa-3x text-primary mb-3"></i>
+            <h5 class="text-muted">Select chat</h5>
+        </div>
+
         <div v-else class="text-center py-5">
           <i class="fas fa-exclamation-circle fa-3x text-danger mb-3"></i>
           <h5 class="text-muted">Chat not found</h5>
-          <button class="btn btn-primary mt-3" @click="router.push('/chats')">
+          <button class="btn btn-primary mt-3" @click="router.replace('/chats')">
             Back to Chats
           </button>
         </div>
