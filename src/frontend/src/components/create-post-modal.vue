@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import {computed, onMounted, ref, watch} from 'vue';
-import {services} from '../services/api';
-import type {CreatePostDto} from '../types/post';
+import { computed, onMounted, ref, watch } from 'vue';
+import { services } from '../services/api';
+import type { CreatePostDto } from '../types/post';
 import { useAuthStore } from '../stores/auth-store';
 import { useNotification } from '../composables/use-notification.ts';
 
@@ -35,8 +35,42 @@ const formData = ref<{
 
 const availableTags = ref<string[]>([]);
 const selectedTags = ref<string[]>([]);
+const availablePostPrivacyLevels = ref<string[]>([]);
+const selectedPrivacyLevelName = ref<string>('');
+const selectedPrivacyLevelIndex = ref<number>(0);
 const loading = ref(false);
 const loadingTags = ref(false);
+const loadingPrivacyLevels = ref(false);
+const error = ref('');
+const showPrivacyDropdown = ref(false);
+
+const loadPostPrivacyLevels = async () => {
+    loadingPrivacyLevels.value = true;
+    try {
+        const result = await services.posts.getPostPrivacyLevels();
+        if (result.isSuccess && result.data) {
+            availablePostPrivacyLevels.value = result.data;
+            selectedPrivacyLevelName.value = availablePostPrivacyLevels.value[0] || 'EVERYONE';
+            selectedPrivacyLevelIndex.value = 0;
+        }
+    } catch (err) {
+        error.value = 'Error loading privacy levels';
+    } finally {
+        loadingPrivacyLevels.value = false;
+    }
+};
+
+watch(selectedPrivacyLevelName, (newVal) => {
+    selectedPrivacyLevelName.value = newVal;
+    selectedPrivacyLevelIndex.value = availablePostPrivacyLevels.value.findIndex(a => a === newVal);
+});
+
+const formatName = (name: string) => {
+    return name
+        .toLowerCase()
+        .replace(/_/g, ' ')
+        .replace(/\b\w/g, char => char.toUpperCase());
+};
 
 const loadTags = async () => {
     loadingTags.value = true;
@@ -75,6 +109,9 @@ watch(() => props.show, (newVal) => {
             content: ''
         };
         selectedTags.value = [];
+        error.value = '';
+        selectedPrivacyLevelName.value = availablePostPrivacyLevels.value[0] || 'EVERYONE';
+        selectedPrivacyLevelIndex.value = 0;
     }
 });
 
@@ -110,7 +147,8 @@ const handleSubmit = async () => {
             description: formData.value.description,
             content: formData.value.content,
             creatorUid: authStore.userId.value,
-            tags: selectedTags.value.map(tag => tag.toUpperCase())
+            tags: selectedTags.value.map(tag => tag.toUpperCase()),
+            privacyLevel: selectedPrivacyLevelIndex.value,
         };
 
         const result = await services.posts.createPost(postData);
@@ -129,8 +167,27 @@ const handleSubmit = async () => {
     }
 };
 
+const togglePrivacyDropdown = () => {
+    if (!loadingPrivacyLevels.value) {
+        showPrivacyDropdown.value = !showPrivacyDropdown.value;
+    }
+};
+
+const selectPrivacyLevel = (level: string) => {
+    selectedPrivacyLevelName.value = level;
+    showPrivacyDropdown.value = false;
+};
+
 onMounted(() => {
     loadTags();
+    loadPostPrivacyLevels();
+
+    document.addEventListener('click', (e) => {
+        const target = e.target as HTMLElement;
+        if (!target.closest('.privacy-dropdown')) {
+        showPrivacyDropdown.value = false;
+        }
+    });
 });
 </script>
 
@@ -145,8 +202,7 @@ onMounted(() => {
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Create New {{ postType === 'journalist' ? 'Journalist' : 'Activist' }}
-                        Post</h5>
+                    <h5 class="modal-title">Create New {{ postType === 'journalist' ? 'Journalist' : 'Activist' }} Post</h5>
                     <button
                         type="button"
                         class="btn-close"
@@ -170,8 +226,7 @@ onMounted(() => {
                         </div>
 
                         <div class="mb-3">
-                            <label for="postDescription" class="form-label">Description <span
-                                class="text-danger">*</span></label>
+                            <label for="postDescription" class="form-label">Description <span class="text-danger">*</span></label>
                             <textarea
                                 class="form-control"
                                 id="postDescription"
@@ -184,8 +239,7 @@ onMounted(() => {
                         </div>
 
                         <div class="mb-3">
-                            <label for="postContent" class="form-label">Content <span
-                                class="text-danger">*</span></label>
+                            <label for="postContent" class="form-label">Content <span class="text-danger">*</span></label>
                             <textarea
                                 class="form-control"
                                 id="postContent"
@@ -198,6 +252,37 @@ onMounted(() => {
                         </div>
 
                         <div class="mb-3">
+                            <label class="form-label">Post Privacy Level</label>
+                            <div class="privacy-dropdown dropdown">
+                                <button
+                                    class="btn btn-outline-secondary dropdown-toggle"
+                                    type="button"
+                                    @click="togglePrivacyDropdown"
+                                    :disabled="loadingPrivacyLevels"
+                                >
+                                <span v-if="loadingPrivacyLevels">
+                                    <span class="spinner-border spinner-border-sm me-2" role="status"></span>Loading...
+                                </span>
+                                <span v-else>{{ formatName(selectedPrivacyLevelName) }}</span>
+                                </button>
+                                <ul
+                                    :class="['dropdown-menu', { 'show': showPrivacyDropdown }]"
+                                >
+                                <li v-for="level in availablePostPrivacyLevels" :key="level">
+                                    <a
+                                        class="dropdown-item"
+                                        href="#"
+                                        @click.prevent="selectPrivacyLevel(level)"
+                                        :class="{ 'active': selectedPrivacyLevelName === level }"
+                                    >
+                                        {{ formatName(level) }}
+                                    </a>
+                                </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                            <div class="mb-3">
                             <label class="form-label">Tags</label>
                             <div v-if="loadingTags" class="text-muted">
                                 <span class="spinner-border spinner-border-sm me-2" role="status"></span>
@@ -217,14 +302,14 @@ onMounted(() => {
                                     ]"
                                     :style="{ cursor: loading ? 'not-allowed' : 'pointer' }"
                                 >
-                                    <i v-if="isTagSelected(tag)" class="fas fa-check me-1"></i>
+                                <i v-if="isTagSelected(tag)" class="fas fa-check me-1"></i>
                                     {{ tag }}
                                 </span>
                             </div>
                             <div class="form-text mt-2">
                                 Click on tags to select/deselect them
                                 <span v-if="selectedTags.length > 0" class="text-primary fw-bold">
-                                    ({{ selectedTags.length }} selected)
+                                ({{ selectedTags.length }} selected)
                                 </span>
                             </div>
                         </div>
@@ -245,8 +330,7 @@ onMounted(() => {
                         @click="handleSubmit"
                         :disabled="loading"
                     >
-                        <span v-if="loading" class="spinner-border spinner-border-sm me-2" role="status"
-                              aria-hidden="true"></span>
+                    <span v-if="loading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
                         {{ loading ? 'Creating...' : 'Create Post' }}
                     </button>
                 </div>
@@ -254,4 +338,3 @@ onMounted(() => {
         </div>
     </div>
 </template>
-

@@ -1,4 +1,5 @@
-﻿namespace Hermes.SituationRoom.Domain.Services;
+﻿#nullable enable
+namespace Hermes.SituationRoom.Domain.Services;
 
 using AutoMapper;
 using Data.Entities;
@@ -18,9 +19,16 @@ public class PostService(IPostRepository postRepository, ITagService tagService,
         return mapper.Map<PostWithTagsDto>(postWithTags);
     }
 
-    public async Task<IReadOnlyList<PostWithTagsDto>> GetActivistPostsByTagsAsync(string tags, int limit, int offset, string? query = null, string? sortBy = null)
+    public async Task<IReadOnlyList<PostWithTagsDto>> GetActivistPostsByTagsAsync(string tags, Guid userUid, string? userRole, int limit, int offset, string? query = null, string? sortBy = null)
     {
-        var posts = await postRepository.GetActivistPostsByTagsAsync(tags.Split(',').Select(TagService.MapToTag).ToList(), limit, offset, query, sortBy);
+        int privacyLevel = 0;
+
+        if (userRole == "Journalist")
+            privacyLevel = 2;
+        else if (userRole == "Activist")
+            privacyLevel = 1;
+
+        var posts = await postRepository.GetActivistPostsByTagsAsync(tags.Split(',').Select(TagService.MapToTag).ToList(), privacyLevel, userUid, limit, offset, query, sortBy);
         return mapper.Map<IReadOnlyList<PostWithTagsDto>>(posts);
     }
 
@@ -36,9 +44,16 @@ public class PostService(IPostRepository postRepository, ITagService tagService,
         return mapper.Map<IReadOnlyList<PostWithTagsDto>>(posts);
     }
 
-    public async Task<IReadOnlyList<PostWithTagsDto>> GetAllActivistPostsAsync(int limit, int offset, string? query = null, string? sortBy = null)
+    public async Task<IReadOnlyList<PostWithTagsDto>> GetAllActivistPostsAsync(Guid userUid, string? userRole, int limit, int offset, string? query = null, string? sortBy = null)
     {
-        var posts = await GetTagsFromPosts(await postRepository.GetAllActivistPostsAsync(limit, offset, query, sortBy));
+        int privacyLevel = 0;
+
+        if (userRole == "Journalist")
+            privacyLevel = 2;
+        else if (userRole == "Activist")
+            privacyLevel = 1;
+
+        var posts = await GetTagsFromPosts(await postRepository.GetAllActivistPostsAsync(privacyLevel, userUid, limit, offset, query, sortBy));
         return mapper.Map<IReadOnlyList<PostWithTagsDto>>(posts);
     }
 
@@ -52,14 +67,14 @@ public class PostService(IPostRepository postRepository, ITagService tagService,
     {
         var postWithTags = mapper.Map<PostWithTagsBo>(createPostDto);
         postWithTags = postWithTags with { Timestamp = DateTime.UtcNow };
-        
+
         var guid = await postRepository.AddAsync(MapToBo(postWithTags));
-        
+
         foreach (var tag in createPostDto.Tags)
         {
             await tagService.CreatePostTagAsync(new(guid, tag));
         }
-        
+
         return guid;
     }
 
@@ -68,7 +83,7 @@ public class PostService(IPostRepository postRepository, ITagService tagService,
         var existingPost = await postRepository.GetPostBoAsync(updatePostDto.Uid);
         var postWithTags = mapper.Map<PostWithTagsBo>(updatePostDto);
         postWithTags = postWithTags with { Timestamp = existingPost.Timestamp, CreatorUid = existingPost.CreatorUid };
-        
+
         await postRepository.UpdateAsync(MapToBo(postWithTags));
 
         var existingTags = await tagService.GetAllTagsFromPostAsync(updatePostDto.Uid);
@@ -100,12 +115,13 @@ public class PostService(IPostRepository postRepository, ITagService tagService,
         await postRepository.DeleteAsync(postUid);
     }
 
-    private static PostBo MapToBo(PostWithTagsBo postWithTagsPo) => new(postWithTagsPo.Uid,
-        postWithTagsPo.Timestamp,
-        postWithTagsPo.Title,
-        postWithTagsPo.Description,
-        postWithTagsPo.Content,
-        postWithTagsPo.CreatorUid
+    private static PostBo MapToBo(PostWithTagsBo postWithTagsBo) => new(postWithTagsBo.Uid,
+        postWithTagsBo.Timestamp,
+        postWithTagsBo.Title,
+        postWithTagsBo.Description,
+        postWithTagsBo.Content,
+        postWithTagsBo.CreatorUid,
+        postWithTagsBo.PrivacyLevel
     );
 
     private static PostWithTagsBo MapToBo(PostBo postPo, IReadOnlyList<Tag> tags) => new(postPo.Uid,
@@ -114,8 +130,14 @@ public class PostService(IPostRepository postRepository, ITagService tagService,
         postPo.Description,
         postPo.Content,
         postPo.CreatorUid,
+        postPo.PrivacyLevel,
         tags.Select(t => t.ToString()).ToList()
     );
+
+    public async Task<IReadOnlyList<string>> GetPostPrivaciesAsync()
+    {
+        return await postRepository.GetPostPrivaciesAsync();
+    }
 
     private async Task<IReadOnlyList<PostWithTagsBo>> GetTagsFromPosts(IReadOnlyList<PostBo> posts)
     {

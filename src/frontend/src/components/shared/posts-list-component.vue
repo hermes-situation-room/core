@@ -61,6 +61,8 @@ const filteredPosts = computed(() => posts.value);
 
 const loadPosts = async () => {
     loading.value = true;
+    const privacyLevel = authStore.isJournalist.value ? 2 : authStore.isActivist.value ? 1 : 0;
+
     try {
         const offset = (currentPage.value - 1) * postsPerPage;
         const filter: PostFilter = {
@@ -69,7 +71,8 @@ const loadPosts = async () => {
             limit: postsPerPage,
             offset: offset,
             query: props.searchQuery || undefined,
-            sortBy: props.sortBy || undefined
+            sortBy: props.sortBy || undefined,
+            privacyLevel: privacyLevel
         };
 
         const result = await services.posts.getPostsWithFilter(filter);

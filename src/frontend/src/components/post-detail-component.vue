@@ -42,6 +42,12 @@ const isPostOwner = computed(() => {
     return post.value && currentUserUid.value && post.value.creatorUid === currentUserUid.value;
 });
 
+const privacyText = computed(() => {
+    if (post.value?.privacyLevel === 2) return 'This post is visible for journalists'
+    if (post.value?.privacyLevel === 1) return 'This post is visible for logged in users'
+    else return 'This post is visible for everyone'
+});
+
 const editPost = () => {
     closeAllMenus();
     if (post.value) {
@@ -388,6 +394,10 @@ onMounted(() => {
                                 <i class="fas fa-sign-in-alt me-1"></i>
                                 Login to Message
                             </RouterLink>
+                            
+                            <span class="text-muted small d-flex align-items-center" v-if="currentUserUid && post.creatorUid === currentUserUid">
+                                {{ privacyText }}
+                            </span>
                         </div>
                     </div>
 

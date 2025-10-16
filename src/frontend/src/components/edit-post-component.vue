@@ -1,5 +1,5 @@
 ﻿<script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { services } from '../services/api';
 import type { PostBo, UpdatePostDto } from '../types/post';
@@ -28,9 +28,43 @@ const formData = ref<{
 const originalPost = ref<PostBo | null>(null);
 const availableTags = ref<string[]>([]);
 const selectedTags = ref<string[]>([]);
+const availablePostPrivacyLevels = ref<string[]>([]);
+const selectedPrivacyLevelName = ref<string>('');
+const selectedPrivacyLevelIndex = ref<number>(0);
+const selectedPrivacyLevel = ref<number>();
 const loading = ref(false);
 const loadingTags = ref(false);
 const loadingPost = ref(false);
+const loadingPrivacyLevels = ref(false);
+const error = ref('');
+const showPrivacyDropdown = ref(false);
+
+const loadPostPrivacyLevels = async () => {
+    loadingPrivacyLevels.value = true;
+    try {
+        const result = await services.posts.getPostPrivacyLevels();
+        if (result.isSuccess && result.data) {
+            availablePostPrivacyLevels.value = result.data;
+            selectedPrivacyLevelName.value = availablePostPrivacyLevels.value[Number(selectedPrivacyLevel.value)] || 'EVERYONE';
+        }
+    } catch (err) {
+        error.value = 'Error loading privacy levels';
+    } finally {
+        loadingPrivacyLevels.value = false;
+    }
+};
+
+watch(selectedPrivacyLevelName, (newVal) => {
+    selectedPrivacyLevelName.value = newVal;
+    selectedPrivacyLevelIndex.value = availablePostPrivacyLevels.value.findIndex(a => a === newVal);
+});
+
+const formatName = (name: string) => {
+  return name
+    .toLowerCase()
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, char => char.toUpperCase());
+};
 
 const loadPost = async () => {
     const postId = route.params.id as string;
@@ -59,6 +93,11 @@ const loadPost = async () => {
                 content: result.data.content
             };
             selectedTags.value = [...result.data.tags];
+
+            console.log(originalPost)
+            console.log(originalPost.value?.privacyLevel)
+            selectedPrivacyLevel.value = Number(originalPost.value?.privacyLevel);
+            loadPostPrivacyLevels();
         } else {
             notification.error(result.responseMessage || 'Failed to load post');
         }
@@ -131,7 +170,8 @@ const handleSubmit = async () => {
             description: formData.value.description,
             content: formData.value.content,
             creatorUid: originalPost.value.creatorUid,
-            tags: selectedTags.value.map(tag => tag.toUpperCase())
+            tags: selectedTags.value.map(tag => tag.toUpperCase()),
+            privacyLevel: selectedPrivacyLevelIndex.value
         };
 
         const result = await services.posts.updatePost(originalPost.value.uid, updateData);
@@ -147,6 +187,17 @@ const handleSubmit = async () => {
     } finally {
         loading.value = false;
     }
+};
+
+const togglePrivacyDropdown = () => {
+    if (!loadingPrivacyLevels.value) {
+        showPrivacyDropdown.value = !showPrivacyDropdown.value;
+    }
+};
+
+const selectPrivacyLevel = (level: string) => {
+    selectedPrivacyLevelName.value = level;
+    showPrivacyDropdown.value = false;
 };
 
 onMounted(() => {
@@ -219,6 +270,37 @@ onMounted(() => {
                                     :disabled="loading"
                                     required
                                 ></textarea>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Post Privacy Level</label>
+                                <div class="privacy-dropdown dropdown">
+                                    <button
+                                        class="btn btn-outline-secondary dropdown-toggle"
+                                        type="button"
+                                        @click="togglePrivacyDropdown"
+                                        :disabled="loadingPrivacyLevels"
+                                    >
+                                    <span v-if="loadingPrivacyLevels">
+                                        <span class="spinner-border spinner-border-sm me-2" role="status"></span>Loading...
+                                    </span>
+                                    <span v-else>{{ formatName(selectedPrivacyLevelName) }}</span>
+                                    </button>
+                                    <ul
+                                        :class="['dropdown-menu', { 'show': showPrivacyDropdown }]"
+                                    >
+                                    <li v-for="level in availablePostPrivacyLevels" :key="level">
+                                        <a
+                                            class="dropdown-item"
+                                            href="#"
+                                            @click.prevent="selectPrivacyLevel(level)"
+                                            :class="{ 'active': selectedPrivacyLevelName === level }"
+                                        >
+                                            {{ formatName(level) }}
+                                        </a>
+                                    </li>
+                                    </ul>
+                                </div>
                             </div>
 
                             <div class="mb-3">

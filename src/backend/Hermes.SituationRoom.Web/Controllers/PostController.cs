@@ -23,8 +23,15 @@ public class PostController(IControllerInfrastructure infra, IPostService postSe
     [AllowAnonymous]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_POST])]
     [ProducesResponseType(typeof(IReadOnlyList<PostWithTagsDto>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<IReadOnlyList<PostWithTagsDto>>> GetActivistPostsByTags([FromQuery] string tags, [FromQuery] int? limit, [FromQuery] int? offset, [FromQuery] string? query, [FromQuery] string? sortBy) =>
-        Ok(await postService.GetActivistPostsByTagsAsync(tags, limit ?? 12, offset ?? 0, query, sortBy));
+    public async Task<ActionResult<PostWithTagsDto>> GetActivistPostsByTags([FromQuery] string tags, [FromQuery] int? limit, [FromQuery] int? offset)
+    {
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+        var userRoleClaim = User.FindFirst(System.Security.Claims.ClaimTypes.Role);
+
+        Guid.TryParse(userIdClaim?.Value, out var userId);
+
+        return Ok(await postService.GetActivistPostsByTagsAsync(tags, userId, userRoleClaim?.Value, limit ?? 12, offset ?? 0));
+    }
 
     [HttpGet("internal/post/journalist/by-tags")]
     [AllowAnonymous]
@@ -44,8 +51,15 @@ public class PostController(IControllerInfrastructure infra, IPostService postSe
     [AllowAnonymous]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_POST])]
     [ProducesResponseType(typeof(IReadOnlyList<PostWithTagsDto>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<IReadOnlyList<PostWithTagsDto>>> GetAllActivistPosts([FromQuery] int? limit, [FromQuery] int? offset, [FromQuery] string? query, [FromQuery] string? sortBy) => 
-        Ok(await postService.GetAllActivistPostsAsync(limit ?? 12, offset ?? 0, query, sortBy));
+    public async Task<ActionResult<PostWithTagsDto>> GetAllActivistPosts([FromQuery] int? limit, [FromQuery] int? offset)
+    {
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+        var userRoleClaim = User.FindFirst(System.Security.Claims.ClaimTypes.Role);
+
+        Guid.TryParse(userIdClaim?.Value, out var userId);
+
+        return Ok(await postService.GetAllActivistPostsAsync(userId, userRoleClaim?.Value, limit ?? 12, offset ?? 0));
+    }
 
     [HttpGet("internal/post/journalist")]
     [AllowAnonymous]
@@ -95,4 +109,10 @@ public class PostController(IControllerInfrastructure infra, IPostService postSe
         await postService.DeletePostAsync(uid);
         return NoContent();
     }
+
+    [HttpGet("internal/post/privacies")]
+    [AllowAnonymous]
+    [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_POST])]
+    [ProducesResponseType(typeof(IReadOnlyList<string>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<PostWithTagsDto>> GetPostPrivacies() => Ok(await postService.GetPostPrivaciesAsync());
 }

@@ -17,6 +17,8 @@ public partial class Post
 
     public Guid CreatorUid { get; set; }
 
+    public int PrivacyLevel { get; set; }
+
     public virtual ICollection<Comment> Comments { get; set; } = new List<Comment>();
 
     public virtual User CreatorU { get; set; }

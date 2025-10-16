@@ -1,5 +1,5 @@
-﻿import type {BaseResultBo} from "../models/bo/base-result-bo";
-import type {CreatePostDto, PostBo, PostFilter, UpdatePostDto} from "../../types/post";
+﻿import type { BaseResultBo } from "../models/bo/base-result-bo";
+import type { CreatePostDto, PostBo, PostFilter, UpdatePostDto } from "../../types/post";
 import ApiBaseClient from "./base/api-base-client";
 
 export default function postsApi(apiBaseClient: ApiBaseClient) {
@@ -75,6 +75,13 @@ export default function postsApi(apiBaseClient: ApiBaseClient) {
          */
         async getPostById(uid: string): Promise<BaseResultBo<PostBo>> {
             return await apiBaseClient.get<PostBo>(`services/api/internal/post/${uid}`);
+        },
+
+        /**
+         * Get all post privacy levels
+         */
+        async getPostPrivacyLevels(): Promise<BaseResultBo<string[]>> {
+            return await apiBaseClient.get<string[]>(`services/api/internal/post/privacies`);
         },
 
         /**
