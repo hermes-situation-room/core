@@ -18,8 +18,7 @@ This repository contains the core components of the **Hermes Situation Room** pr
    - [Running the Services](#running-the-services)  
    - [Pulling the Latest Images](#pulling-the-latest-images)  
    - [Stopping the Services](#stopping-the-services)  
-5. [Contributing](#contributing)  
-6. [License](#license)
+5. [License](#license)
 
 ---
 
@@ -155,18 +154,6 @@ To stop all running containers:
 ```bash
 docker compose down
 ```
-
----
-
-## 🤝 Contributing
-
-We welcome contributions to the **Hermes Situation Room** project!
-
-### Steps to Contribute
-
-1. Fork the repository.  
-2. Create a new branch for your feature or bugfix.  
-3. Submit a pull request with a clear and detailed description of your changes.
 
 ---
 
