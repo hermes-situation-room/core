@@ -53,15 +53,15 @@ const loadPrivacyLevels = async () => {
 
 const loadPrivacyLevelPersonal = async () => {
     try {
-    const result = await services.privacyLevelPersonal.getPrivacyLevelPersonal(ownerId.value, consumerId);
-    if (result.isSuccess && result.data) {
-        return result.data;
-    } else if (result.responseCode == 404) {
-        return null
-    } else {
-        notification.error(result.responseMessage || 'Failed to load personal privacy levels');
-        return null;
-    }
+        const result = await services.privacyLevelPersonal.getPrivacyLevelPersonal(ownerId.value, consumerId);
+        if (result.isSuccess && result.data) {
+            return result.data;
+        } else if (result.responseCode == 404) {
+            return null
+        } else {
+            notification.error(result.responseMessage || 'Failed to load personal privacy levels');
+            return null;
+        }
     } catch (err) {
         notification.error('Error loading personal privacy levels');
         return null;
@@ -69,18 +69,18 @@ const loadPrivacyLevelPersonal = async () => {
 };
 
 const loadDefaultPrivacyLevel = async () => {
-  try {
-    const result = await services.users.getActivistPrivacy(ownerId.value);
-    if (result.isSuccess && result.data) {
-      return result.data;
-    } else {
-      notification.error(result.responseMessage || 'Failed to load default privacy levels');
-      return null;
+    try {
+        const result = await services.users.getActivistPrivacy(ownerId.value);
+        if (result.isSuccess && result.data) {
+            return result.data;
+        } else {
+            notification.error(result.responseMessage || 'Failed to load default privacy levels');
+            return null;
+        }
+    } catch (err) {
+        notification.error('Error loading default privacy levels');
+        return null;
     }
-  } catch (err) {
-    notification.error('Error loading default privacy levels');
-    return null;
-  }
 };
 
 const togglePrivacyEdit = () => {
@@ -91,7 +91,7 @@ const updatePrivacy = async () => {
     try {
         let result
 
-        if (existingPersonalPrivacyLevel && personalPrivacyLevel.value.isEmailVisible || personalPrivacyLevel.value.isFirstNameVisible || personalPrivacyLevel.value.isLastNameVisible){
+        if (existingPersonalPrivacyLevel && personalPrivacyLevel.value.isEmailVisible || personalPrivacyLevel.value.isFirstNameVisible || personalPrivacyLevel.value.isLastNameVisible) {
             const updatePrivacyLevelPersonalData: UpdatePrivacyLevelPersonalDto = {
                 isFirstNameVisible: personalPrivacyLevel.value.isFirstNameVisible,
                 isLastNameVisible: personalPrivacyLevel.value.isLastNameVisible,
@@ -99,9 +99,9 @@ const updatePrivacy = async () => {
             }
             result = await services.privacyLevelPersonal.updatePrivacyLevelPersonal(personalPrivacyLevel.value.uid, updatePrivacyLevelPersonalData);
         }
-        if (existingPersonalPrivacyLevel && !personalPrivacyLevel.value.isEmailVisible && !personalPrivacyLevel.value.isFirstNameVisible && !personalPrivacyLevel.value.isLastNameVisible){
+        if (existingPersonalPrivacyLevel && !personalPrivacyLevel.value.isEmailVisible && !personalPrivacyLevel.value.isFirstNameVisible && !personalPrivacyLevel.value.isLastNameVisible) {
             result = await services.privacyLevelPersonal.deletePrivacyLevelPersonal(personalPrivacyLevel.value.uid);
-        }else{
+        } else {
             const createPrivacyLevelPersonalData: CreatePrivacyLevelPersonalDto = {
                 isFirstNameVisible: personalPrivacyLevel.value.isFirstNameVisible,
                 isLastNameVisible: personalPrivacyLevel.value.isLastNameVisible,
@@ -127,11 +127,12 @@ const updatePrivacy = async () => {
 }
 
 onMounted(() => {
-    loadPrivacyLevels()    
+    loadPrivacyLevels()
 });
 </script>
 <template>
-    <div>
+    <div
+        v-if="!(defaultPrivacyLevel.isFirstNameVisible && defaultPrivacyLevel.isLastNameVisible && defaultPrivacyLevel.isEmailVisible)">
         <form @submit.prevent="updatePrivacy" class="mb-4">
             <h5 class="border-bottom pb-2 mb-3">Personal Privacy Settings</h5>
             <p class="text-muted small mb-3">
@@ -141,13 +142,8 @@ onMounted(() => {
 
             <div v-if="!defaultPrivacyLevel.isFirstNameVisible" class="mb-3">
                 <div class="form-check form-switch">
-                    <input 
-                        :disabled="!editingPrivacy"
-                        class="form-check-input" 
-                        type="checkbox" 
-                        id="firstNameVisible"
-                        v-model="personalPrivacyLevel.isFirstNameVisible"
-                    />
+                    <input :disabled="!editingPrivacy" class="form-check-input" type="checkbox" id="firstNameVisible"
+                        v-model="personalPrivacyLevel.isFirstNameVisible" />
                     <label class="form-check-label" for="firstNameVisible">
                         Show First Name to this User
                     </label>
@@ -156,13 +152,8 @@ onMounted(() => {
 
             <div v-if="!defaultPrivacyLevel.isLastNameVisible" class="mb-3">
                 <div class="form-check form-switch">
-                    <input 
-                        :disabled="!editingPrivacy"
-                        class="form-check-input" 
-                        type="checkbox" 
-                        id="lastNameVisible"
-                        v-model="personalPrivacyLevel.isLastNameVisible"
-                    />
+                    <input :disabled="!editingPrivacy" class="form-check-input" type="checkbox" id="lastNameVisible"
+                        v-model="personalPrivacyLevel.isLastNameVisible" />
                     <label class="form-check-label" for="lastNameVisible">
                         Show Last Name to this User
                     </label>
@@ -171,49 +162,35 @@ onMounted(() => {
 
             <div v-if="!defaultPrivacyLevel.isEmailVisible" class="mb-3">
                 <div class="form-check form-switch">
-                    <input 
-                        :disabled="!editingPrivacy"
-                        class="form-check-input" 
-                        type="checkbox" 
-                        id="emailVisible"
-                        v-model="personalPrivacyLevel.isEmailVisible"
-                    />
+                    <input :disabled="!editingPrivacy" class="form-check-input" type="checkbox" id="emailVisible"
+                        v-model="personalPrivacyLevel.isEmailVisible" />
                     <label class="form-check-label" for="emailVisible">
                         Show Email to this User
                     </label>
                 </div>
             </div>
 
-            <div 
-            v-if="defaultPrivacyLevel.isEmailVisible || defaultPrivacyLevel.isFirstNameVisible || defaultPrivacyLevel.isLastNameVisible"
-            class="alert alert-info"
-            >
+            <div v-if="defaultPrivacyLevel.isEmailVisible || defaultPrivacyLevel.isFirstNameVisible || defaultPrivacyLevel.isLastNameVisible"
+                class="alert alert-info">
                 <i class="fas fa-lightbulb me-2"></i>
-                <small>Some of your Properties are set to public. This means anyone can see them. You can change this in your User Settings</small>
+                <small>Some of your Properties are set to public. This means anyone can see them. You can change this in
+                    your User Settings</small>
             </div>
-            
+
             <div v-if="editingPrivacy" class="d-flex gap-2 justify-content-end">
-                <button 
-                    type="button" 
-                    class="btn btn-secondary"
-                    @click="togglePrivacyEdit"
-                    :disabled="updatingPrivacy"
-                >
+                <button type="button" class="btn btn-secondary" @click="togglePrivacyEdit" :disabled="updatingPrivacy">
                     <i class="fas fa-times me-1"></i>
                     Cancel
                 </button>
-                <button 
-                    type="submit" 
-                    class="btn btn-primary"
-                    :disabled="updatingPrivacy"
-                >
+                <button type="submit" class="btn btn-primary" :disabled="updatingPrivacy">
                     <span v-if="updatingPrivacy" class="spinner-border spinner-border-sm me-1"></span>
                     <i v-else class="fas fa-save me-1"></i>
                     Save Changes
                 </button>
             </div>
             <div v-else class="d-flex gap-2 justify-content-end">
-                <button type="button" class="btn btn-primary" @click="togglePrivacyEdit"><i class="fas fa-edit me-1"></i> Edit Privacy Settings for this User</button>
+                <button type="button" class="btn btn-primary" @click="togglePrivacyEdit"><i
+                        class="fas fa-edit me-1"></i> Edit Privacy Settings for this User</button>
             </div>
         </form>
     </div>
