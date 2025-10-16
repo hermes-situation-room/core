@@ -1,5 +1,5 @@
 import type { BaseResultBo } from "../models/bo/base-result-bo";
-import type {CreatePrivacyLevelDto, PrivacyLevelPersonalBo, UpdatePrivacyLevelDto} from "../../types/privacy-level-personal";
+import type {CreatePrivacyLevelPersonalDto, PrivacyLevelPersonalBo, UpdatePrivacyLevelPersonalDto} from "../../types/privacy-level-personal";
 import ApiBaseClient from "./base/api-base-client";
 
 export default function privacyLevelPersonalApi(apiBaseClient: ApiBaseClient) {
@@ -17,15 +17,15 @@ export default function privacyLevelPersonalApi(apiBaseClient: ApiBaseClient) {
         /**
          * Create new personal privacy level between an owner and consumer
          */
-        async createPrivacyLevelPersonal(privacyLevelPersonalData: CreatePrivacyLevelDto): Promise<BaseResultBo<string>> {
-            return await apiBaseClient.post<CreatePrivacyLevelDto>(`services/api/internal/privacylevelpersonal`, privacyLevelPersonalData);
+        async createPrivacyLevelPersonal(privacyLevelPersonalData: CreatePrivacyLevelPersonalDto): Promise<BaseResultBo<string>> {
+            return await apiBaseClient.post<CreatePrivacyLevelPersonalDto>(`services/api/internal/privacylevelpersonal`, privacyLevelPersonalData);
         },
         
         /**
          * Update personal privacy level between an owner and consumer
          */
-        async updatePrivacyLevelPersonal(privacyLevelPersonalUid: string, privacylevelpersonalData: UpdatePrivacyLevelDto): Promise<BaseResultBo<string>> {
-            return await apiBaseClient.put<UpdatePrivacyLevelDto>(`services/api/internal/privacylevelpersonal/${privacyLevelPersonalUid}`, privacylevelpersonalData);
+        async updatePrivacyLevelPersonal(privacyLevelPersonalUid: string, privacylevelpersonalData: UpdatePrivacyLevelPersonalDto): Promise<BaseResultBo<string>> {
+            return await apiBaseClient.put<UpdatePrivacyLevelPersonalDto>(`services/api/internal/privacylevelpersonal/${privacyLevelPersonalUid}`, privacylevelpersonalData);
         },
 
         /**
