@@ -7,5 +7,7 @@ public record UserBo(Guid Uid,
     byte[]? PasswordSalt,
     string? FirstName,
     string? LastName,
-    string? EmailAddress
+    string? EmailAddress,
+    string? ProfileIcon,
+    string? ProfileIconColor
 );

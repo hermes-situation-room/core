@@ -6,5 +6,7 @@ public record UserProfileBo(Guid Uid,
     string? LastName,
     string? EmailAddress,
     string? UserName,
-    string? Employer
+    string? Employer,
+    string? ProfileIcon,
+    string? ProfileIconColor
 );

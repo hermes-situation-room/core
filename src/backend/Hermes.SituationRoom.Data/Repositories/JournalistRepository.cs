@@ -100,6 +100,11 @@ public sealed class JournalistRepository(IHermessituationRoomContext context, IU
         journalist.UserU.FirstName = updatedJournalist.FirstName;
         journalist.UserU.LastName = updatedJournalist.LastName;
         journalist.UserU.EmailAddress = updatedJournalist.EmailAddress;
+        
+        if (updatedJournalist.ProfileIcon is not null)
+            journalist.UserU.ProfileIcon = updatedJournalist.ProfileIcon;
+        if (updatedJournalist.ProfileIconColor is not null)
+            journalist.UserU.ProfileIconColor = updatedJournalist.ProfileIconColor;
 
         journalist.Employer = updatedJournalist.Employer;
 
@@ -139,6 +144,8 @@ public sealed class JournalistRepository(IHermessituationRoomContext context, IU
             user.FirstName,
             user.LastName,
             user.EmailAddress,
+            user.ProfileIcon,
+            user.ProfileIconColor,
             journalist.Employer
         );
     }

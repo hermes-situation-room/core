@@ -8,6 +8,8 @@ public record ActivistBo(Guid Uid,
     string? FirstName,
     string? LastName,
     string? EmailAddress,
+    string? ProfileIcon,
+    string? ProfileIconColor,
     string UserName,
     bool IsFirstNameVisible,
     bool IsLastNameVisible,
@@ -19,5 +21,7 @@ public record ActivistBo(Guid Uid,
         PasswordSalt,
         FirstName,
         LastName,
-        EmailAddress
+        EmailAddress,
+        ProfileIcon,
+        ProfileIconColor
     );

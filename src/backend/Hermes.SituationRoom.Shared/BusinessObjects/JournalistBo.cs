@@ -8,6 +8,8 @@ public record JournalistBo(Guid Uid,
     string? FirstName,
     string? LastName,
     string? EmailAddress,
+    string? ProfileIcon,
+    string? ProfileIconColor,
     string Employer
 )
     : UserBo(Uid,
@@ -16,5 +18,7 @@ public record JournalistBo(Guid Uid,
         PasswordSalt,
         FirstName,
         LastName,
-        EmailAddress
+        EmailAddress,
+        ProfileIcon,
+        ProfileIconColor
     );

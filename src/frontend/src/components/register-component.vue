@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import {computed, ref} from 'vue'
 import {RouterLink, useRouter} from 'vue-router'
-import type {LoginFormData, UserType} from '../types/user'
+import type {LoginFormData, UserType} from '../types/User.ts'
 import {useAuthStore} from '../stores/auth-store'
 import {services} from "../services/api";
 import {useNotification} from '../composables/use-notification.ts';
+import ProfileIconSelector from './profile-icon-selector.vue';
+import ProfileIconDisplay from './profile-icon-display.vue';
+import {ProfileIcon, ProfileIconColor} from '../types/ProfileIcon.ts';
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -21,9 +24,16 @@ const formData = ref<LoginFormData>({
     employer: '',
     isFirstNameVisible: true,
     isLastNameVisible: true,
-    isEmailVisible: true
+    isEmailVisible: true,
+    profileIcon: ProfileIcon.User,
+    profileIconColor: ProfileIconColor.Blue
 })
 const isLoading = ref(false)
+const showIconSelector = ref(false)
+const iconSelection = ref({
+    icon: ProfileIcon.User,
+    color: ProfileIconColor.Blue
+})
 
 const isJournalist = computed(() => selectedUserType.value === 'journalist')
 const isActivist = computed(() => selectedUserType.value === 'activist')
@@ -50,8 +60,25 @@ function selectUserType(type: UserType) {
         employer: '',
         isFirstNameVisible: true,
         isLastNameVisible: true,
-        isEmailVisible: true
+        isEmailVisible: true,
+        profileIcon: ProfileIcon.User,
+        profileIconColor: ProfileIconColor.Blue
     }
+    
+    iconSelection.value = {
+        icon: ProfileIcon.User,
+        color: ProfileIconColor.Blue
+    }
+}
+
+function toggleIconSelector() {
+    showIconSelector.value = !showIconSelector.value
+}
+
+function updateIconSelection() {
+    formData.value.profileIcon = iconSelection.value.icon
+    formData.value.profileIconColor = iconSelection.value.color
+    showIconSelector.value = false
 }
 
 async function handleRegister() {
@@ -71,7 +98,9 @@ async function handleRegister() {
                 emailAddress: formData.value.emailAddress || undefined,
                 isFirstNameVisible: formData.value.isFirstNameVisible ?? true,
                 isLastNameVisible: formData.value.isLastNameVisible ?? true,
-                isEmailVisible: formData.value.isEmailVisible ?? true
+                isEmailVisible: formData.value.isEmailVisible ?? true,
+                profileIcon: formData.value.profileIcon || ProfileIcon.User,
+                profileIconColor: formData.value.profileIconColor || ProfileIconColor.Blue
             })
         } else {
             if (!formData.value.firstName || !formData.value.lastName ||
@@ -86,7 +115,9 @@ async function handleRegister() {
                 lastName: formData.value.lastName,
                 emailAddress: formData.value.emailAddress,
                 password: formData.value.password,
-                employer: formData.value.employer
+                employer: formData.value.employer,
+                profileIcon: formData.value.profileIcon || ProfileIcon.User,
+                profileIconColor: formData.value.profileIconColor || ProfileIconColor.Blue
             })
         }
 
@@ -149,6 +180,56 @@ async function handleRegister() {
                             </div>
 
                             <form @submit.prevent="handleRegister">
+                                <!-- Profile Icon Section - First Input -->
+                                <div class="mb-3">
+                                    <label class="form-label">Profile Icon</label>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <ProfileIconDisplay 
+                                            :icon="formData.profileIcon" 
+                                            :color="formData.profileIconColor" 
+                                            size="md" 
+                                        />
+                                        <button 
+                                            type="button" 
+                                            class="btn btn-outline-secondary btn-sm"
+                                            @click="toggleIconSelector"
+                                            :disabled="isLoading"
+                                        >
+                                            <i class="fas fa-edit me-1"></i>
+                                            Edit Profile Icon
+                                        </button>
+                                    </div>
+                                    
+                                    <!-- Icon Selector Modal -->
+                                    <div v-if="showIconSelector" class="mt-3 p-3 border rounded bg-light">
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <h6 class="mb-0">Choose Your Profile Icon</h6>
+                                            <button 
+                                                type="button" 
+                                                class="btn-close" 
+                                                @click="showIconSelector = false"
+                                            ></button>
+                                        </div>
+                                        <ProfileIconSelector v-model="iconSelection" />
+                                        <div class="d-flex justify-content-end gap-2 mt-3">
+                                            <button 
+                                                type="button" 
+                                                class="btn btn-secondary btn-sm"
+                                                @click="showIconSelector = false"
+                                            >
+                                                Cancel
+                                            </button>
+                                            <button 
+                                                type="button" 
+                                                class="btn btn-primary btn-sm"
+                                                @click="updateIconSelection"
+                                            >
+                                                Select Icon
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div v-if="isActivist" class="mb-3">
                                     <label class="form-label">Username</label>
                                     <input

@@ -5,5 +5,7 @@ public record UpdateJournalistRequestDto(Guid Uid,
     string? FirstName,
     string? LastName,
     string? EmailAddress,
+    string? ProfileIcon,
+    string? ProfileIconColor,
     string Employer
 );

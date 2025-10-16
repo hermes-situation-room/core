@@ -3,10 +3,12 @@ import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { services } from '../services/api';
 import type { PostBo } from '../types/post';
+import type { UserProfileBo } from '../types/user.ts';
 import { useAuthStore } from '../stores/auth-store';
 import { useNotification } from '../composables/use-notification.ts';
 import { useContextMenu } from '../composables/use-context-menu';
 import type { CommentBo, CreateCommentDto, UpdateCommentDto } from '../types/comment';
+import ProfileIconDisplay from './profile-icon-display.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -27,6 +29,7 @@ const loading = ref(false);
 const loadingComments = ref(false);
 const creatingChat = ref(false);
 const creatorDisplayName = ref<string>('');
+const creatorProfile = ref<UserProfileBo | null>(null);
 const commentContent = ref()
 const comments = ref<CommentBo[] | null>(null);
 const editingComments = ref(false)
@@ -92,10 +95,14 @@ const loadPost = async () => {
         if (result.isSuccess && result.data) {
             post.value = result.data;
             
-            if (post.value.creatorUid && post.value.creatorUid !== currentUserUid.value) {
-                const displayNameResult = await services.users.getDisplayName(post.value.creatorUid);
-                if (displayNameResult.isSuccess && displayNameResult.data) {
-                    creatorDisplayName.value = displayNameResult.data;
+            if (post.value.creatorUid) {
+                const profileResult = await services.users.getUserProfile(post.value.creatorUid, currentUserUid.value || post.value.creatorUid);
+                if (profileResult.isSuccess && profileResult.data) {
+                    creatorProfile.value = profileResult.data;
+                    const displayNameResult = await services.users.getDisplayName(profileResult.data.uid);
+                    if (displayNameResult.isSuccess && displayNameResult.data) {
+                        creatorDisplayName.value = displayNameResult.data;
+                    }
                 }
             }
         } else {
@@ -301,7 +308,6 @@ onMounted(() => {
                                 <h1 class="h3 mb-2">{{ post.title }}</h1>
                                 <small class="text-light">{{ formatDate(post.timestamp) }}</small>
                             </div>
-                            <!-- Three-dot menu button -->
                             <div v-if="isPostOwner" class="position-relative">
                                 <button 
                                     class="btn btn-link text-white p-0 ms-2" 
@@ -310,7 +316,6 @@ onMounted(() => {
                                 >
                                     <i class="fas fa-ellipsis-v"></i>
                                 </button>
-                                <!-- Dropdown menu -->
                                 <div 
                                     v-if="showMobileMenu === post.uid"
                                     class="dropdown-menu show position-absolute"
@@ -362,8 +367,7 @@ onMounted(() => {
 
                     <div class="card-footer bg-light">
                         <div class="d-flex justify-content-between align-items-center">
-                            <div class="text-muted small d-flex align-items-center">
-                            <i class="fas fa-user me-2"></i>
+                            <div class="text-muted small d-flex align-items-center gap-2">
                             <span v-if="currentUserUid && post.creatorUid === currentUserUid">Created by: You</span>
                             <span v-else>
                                 Created by: 
@@ -372,6 +376,11 @@ onMounted(() => {
                                     class="text-primary text-decoration-none"
                                     @click.prevent="router.push({ path: '/profile', query: { id: post.creatorUid } })"
                                 >
+                                    <ProfileIconDisplay
+                                        :icon="creatorProfile?.profileIcon"
+                                        :color="creatorProfile?.profileIconColor"
+                                        size="sm"
+                                    />
                                     {{ creatorDisplayName || post.creatorUid }}
                                 </a>
                             </span>
@@ -403,7 +412,6 @@ onMounted(() => {
 
                 </div>
                 
-                <!-- Right-click context menu -->
                 <div 
                     v-if="showContextMenu && contextMenuPostId && isPostOwner"
                     class="dropdown-menu show position-fixed"
@@ -440,18 +448,28 @@ onMounted(() => {
                     </RouterLink>
                 </div>
                 <div class="comment-list d-flex flex-column">
-                    <div v-for="comment in comments" :key="comment.uid" class="comment border mb-1 p-2 pe-3 ps-3 rounded d-flex flex-column flex-wrap">
+                    <div v-for="comment in comments" :key="comment.uid" class="comment border mb-1 p-2 pe-3 ps-1 rounded d-flex flex-column flex-wrap">
                         <small class="d-flex justify-content-between">
                             <strong>
-                                <a href="#" class="text-primary text-decoration-none" @click.prevent="router.push({ path: '/profile', query: { id: comment.creatorUid } })">
-                                    {{ comment.displayName }}
+                                <a
+                                    href="#"
+                                    class="text-primary text-decoration-none d-flex align-items-center gap-2"
+                                    @click.prevent="router.push({ path: '/profile', query: { id: comment.creatorUid } })"
+                                >
+                                <ProfileIconDisplay
+                                    :icon="comment?.profileIcon"
+                                    :color="comment?.profileIconColor"
+                                    size="md"
+                                    class="bg-white"
+                                />
+                                {{ comment.displayName }}
                                 </a>
                             </strong>
                             {{ formatDate(comment.timestamp) }}
                         </small>
                         <div>
                             <div v-if="!comment.inEdit" class="d-flex justify-content-between flex-nowrap gap-2">
-                                <div class="text-break width-100">
+                                <div class="text-break width-100 ms-lg-3">
                                     {{ comment.content }}
                                 </div>
                                 <div class="d-flex gap-3 mt-1">

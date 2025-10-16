@@ -4,6 +4,8 @@
     creatorUid: string;
     postUid: string;
     content: string;
+    profileIconColor: string;
+    profileIcon: string;
     displayName: string;
     inEdit: boolean;
 }

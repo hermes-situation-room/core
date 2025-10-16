@@ -30,6 +30,7 @@ public sealed class CommentRepository(IHermessituationRoomContext context) : ICo
     {
         var comment = await context.Comments
             .AsNoTracking()
+            .Include(c => c.CreatorU)
             .FirstOrDefaultAsync(c => c.Uid == commentUid)
             ?? throw new KeyNotFoundException($"Comment with UID {commentUid} was not found.");
 
@@ -38,6 +39,7 @@ public sealed class CommentRepository(IHermessituationRoomContext context) : ICo
 
     public async Task<IReadOnlyList<CommentBo>> GetPostCommentsAsync(Guid postUid) => await context.Comments
         .AsNoTracking()
+        .Include(c => c.CreatorU)
         .Where(c => c.PostUid == postUid)
         .OrderByDescending(c => c.Timestamp)
         .Select(c => MapToBo(c))
@@ -78,6 +80,8 @@ public sealed class CommentRepository(IHermessituationRoomContext context) : ICo
         comment.Timestamp,
         comment.CreatorUid,
         comment.PostUid,
+        comment.CreatorU?.ProfileIcon,
+        comment.CreatorU?.ProfileIconColor,
         comment.Content
     );
 }

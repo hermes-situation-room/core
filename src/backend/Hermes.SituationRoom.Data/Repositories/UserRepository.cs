@@ -38,7 +38,9 @@ public sealed class UserRepository(IHermessituationRoomContext context) : IUserR
             PasswordSalt = userBo.PasswordSalt,
             FirstName = userBo.FirstName,
             LastName = userBo.LastName,
-            EmailAddress = userBo.EmailAddress
+            EmailAddress = userBo.EmailAddress,
+            ProfileIcon = userBo.ProfileIcon ?? "User",
+            ProfileIconColor = userBo.ProfileIconColor ?? "Blue"
         };
 
         context.Users.Add(newUser);
@@ -152,6 +154,11 @@ public sealed class UserRepository(IHermessituationRoomContext context) : IUserR
         user.FirstName = updatedUser.FirstName;
         user.LastName = updatedUser.LastName;
         user.EmailAddress = updatedUser.EmailAddress;
+        
+        if (updatedUser.ProfileIcon is not null)
+            user.ProfileIcon = updatedUser.ProfileIcon;
+        if (updatedUser.ProfileIconColor is not null)
+            user.ProfileIconColor = updatedUser.ProfileIconColor;
 
         await context.SaveChangesAsync();
 
@@ -180,7 +187,9 @@ public sealed class UserRepository(IHermessituationRoomContext context) : IUserR
         user.PasswordSalt,
         user.FirstName,
         user.LastName,
-        user.EmailAddress
+        user.EmailAddress,
+        user.ProfileIcon,
+        user.ProfileIconColor
     );
 
     private static UserProfileBo MapToUserProfileBo(User user) => new(user.Uid,
@@ -188,7 +197,9 @@ public sealed class UserRepository(IHermessituationRoomContext context) : IUserR
         user.LastName,
         user.EmailAddress,
         null,
-        null
+        null,
+        user.ProfileIcon,
+        user.ProfileIconColor
     );
 
     private async Task<UserProfileBo> ApplyUserPrivacyLevel(UserProfileBo userProfileBo, Guid userId, Guid consumerId)

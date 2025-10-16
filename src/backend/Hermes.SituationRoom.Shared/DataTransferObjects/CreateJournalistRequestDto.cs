@@ -5,5 +5,7 @@ public record CreateJournalistRequestDto(string Password,
     string? FirstName,
     string? LastName,
     string? EmailAddress,
+    string? ProfileIcon,
+    string? ProfileIconColor,
     string Employer
 );

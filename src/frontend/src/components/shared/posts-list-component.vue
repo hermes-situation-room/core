@@ -3,9 +3,11 @@ import {computed, onMounted, onBeforeUnmount, ref, watch} from 'vue';
 import {useRouter, useRoute} from 'vue-router';
 import {services} from '../../services/api';
 import type {PostBo, PostFilter} from '../../types/post';
+import type { UserProfileBo } from '../../types/user.ts';
 import { useAuthStore } from '../../stores/auth-store';
 import { useNotification } from '../../composables/use-notification.ts';
 import { useContextMenu } from '../../composables/use-context-menu';
+import ProfileIconDisplay from '../profile-icon-display.vue';
 
 type SortOption = 'newest' | 'oldest' | 'title-asc' | 'title-desc';
 
@@ -40,6 +42,7 @@ const {
 const posts = ref<PostBo[]>([]);
 const loading = ref(false);
 const displayNames = ref<Map<string, string>>(new Map());
+const userProfiles = ref<Map<string, UserProfileBo>>(new Map());
 
 const currentPage = ref(1);
 const postsPerPage = 12;
@@ -92,10 +95,23 @@ const loadPosts = async () => {
             
             const uniqueCreators = [...new Set(posts.value.map(p => p.creatorUid))];
             for (const creatorUid of uniqueCreators) {
-                if (creatorUid && creatorUid !== currentUserUid.value) {
-                    const displayNameResult = await services.users.getDisplayName(creatorUid);
-                    if (displayNameResult.isSuccess && displayNameResult.data) {
-                        displayNames.value.set(creatorUid, displayNameResult.data);
+                if (creatorUid) {
+                    try {
+                        const profileResult = await services.users.getUserProfile(creatorUid, currentUserUid.value || creatorUid);
+                        if (profileResult.isSuccess && profileResult.data) {
+                            userProfiles.value.set(creatorUid, profileResult.data);
+                            
+                            const displayName = getDisplayUserName(creatorUid, profileResult.data.userName, profileResult.data.firstName, profileResult.data.lastName);
+                            displayNames.value.set(creatorUid, displayName);
+                        } else {
+                            // Silently set fallback - don't show notification for each failed profile
+                            console.warn(`Failed to load profile for user ${creatorUid}:`, profileResult.responseMessage);
+                            displayNames.value.set(creatorUid, creatorUid.substring(0, 8) + '...');
+                        }
+                    } catch (err) {
+                        // Silently handle error - don't show notification for each failed profile
+                        console.warn(`Error loading profile for user ${creatorUid}:`, err);
+                        displayNames.value.set(creatorUid, creatorUid.substring(0, 8) + '...');
                     }
                 }
             }
@@ -115,6 +131,13 @@ const getDisplayName = (creatorUid: string): string => {
     }
     return displayNames.value.get(creatorUid) || creatorUid.substring(0, 8) + '...';
 };
+
+function getDisplayUserName(creatorUid: string, userName?: string, firstName?: string, lastName?: string): string {
+  return userName ||
+      (firstName && lastName
+          ? `${firstName} ${lastName}`
+          : creatorUid.substring(0, 8) + '...');
+}
 
 const viewPost = (postId: string) => {
     router.push({
@@ -326,7 +349,6 @@ onBeforeUnmount(() => {
                     <div class="card-body flex-grow-1" style="cursor: pointer;" @click="viewPost(post.uid)">
                         <div class="d-flex justify-content-between align-items-start mb-2">
                             <h5 class="card-title mb-0 flex-grow-1 text-break">{{ post.title }}</h5>
-                            <!-- Three-dot menu button -->
                             <div class="position-relative">
                                 <button 
                                     class="btn btn-link text-dark p-0 ms-2" 
@@ -391,20 +413,28 @@ onBeforeUnmount(() => {
                         </div>
                         <small class="text-muted">{{ formatDate(post.timestamp) }}</small>
                     </div>
-                    <div class="card-footer bg-light border-top">
+                    <div class="card-footer bg-light border-top px-2">
                         <div class="d-flex justify-content-between align-items-center">
-                            <small class="text-muted d-flex align-items-center">
-                                <i class="fas fa-user me-1"></i>
-                                <span v-if="currentUserUid && post.creatorUid === currentUserUid">You</span>
-                                <a 
-                                    v-else
-                                    href="#" 
-                                    class="text-primary text-decoration-none"
-                                    @click.prevent.stop="router.push({ path: '/profile', query: { id: post.creatorUid } })"
-                                >
-                                    {{ getDisplayName(post.creatorUid) }}
-                                </a>
-                            </small>
+                            <div class="d-flex align-items-center gap-2">
+                                <ProfileIconDisplay 
+                                    :icon="userProfiles.get(post.creatorUid)?.profileIcon" 
+                                    :color="userProfiles.get(post.creatorUid)?.profileIconColor" 
+                                    size="sm" 
+                                />
+                                <small class="text-muted">
+                                    <span v-if="currentUserUid && post.creatorUid === currentUserUid">You</span>
+                                    <a 
+                                        v-else
+                                        href="#" 
+                                        class="text-primary text-decoration-none"
+                                        @click.prevent.stop="router.push({ path: '/profile', query: { id: post.creatorUid } })"
+                                    >
+                                      {{
+                                        getDisplayName(post.creatorUid)
+                                      }}
+                                    </a>
+                                </small>
+                            </div>
                         </div>
                     </div>
                 </div>

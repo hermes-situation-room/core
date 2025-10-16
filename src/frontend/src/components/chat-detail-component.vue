@@ -3,9 +3,11 @@ import {nextTick, onMounted, onUnmounted, ref, watch} from 'vue';
 import {useRouter} from 'vue-router';
 import {services, sockets} from '../services/api';
 import type {ChatBo} from '../types/chat';
+import type {UserProfileBo} from '../types/user';
 import { useAuthStore } from '../stores/auth-store';
 import type {CreateMessageDto, MessageBo} from "../types/message.ts";
 import { useNotification } from '../composables/use-notification.ts';
+import ProfileIconDisplay from './profile-icon-display.vue';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -34,6 +36,8 @@ const editingContent = ref('');
 const messageInputRef = ref<HTMLInputElement | null>(null);
 const isSocketConnected = ref(false);
 const otherUserDisplayName = ref<string>('');
+const otherUserProfile = ref<UserProfileBo | null>(null);
+const messageSenderProfiles = ref<Map<string, UserProfileBo>>(new Map());
 
 const noChat = ref<boolean>(true);
 
@@ -64,12 +68,17 @@ const loadChat = async () => {
         if (result.isSuccess && result.data) {
             chat.value = result.data;
             
-            // Load display name for other user
             const otherUserUid = getOtherUserUid();
             if (otherUserUid) {
-                const displayNameResult = await services.users.getDisplayName(otherUserUid);
+                const displayNameResult = await services.users.getUserProfile(otherUserUid, currentUserUid.value);
                 if (displayNameResult.isSuccess && displayNameResult.data) {
-                    otherUserDisplayName.value = displayNameResult.data;
+                    otherUserProfile.value = displayNameResult.data;
+                    otherUserDisplayName.value = getDisplayUserName(
+                        otherUserUid,
+                        displayNameResult.data.userName,
+                        displayNameResult.data.firstName,
+                        displayNameResult.data.lastName
+                    );
                 }
             }
             
@@ -121,6 +130,22 @@ const loadMessages = async (chatId: string) => {
                     if (isNaN(dateB.getTime())) return -1;
                     return dateA.getTime() - dateB.getTime();
                 });
+            
+            // Load profile data for unique message senders
+            const uniqueSenders = [...new Set(messages.value.map(m => m.senderUid))];
+            for (const senderUid of uniqueSenders) {
+                if (senderUid && senderUid !== currentUserUid.value) {
+                    try {
+                        const profileResult = await services.users.getUserProfile(senderUid, currentUserUid.value);
+                        if (profileResult.isSuccess && profileResult.data) {
+                            messageSenderProfiles.value.set(senderUid, profileResult.data);
+                        }
+                    } catch (err) {
+                        console.warn(`Failed to load profile for sender ${senderUid}:`, err);
+                    }
+                }
+            }
+            
             setTimeout(() => scrollToBottom(false), 100);
         }
     } catch (error) {
@@ -129,7 +154,7 @@ const loadMessages = async (chatId: string) => {
     }
 };
 
-const handleIncomingMessage = (message: MessageBo) => {
+const handleIncomingMessage = async (message: MessageBo) => {
     if (!chat.value || message.chatUid !== chat.value.uid) {
         return;
     }
@@ -158,6 +183,18 @@ const handleIncomingMessage = (message: MessageBo) => {
     } else {
         if (message.senderUid !== currentUserUid.value) {
             messages.value.push(completeMessage);
+            
+            if (message.senderUid && !messageSenderProfiles.value.has(message.senderUid)) {
+                try {
+                    const profileResult = await services.users.getUserProfile(message.senderUid, currentUserUid.value);
+                    if (profileResult.isSuccess && profileResult.data) {
+                        messageSenderProfiles.value.set(message.senderUid, profileResult.data);
+                    }
+                } catch (err) {
+                    console.warn(`Failed to load profile for new sender ${message.senderUid}:`, err);
+                }
+            }
+            
             scrollToBottom();
         }
     }
@@ -321,6 +358,13 @@ const getOtherUserUid = () => {
     return chat.value.user1Uid === currentUserUid.value ? chat.value.user2Uid : chat.value.user1Uid;
 };
 
+function getDisplayUserName(creatorUid: string, userName?: string, firstName?: string, lastName?: string): string {
+    return userName ||
+        (firstName && lastName
+            ? `${firstName} ${lastName}`
+            : creatorUid.substring(0, 8) + '...');
+}
+
 const isMyMessage = (message: MessageBo) => {
     return message.senderUid === currentUserUid.value;
 };
@@ -388,13 +432,19 @@ onUnmounted(async () => {
                   <button v-if="props.isMobile" class="btn btn-link text-decoration-none p-0 me-3" @click="router.replace('/chats')">
                     ← Back
                   </button>
-                  <span class="fw-bold">
+                  <span class="fw-bold d-flex align-items-center gap-2">
                     Chat with: 
                     <a 
                       href="#" 
-                      class="text-primary text-decoration-none"
+                      class="text-primary text-decoration-none d-flex align-items-center gap-2"
                       @click.prevent="router.push({ path: '/profile', query: { id: getOtherUserUid() } })"
                     >
+                      <ProfileIconDisplay
+                        :icon="otherUserProfile?.profileIcon"
+                        :color="otherUserProfile?.profileIconColor"
+                        size="sm"
+                        class="bg-white"
+                      />
                       {{ otherUserDisplayName || getOtherUserUid() }}
                     </a>
                   </span>
@@ -424,11 +474,19 @@ onUnmounted(async () => {
                 <div
                     v-for="message in messages"
                     :key="message.uid"
-                    class="mb-3"
-                    :class="{'text-end': isMyMessage(message)}"
+                    class="mb-3 d-flex"
+                    :class="{'justify-content-end': isMyMessage(message), 'justify-content-start': !isMyMessage(message)}"
                 >
+                  <div v-if="!isMyMessage(message)" class="me-2 d-flex align-items-end">
+                    <ProfileIconDisplay
+                      :icon="messageSenderProfiles.get(message.senderUid)?.profileIcon"
+                      :color="messageSenderProfiles.get(message.senderUid)?.profileIconColor"
+                      size="sm"
+                      class="bg-white"
+                    />
+                  </div>
                   <div
-                      class="d-inline-block rounded position-relative"
+                      class="rounded position-relative"
                       :class="isMyMessage(message) ? 'bg-primary text-white' : 'bg-light'"
                       style="max-width: 70%;"
                   >
