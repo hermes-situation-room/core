@@ -99,7 +99,7 @@ public class SituationRoomProfile : Profile
                 DateTime.UtcNow,
                 src.Title,
                 src.Description,
-                src.Content,                
+                src.Content,
                 src.CreatorUid,
                 src.PrivacyLevel,
                 src.Tags
