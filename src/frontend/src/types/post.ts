@@ -6,6 +6,7 @@
     content: string;
     creatorUid: string;
     tags: string[];
+    privacyLevel: number;
 }
 
 export interface CreatePostDto {
@@ -14,6 +15,7 @@ export interface CreatePostDto {
     content: string;
     creatorUid: string;
     tags: string[];
+    privacyLevel: number;
 }
 
 export interface UpdatePostDto {
@@ -24,6 +26,7 @@ export interface UpdatePostDto {
     content: string;
     creatorUid: string;
     tags: string[];
+    privacyLevel: number;
 }
 
 export interface PostFilter {
@@ -34,6 +37,7 @@ export interface PostFilter {
     offset?: number;
     query?: string;
     sortBy?: string;
+    privacyLevel?: number;
 }
 
 export interface ErrorResponse {
