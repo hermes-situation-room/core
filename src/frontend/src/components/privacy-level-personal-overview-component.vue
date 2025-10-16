@@ -203,7 +203,7 @@ onMounted(() => {
                     Cancel
                 </button>
                 <button 
-                    type="submit" 
+                    type="submit"
                     class="btn btn-primary"
                     :disabled="updatingPrivacy"
                 >
