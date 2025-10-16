@@ -322,7 +322,7 @@ onBeforeUnmount(() => {
                 >
                     <div class="card-body flex-grow-1" style="cursor: pointer;" @click="viewPost(post.uid)">
                         <div class="d-flex justify-content-between align-items-start mb-2">
-                            <h5 class="card-title mb-0 flex-grow-1">{{ post.title }}</h5>
+                            <h5 class="card-title mb-0 flex-grow-1 text-break">{{ post.title }}</h5>
                             <!-- Three-dot menu button -->
                             <div class="position-relative">
                                 <button 

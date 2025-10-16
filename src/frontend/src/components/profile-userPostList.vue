@@ -6,11 +6,113 @@ import type {PostBo} from '../types/post'
 import { useAuthStore } from '../stores/auth-store';
 import { useNotification } from '../composables/use-notification.ts';
 import type { UserProfileBo } from '../types/user.ts';
+import { useContextMenu } from '../composables/use-context-menu';
 
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
 const notification = useNotification();
+const {
+    contextMenuItemId: contextMenuPostId,
+    contextMenuPosition,
+    showContextMenu,
+    showMobileMenu,
+    handleRightClick,
+    toggleMobileMenu,
+    closeAllMenus
+} = useContextMenu();
+
+const viewProfile = (postId: string, event?: Event) => {
+    if (event) {
+        event.stopPropagation();
+    }
+    
+    closeAllMenus();
+    
+    const post = posts.value.find(p => p.uid === postId);
+    if (post) {
+        router.push({ path: '/profile', query: { id: post.creatorUid } });
+    }
+};
+const sendDirectMessage = async (postId: string, event?: Event) => {
+    if (event) {
+        event.stopPropagation();
+    }
+    
+    closeAllMenus();
+    
+    if (!currentUserUid.value) {
+        notification.warning('Please log in to send messages');
+        return;
+    }
+    
+    const post = posts.value.find(p => p.uid === postId);
+    if (!post) {
+        return;
+    }
+    if (post.creatorUid === currentUserUid.value) {
+        notification.warning('You cannot send a message to yourself');
+        return;
+    }
+    try {
+        const chatResult = await services.chats.getOrCreateChatByUserPair(
+            currentUserUid.value,
+            post.creatorUid
+        );
+        if (chatResult.isSuccess && chatResult.data) {
+            router.push(`/chat/${chatResult.data.uid}`);
+        } else {
+            notification.error(chatResult.responseMessage || 'Failed to open chat');
+        }
+    } catch (err) {
+        notification.error('An error occurred while opening the chat');
+    }
+};
+const editPost = (postId: string, event?: Event) => {
+    if (event) {
+        event.stopPropagation();
+    }
+    
+    closeAllMenus();
+    
+    if (!currentUserUid.value) {
+        notification.warning('Please log in to edit posts');
+        return;
+    }
+    
+    router.push(`/post/${postId}/edit`);
+};
+const deletePost = async (postId: string, event?: Event) => {
+    if (event) {
+        event.stopPropagation();
+    }
+    
+    closeAllMenus();
+    
+    if (!currentUserUid.value) {
+        notification.warning('Please log in to delete posts');
+        return;
+    }
+    
+    if (!confirm('Are you sure you want to delete this post?')) {
+        return;
+    }
+    try {
+        const result = await services.posts.deletePost(postId);
+        if (result.isSuccess) {
+            posts.value = posts.value.filter(post => post.uid !== postId);
+            notification.deleted('Post deleted successfully');
+        } else {
+            notification.error(result.responseMessage || 'Failed to delete post');
+        }
+    } catch (error) {
+        notification.error('Error deleting post');
+    }
+};
+const isOwnPost = (postId: string): boolean => {
+    const post = posts.value.find(p => p.uid === postId);
+    return post ? post.creatorUid === currentUserUid.value : false;
+};
 
 type SortOption = 'newest' | 'oldest' | 'title-asc' | 'title-desc';
 interface Props {
@@ -119,7 +221,6 @@ const viewPost = (postId: string) => {
 const goToPage = (page: number) => {
     currentPage.value = page;
     
-    // Update URL with current page
     router.push({
         query: {
             ...route.query,
@@ -149,9 +250,8 @@ watch(() => searchQuery.value, () => {
     }
     
     searchDebounceTimer = setTimeout(() => {
-        currentPage.value = 1; // Reset to first page when search changes
+        currentPage.value = 1; 
         
-        // Remove page parameter temporarily - will be set after loading if needed
         router.push({
             query: {
                 ...route.query,
@@ -160,13 +260,13 @@ watch(() => searchQuery.value, () => {
         });
         
         loadPosts();
-    }, 500); // 500ms debounce (half a second)
+    }, 500); 
 });
 
 watch(() => sortBy.value, () => {
-    currentPage.value = 1; // reset pagination
+    currentPage.value = 1; 
     router.push({ query: { ...route.query, page: undefined } });
-    loadPosts(); // reload posts
+    loadPosts(); 
 }, { immediate: true });
 
 onMounted(() => {
@@ -278,9 +378,66 @@ onBeforeUnmount(() => {
                     :key="post.uid"
                     class=""
                 >
-                    <div class="card h-100 shadow-sm d-flex flex-column">
-                        <div class="card-body flex-grow-1" style="cursor: pointer;" @click="viewPost(post.uid)">
-                            <h5 class="card-title">{{ post.title }}</h5>
+                    <div 
+                        class="card h-100 shadow-sm d-flex flex-column"
+                        @contextmenu="handleRightClick($event, post.uid)"
+                    >
+                        <div class="card-body flex-grow-1" style="cursor: pointer;" @click="viewPost(post.uid)"><div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="card-title mb-0 flex-grow-1 text-break">{{ post.title }}</h5>
+                                <!-- Three-dot menu button -->
+                                <div class="position-relative">
+                                    <button 
+                                        class="btn btn-link text-dark p-0 ms-2" 
+                                        @click="toggleMobileMenu($event, post.uid)"
+                                        style="line-height: 1;"
+                                    >
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <div 
+                                        v-if="showMobileMenu === post.uid"
+                                        class="dropdown-menu show position-absolute"
+                                        style="right: 0; top: 100%; z-index: 1000;"
+                                    >
+                                        <template v-if="currentUserUid && isOwnPost(post.uid)">
+                                            <button 
+                                                class="dropdown-item"
+                                                @click="editPost(post.uid, $event)"
+                                            >
+                                                <i class="fas fa-edit me-2"></i>Edit
+                                            </button>
+                                            <div class="dropdown-divider"></div>
+                                            <button 
+                                                class="dropdown-item text-danger"
+                                                @click="deletePost(post.uid, $event)"
+                                            >
+                                                <i class="fas fa-trash me-2"></i>Delete
+                                            </button>
+                                        </template>
+                                        <template v-else>
+                                            <button 
+                                                class="dropdown-item"
+                                                @click="viewProfile(post.uid, $event)"
+                                            >
+                                                <i class="fas fa-user me-2"></i>View Profile
+                                            </button>
+                                            <button 
+                                                v-if="currentUserUid"
+                                                class="dropdown-item"
+                                                @click="sendDirectMessage(post.uid, $event)"
+                                            >
+                                                <i class="fas fa-envelope me-2"></i>Send Message
+                                            </button>
+                                            <button 
+                                                v-else
+                                                class="dropdown-item"
+                                                @click="showMobileMenu = null; router.push('/login')"
+                                            >
+                                                <i class="fas fa-sign-in-alt me-2"></i>Log In to Message
+                                            </button>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
                             <p class="card-text text-muted small">{{ post.description }}</p>
                             <div class="d-flex flex-wrap gap-1 mb-2">
                                 <span v-for="tag in post.tags.slice(0, 3)" :key="tag" class="badge bg-info text-white">
@@ -317,8 +474,53 @@ onBeforeUnmount(() => {
                 <h5 class="text-muted">No posts found</h5>
                 <p class="text-muted">Try adjusting your filters or search query</p>
             </div>
-
-            <!-- Pagination Controls -->
+            
+            <div 
+                v-if="showContextMenu && contextMenuPostId"
+                class="dropdown-menu show position-fixed"
+                :style="{ 
+                    left: contextMenuPosition.x + 'px', 
+                    top: contextMenuPosition.y + 'px' 
+                }"
+            >
+                <template v-if="currentUserUid && isOwnPost(contextMenuPostId)">
+                    <button 
+                        class="dropdown-item"
+                        @click="editPost(contextMenuPostId)"
+                    >
+                        <i class="fas fa-edit me-2"></i>Edit Post
+                    </button>
+                    <div class="dropdown-divider"></div>
+                    <button 
+                        class="dropdown-item text-danger"
+                        @click="deletePost(contextMenuPostId)"
+                    >
+                        <i class="fas fa-trash me-2"></i>Delete Post
+                    </button>
+                </template>
+                <template v-else>
+                    <button 
+                        class="dropdown-item"
+                        @click="viewProfile(contextMenuPostId)"
+                    >
+                        <i class="fas fa-user me-2"></i>View Profile
+                    </button>
+                    <button 
+                        v-if="currentUserUid"
+                        class="dropdown-item"
+                        @click="sendDirectMessage(contextMenuPostId)"
+                    >
+                        <i class="fas fa-envelope me-2"></i>Send Message
+                    </button>
+                    <button 
+                        v-else
+                        class="dropdown-item"
+                        @click="showContextMenu = false; router.push('/login')"
+                    >
+                        <i class="fas fa-sign-in-alt me-2"></i>Log In to Message
+                    </button>
+                </template>
+            </div>
             <div v-if="!loadPosts && (currentPage > 1 || hasMorePosts)" class="d-flex justify-content-center align-items-center gap-3 mt-4">
                 <button 
                     class="btn btn-outline-primary"
