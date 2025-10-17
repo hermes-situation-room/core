@@ -15,9 +15,9 @@ public sealed class PrivacyLevelPersonalRepository(IHermessituationRoomContext c
         var newPrivacyLevelPersonal = new PrivacyLevelPersonal
         {
             Uid = Guid.NewGuid(),
-            IsFirstNameVisible = privacyLevelPersonalBo.IsFirstNameVisible,
-            IsLastNameVisible = privacyLevelPersonalBo.IsLastNameVisible,
-            IsEmailVisible = privacyLevelPersonalBo.IsEmailVisible,
+            IsFirstNameVisible = privacyLevelPersonalBo.IsFirstNameVisible != false ? privacyLevelPersonalBo.IsFirstNameVisible : null,
+            IsLastNameVisible = privacyLevelPersonalBo.IsLastNameVisible != false ? privacyLevelPersonalBo.IsLastNameVisible : null,
+            IsEmailVisible = privacyLevelPersonalBo.IsEmailVisible != false ? privacyLevelPersonalBo.IsEmailVisible : null,
             OwnerUid = privacyLevelPersonalBo.OwnerUid,
             ConsumerUid = privacyLevelPersonalBo.ConsumerUid
         };
@@ -75,9 +75,9 @@ public sealed class PrivacyLevelPersonalRepository(IHermessituationRoomContext c
                                        .FirstOrDefaultAsync(u => u.Uid == updatedPrivacyLevelPersonal.Uid) 
                                        ?? throw new KeyNotFoundException($"PrivacyLevelPersonal with UID {updatedPrivacyLevelPersonal.Uid} was not found.");
 
-        privacyLevelPersonal.IsFirstNameVisible = updatedPrivacyLevelPersonal.IsFirstNameVisible;
-        privacyLevelPersonal.IsLastNameVisible = updatedPrivacyLevelPersonal.IsLastNameVisible;
-        privacyLevelPersonal.IsEmailVisible = updatedPrivacyLevelPersonal.IsEmailVisible;
+        privacyLevelPersonal.IsFirstNameVisible = updatedPrivacyLevelPersonal.IsFirstNameVisible != false ? updatedPrivacyLevelPersonal.IsFirstNameVisible : null;
+        privacyLevelPersonal.IsLastNameVisible = updatedPrivacyLevelPersonal.IsLastNameVisible != false ? updatedPrivacyLevelPersonal.IsLastNameVisible : null;
+        privacyLevelPersonal.IsEmailVisible = updatedPrivacyLevelPersonal.IsEmailVisible != false ? updatedPrivacyLevelPersonal.IsEmailVisible : null;
 
         await context.SaveChangesAsync();
 

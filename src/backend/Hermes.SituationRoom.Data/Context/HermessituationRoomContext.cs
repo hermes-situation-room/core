@@ -36,11 +36,11 @@ public partial class HermessituationRoomContext : DbContext
     {
         modelBuilder.Entity<Activist>(entity =>
         {
-            entity.HasKey(e => e.UserUid).HasName("PK__Activist__A1F26A8A98B3865C");
+            entity.HasKey(e => e.UserUid).HasName("PK__Activist__A1F26A8A453D4393");
 
             entity.ToTable("Activist");
 
-            entity.HasIndex(e => e.Username, "UQ__Activist__536C85E49F1F8236").IsUnique();
+            entity.HasIndex(e => e.Username, "UQ__Activist__536C85E4A246408A").IsUnique();
 
             entity.Property(e => e.UserUid)
                 .ValueGeneratedNever()
@@ -56,7 +56,7 @@ public partial class HermessituationRoomContext : DbContext
 
         modelBuilder.Entity<Chat>(entity =>
         {
-            entity.HasKey(e => e.Uid).HasName("PK__Chat__C5B19602728FC98C");
+            entity.HasKey(e => e.Uid).HasName("PK__Chat__C5B19602D8F85B3E");
 
             entity.ToTable("Chat");
 
@@ -83,7 +83,7 @@ public partial class HermessituationRoomContext : DbContext
 
         modelBuilder.Entity<Comment>(entity =>
         {
-            entity.HasKey(e => e.Uid).HasName("PK__Comment__C5B1960220BB61FB");
+            entity.HasKey(e => e.Uid).HasName("PK__Comment__C5B19602390A6664");
 
             entity.ToTable("Comment");
 
@@ -109,7 +109,7 @@ public partial class HermessituationRoomContext : DbContext
 
         modelBuilder.Entity<Journalist>(entity =>
         {
-            entity.HasKey(e => e.UserUid).HasName("PK__Journali__A1F26A8AD6F98ECC");
+            entity.HasKey(e => e.UserUid).HasName("PK__Journali__A1F26A8A8EFFB2B5");
 
             entity.ToTable("Journalist");
 
@@ -127,7 +127,7 @@ public partial class HermessituationRoomContext : DbContext
 
         modelBuilder.Entity<Message>(entity =>
         {
-            entity.HasKey(e => e.Uid).HasName("PK__Message__C5B19602ECEB2E57");
+            entity.HasKey(e => e.Uid).HasName("PK__Message__C5B1960260E12629");
 
             entity.ToTable("Message");
 
@@ -155,7 +155,7 @@ public partial class HermessituationRoomContext : DbContext
 
         modelBuilder.Entity<Post>(entity =>
         {
-            entity.HasKey(e => e.Uid).HasName("PK__Post__C5B1960200EB1588");
+            entity.HasKey(e => e.Uid).HasName("PK__Post__C5B196026519AB55");
 
             entity.ToTable("Post");
 
@@ -195,7 +195,7 @@ public partial class HermessituationRoomContext : DbContext
 
         modelBuilder.Entity<PrivacyLevelPersonal>(entity =>
         {
-            entity.HasKey(e => e.Uid).HasName("PK__PrivacyL__C5B196024FDD7F7A");
+            entity.HasKey(e => e.Uid).HasName("PK__PrivacyL__C5B196026FB36187");
 
             entity.ToTable("PrivacyLevelPersonal");
 
@@ -207,9 +207,9 @@ public partial class HermessituationRoomContext : DbContext
                 .ValueGeneratedNever()
                 .HasColumnName("UID");
             entity.Property(e => e.ConsumerUid).HasColumnName("ConsumerUID");
-            entity.Property(e => e.IsEmailVisible).HasDefaultValue(false);
-            entity.Property(e => e.IsFirstNameVisible).HasDefaultValue(false);
-            entity.Property(e => e.IsLastNameVisible).HasDefaultValue(false);
+            entity.Property(e => e.IsEmailVisible).HasDefaultValueSql("(NULL)");
+            entity.Property(e => e.IsFirstNameVisible).HasDefaultValueSql("(NULL)");
+            entity.Property(e => e.IsLastNameVisible).HasDefaultValueSql("(NULL)");
             entity.Property(e => e.OwnerUid).HasColumnName("OwnerUID");
 
             entity.HasOne(d => d.ConsumerU).WithMany(p => p.PrivacyLevelPersonalConsumerUs)
@@ -225,7 +225,7 @@ public partial class HermessituationRoomContext : DbContext
 
         modelBuilder.Entity<User>(entity =>
         {
-            entity.HasKey(e => e.Uid).HasName("PK__User__C5B196027C6BB09E");
+            entity.HasKey(e => e.Uid).HasName("PK__User__C5B19602F47A1223");
 
             entity.ToTable("User");
 
@@ -252,12 +252,12 @@ public partial class HermessituationRoomContext : DbContext
             entity.Property(e => e.ProfileIconColor)
                 .IsRequired()
                 .HasMaxLength(50)
-                .HasDefaultValue("Blue");
+                .HasDefaultValue("#3b82f6");
         });
 
         modelBuilder.Entity<UserChatReadStatus>(entity =>
         {
-            entity.HasKey(e => e.Uid).HasName("PK__UserChat__C5B196027D18AC7C");
+            entity.HasKey(e => e.Uid).HasName("PK__UserChat__C5B196021B4E652C");
 
             entity.ToTable("UserChatReadStatus");
 

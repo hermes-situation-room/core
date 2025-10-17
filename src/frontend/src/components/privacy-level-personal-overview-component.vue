@@ -41,10 +41,10 @@ const loadPrivacyLevels = async () => {
     const defaultPrivacyResult = await loadDefaultPrivacyLevel();
     const personalPrivacyResult = await loadPrivacyLevelPersonal();
 
-    defaultPrivacyLevel.value = defaultPrivacyResult || defaultPrivacyLevel.value;
-    personalPrivacyLevel.value = personalPrivacyResult || personalPrivacyLevel.value;
+    if (defaultPrivacyResult) defaultPrivacyLevel.value = defaultPrivacyResult;
+    if (personalPrivacyResult) personalPrivacyLevel.value = personalPrivacyResult;
 
-    if (defaultPrivacyLevel) {
+    if (personalPrivacyLevel.value.uid != null && personalPrivacyLevel.value.uid != "" ) {
         existingPersonalPrivacyLevel.value = true
     }
 
@@ -89,19 +89,22 @@ const togglePrivacyEdit = () => {
 
 const updatePrivacy = async () => {
     try {
+        updatingPrivacy.value = true;
+
         let result
 
-        if (existingPersonalPrivacyLevel && personalPrivacyLevel.value.isEmailVisible || personalPrivacyLevel.value.isFirstNameVisible || personalPrivacyLevel.value.isLastNameVisible) {
+        if (existingPersonalPrivacyLevel.value && (personalPrivacyLevel.value.isEmailVisible || personalPrivacyLevel.value.isFirstNameVisible || personalPrivacyLevel.value.isLastNameVisible)) {
+            console.log("update")
             const updatePrivacyLevelPersonalData: UpdatePrivacyLevelPersonalDto = {
                 isFirstNameVisible: personalPrivacyLevel.value.isFirstNameVisible,
                 isLastNameVisible: personalPrivacyLevel.value.isLastNameVisible,
                 isEmailVisible: personalPrivacyLevel.value.isEmailVisible
             }
             result = await services.privacyLevelPersonal.updatePrivacyLevelPersonal(personalPrivacyLevel.value.uid, updatePrivacyLevelPersonalData);
-        }
-        if (existingPersonalPrivacyLevel && !personalPrivacyLevel.value.isEmailVisible && !personalPrivacyLevel.value.isFirstNameVisible && !personalPrivacyLevel.value.isLastNameVisible) {
+        } else if (existingPersonalPrivacyLevel.value && !personalPrivacyLevel.value.isEmailVisible && !personalPrivacyLevel.value.isFirstNameVisible && !personalPrivacyLevel.value.isLastNameVisible) {
             result = await services.privacyLevelPersonal.deletePrivacyLevelPersonal(personalPrivacyLevel.value.uid);
         } else {
+            console.log("create")
             const createPrivacyLevelPersonalData: CreatePrivacyLevelPersonalDto = {
                 isFirstNameVisible: personalPrivacyLevel.value.isFirstNameVisible,
                 isLastNameVisible: personalPrivacyLevel.value.isLastNameVisible,
