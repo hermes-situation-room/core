@@ -373,12 +373,18 @@ onBeforeUnmount(() => {
                         >
                             <div class="card-body p-2">
                                 <div class="d-flex align-items-center gap-3">
-                                    <ProfileIconDisplay 
-                                        :icon="userProfiles.get(getOtherUserUid(chat))?.profileIcon" 
-                                        :color="userProfiles.get(getOtherUserUid(chat))?.profileIconColor" 
-                                        size="xl"
-                                        class="bg-white"
-                                    />
+                                    <a
+                                        href="#"
+                                        class="text-primary text-decoration-none"
+                                        @click.prevent.stop="router.push({ path: '/profile', query: { id: getOtherUserUid(chat) } })"
+                                    >
+                                        <ProfileIconDisplay 
+                                            :icon="userProfiles.get(getOtherUserUid(chat))?.profileIcon" 
+                                            :color="userProfiles.get(getOtherUserUid(chat))?.profileIconColor" 
+                                            size="xl"
+                                            class="bg-white"
+                                        />
+                                    </a>
                                     <div class="flex-grow-1">
                                         <div class="d-flex justify-content-between align-items-start mb-1">
                                             <div>

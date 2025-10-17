@@ -203,9 +203,15 @@ const postComment = async () => {
 }
 
 const editCommentToggle = (comment:CommentBo) => {
-    editCommentContent.value = comment.content;
-    editingComments.value = !editingComments.value
-    comment.inEdit = !comment.inEdit
+    if (comment.inEdit) {
+        editCommentContent.value = '';
+        comment.inEdit = false;
+        editingComments.value = !comments.value?.some(c => c.inEdit);
+    } else {
+        editCommentContent.value = comment.content;
+        comment.inEdit = true;
+        editingComments.value = true;
+    }
 }
 
 const updateComment = async (comment:CommentBo) => {
@@ -215,22 +221,26 @@ const updateComment = async (comment:CommentBo) => {
             return;
         }
 
+        if (!editCommentContent.value.trim()) {
+            notification.warning('Comment content cannot be empty');
+            return;
+        }
+
         const commentData: UpdateCommentDto = {
-            content: editCommentContent.value
+            content: editCommentContent.value.trim()
         }
 
         const result = await services.comments.updateComment(comment.uid, commentData);
-        if (result.isSuccess && result.data) {
+        if (result.isSuccess) {
             notification.updated("Comment updated successfully!")
             await loadComments()
+            comment.inEdit = false;
+            editingComments.value = !comments.value?.some(c => c.inEdit);
         } else {
             notification.error(result.responseMessage || 'Failed to update comment');
         }
     } catch (err) {
         notification.error('An error occurred while updating the comment');
-    } finally {
-        editingComments.value = false
-        comment.inEdit = false
     }
 }
 
@@ -448,47 +458,59 @@ onMounted(() => {
                     </RouterLink>
                 </div>
                 <div class="comment-list d-flex flex-column">
-                    <div v-for="comment in comments" :key="comment.uid" class="comment border mb-1 p-2 pe-3 ps-1 rounded d-flex flex-column flex-wrap">
-                        <small class="d-flex justify-content-between">
-                            <strong>
+                    <div v-for="comment in comments" :key="comment.uid" class="comment border mb-2 p-3 rounded" style="min-height: 50px;">
+                        <div v-if="!comment.inEdit" class="d-flex align-items-start gap-2 h-100">
+                            <div class="d-flex align-items-center" style="min-height: 40px;">
                                 <a
                                     href="#"
-                                    class="text-primary text-decoration-none d-flex align-items-center gap-2"
+                                    class="text-decoration-none"
                                     @click.prevent="router.push({ path: '/profile', query: { id: comment.creatorUid } })"
+                                    title="View profile"
                                 >
-                                <ProfileIconDisplay
-                                    :icon="comment?.profileIcon"
-                                    :color="comment?.profileIconColor"
-                                    size="md"
-                                    class="bg-white"
-                                />
-                                {{ comment.displayName }}
+                                    <ProfileIconDisplay
+                                        :icon="comment?.profileIcon"
+                                        :color="comment?.profileIconColor"
+                                        size="lg"
+                                        class="bg-white"
+                                    />
                                 </a>
-                            </strong>
-                            {{ formatDate(comment.timestamp) }}
-                        </small>
-                        <div>
-                            <div v-if="!comment.inEdit" class="d-flex justify-content-between flex-nowrap gap-2">
-                                <div class="text-break width-100 ms-lg-3">
+                            </div>
+                            
+                            <div class="flex-grow-1 d-flex flex-column justify-content-between h-100">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <a
+                                        href="#"
+                                        class="text-primary text-decoration-none fw-bold"
+                                        @click.prevent="router.push({ path: '/profile', query: { id: comment.creatorUid } })"
+                                    >
+                                        {{ comment.displayName }}
+                                    </a>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <small class="text-muted">{{ formatDate(comment.timestamp) }}</small>
+                                        <div v-if="comment.creatorUid == currentUserUid && !comment.inEdit" class="d-flex gap-2">
+                                            <i class="fas fa-edit text-muted" style="cursor: pointer;" @click="editCommentToggle(comment)" title="Edit comment"></i>
+                                            <i class="fas fa-trash text-muted" style="cursor: pointer;" @click="deleteComment(comment)" title="Delete comment"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="text-break text-dark flex-grow-1">
                                     {{ comment.content }}
                                 </div>
-                                <div class="d-flex gap-3 mt-1">
-                                    <i v-if="comment.creatorUid == currentUserUid && !editingComments" class="fas fa-edit" @click="editCommentToggle(comment)"></i>
-                                    <i v-if="comment.creatorUid == currentUserUid && !editingComments" class="fas fa-trash" @click="deleteComment(comment)"></i>
-                                </div>
                             </div>
-                            <div v-else class="d-flex justify-content-between align-items-center gap-2">
-                                <input v-model="editCommentContent" type="text" maxlength="255" class="rounded w-100 form-control">
-                                
-                                <button class="w-20 rounded btn btn-primary d-flex align-items-center" @click="updateComment(comment)">
-                                    <i class="fas fa-check fa-lg m-2"></i>
-                                    Confirm
-                                </button>
-                                <button class="w-20 rounded btn btn-primary d-flex align-items-center" @click="editCommentToggle(comment)">
-                                    <i class="fas fa-close fa-lg m-2"></i>
-                                    Cancel
-                                </button>
-                            </div>
+                        </div>
+                        
+                        <div v-else class="d-flex justify-content-between align-items-center gap-2">
+                            <input v-model="editCommentContent" type="text" maxlength="255" class="rounded w-100 form-control">
+                            
+                            <button class="btn btn-primary btn-sm d-flex align-items-center" @click="updateComment(comment)">
+                                <i class="fas fa-check me-1"></i>
+                                Confirm
+                            </button>
+                            <button class="btn btn-secondary btn-sm d-flex align-items-center" @click="editCommentToggle(comment)">
+                                <i class="fas fa-times me-1"></i>
+                                Cancel
+                            </button>
                         </div>
                     </div>
                 </div>
