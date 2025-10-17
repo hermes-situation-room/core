@@ -22,6 +22,8 @@ import "@fontsource/roboto/900-italic.css";
 
 import { useAuthStore } from "./stores/auth-store";
 
+import { registerSW } from "virtual:pwa-register";
+
 const app = createApp(App);
 app.use(router);
 
@@ -29,3 +31,5 @@ const authStore = useAuthStore();
 authStore.initAuth().then(() => {
     app.mount("#app");
 });
+
+registerSW({ immediate: true });
