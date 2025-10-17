@@ -5,6 +5,7 @@ import type {LoginFormData, UserType} from '../types/user.ts'
 import {useAuthStore} from '../stores/auth-store'
 import {services} from "../services/api";
 import {useNotification} from '../composables/use-notification.ts';
+import {useReactivePasswordValidation} from '../composables/use-password-validation.ts';
 import ProfileIconSelector from '../components/profile-icon-selector.vue';
 import ProfileIconDisplay from '../components/profile-icon-display.vue';
 import {ProfileIcon, DEFAULT_COLOR} from '../types/profile-icon.ts';
@@ -34,6 +35,15 @@ const iconSelection = ref({
     color: DEFAULT_COLOR
 })
 const profileIconModalRef = ref<HTMLDivElement | null>(null)
+const password = ref('')
+const showPasswordRequirements = ref(false)
+
+// Password validation
+const {
+    isValid: isPasswordValid,
+    checks: passwordChecks,
+    errors: passwordErrors,
+} = useReactivePasswordValidation(password)
 
 const isJournalist = computed(() => selectedUserType.value === 'journalist')
 const isActivist = computed(() => selectedUserType.value === 'activist')
@@ -65,6 +75,9 @@ function selectUserType(type: UserType) {
         profileIconColor: DEFAULT_COLOR
     }
     
+    password.value = ''
+    showPasswordRequirements.value = false
+    
     iconSelection.value = {
         icon: ProfileIcon.User,
         color: DEFAULT_COLOR
@@ -83,6 +96,14 @@ function updateIconSelection() {
 
 async function handleRegister() {
     if (isLoading.value) return
+    
+    // Validate password
+    if (!isPasswordValid.value) {
+        notification.error('Please fix password requirements before submitting');
+        return;
+    }
+    
+    formData.value.password = password.value;
 
     isLoading.value = true
 
@@ -228,13 +249,40 @@ async function handleRegister() {
                                 <div class="mb-3">
                                     <label class="form-label">Password</label>
                                     <input
-                                        v-model="formData.password"
+                                        v-model="password"
+                                        @focus="showPasswordRequirements = true"
                                         type="password"
                                         required
                                         class="form-control"
+                                        :class="{ 'is-invalid': password && !isPasswordValid, 'is-valid': password && isPasswordValid }"
                                         placeholder="Choose a password"
                                         :disabled="isLoading"
                                     />
+                                    <div v-if="showPasswordRequirements || (password && !isPasswordValid)" class="mt-2">
+                                        <small class="text-muted d-block mb-1">Password must meet the following requirements:</small>
+                                        <ul class="list-unstyled mb-0 small">
+                                            <li :class="passwordChecks.minLength ? 'text-success' : 'text-danger'">
+                                                <i :class="passwordChecks.minLength ? 'fas fa-check-circle' : 'fas fa-times-circle'"></i>
+                                                At least 12 characters
+                                            </li>
+                                            <li :class="passwordChecks.hasUppercase ? 'text-success' : 'text-danger'">
+                                                <i :class="passwordChecks.hasUppercase ? 'fas fa-check-circle' : 'fas fa-times-circle'"></i>
+                                                One uppercase letter
+                                            </li>
+                                            <li :class="passwordChecks.hasLowercase ? 'text-success' : 'text-danger'">
+                                                <i :class="passwordChecks.hasLowercase ? 'fas fa-check-circle' : 'fas fa-times-circle'"></i>
+                                                One lowercase letter
+                                            </li>
+                                            <li :class="passwordChecks.hasNumber ? 'text-success' : 'text-danger'">
+                                                <i :class="passwordChecks.hasNumber ? 'fas fa-check-circle' : 'fas fa-times-circle'"></i>
+                                                One number
+                                            </li>
+                                            <li :class="passwordChecks.hasSpecialChar ? 'text-success' : 'text-danger'">
+                                                <i :class="passwordChecks.hasSpecialChar ? 'fas fa-check-circle' : 'fas fa-times-circle'"></i>
+                                                One special character (!@#$%^&*...)
+                                            </li>
+                                        </ul>
+                                    </div>
                                 </div>
 
                                 <div v-if="!isJournalist" class="mb-3">

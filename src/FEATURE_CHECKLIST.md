@@ -78,10 +78,10 @@ This document lists all features mentioned in the Situation Room documentation w
 ### 2.2.1 Security and Privacy Enhancements
 
 #### 2.2.1.1 Password Security
-- ❌ **Enforce Stricter Password Requirements**
-  - Minimum 12 characters
-  - At least one number, uppercase, lowercase, special character
-  - Check against breached password database
+- 🟡 **Enforce Stricter Password Requirements**
+  - ✅ Minimum 12 characters
+  - ✅ At least one number, uppercase, lowercase, special character
+  - ❌ Check against breached password database
 
 #### 2.2.1.2 Advanced Authentication
 - ❌ **Two-Factor Authentication (2FA)**
@@ -174,7 +174,7 @@ This document lists all features mentioned in the Situation Room documentation w
   - Threaded comment conversations
   - Reply-to-specific comment functionality
 
-- ❌ **Comment Sorting**
+- ✅ **Comment Sorting**
   - Sort by oldest/newest
   - Additional sorting options
 
@@ -216,7 +216,7 @@ This document lists all features mentioned in the Situation Room documentation w
   - ❌ Live chat list updates
 
 #### 2.2.5.2 Search and Discovery
-- ❌ **User Search Functionality**
+- ✅ **User Search Functionality**
   - Search by username (activists)
   - Search by name/email (journalists)
   - Privacy-respecting search results
@@ -243,7 +243,7 @@ This document lists all features mentioned in the Situation Room documentation w
   - Disaster recovery procedures
 
 #### 2.2.5.6 User Experience
-- ❌ **Dark Mode**
+- ✅ **Dark Mode**
   - Theme switching capability
   - User preference storage
   - Consistent dark theme across components
@@ -267,6 +267,7 @@ This document lists all features mentioned in the Situation Room documentation w
 #### 2.2.7.1 Frontend Improvements
 - 🟡 **Refactor Frontend Components**
   - ✅ Component-based architecture
+  - ✅ Pages architecture with route-level components
   - ❌ Standardize component reusability
   - ❌ Improve styling consistency
   - ❌ Remove Bootstrap dependencies

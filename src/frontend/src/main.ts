@@ -5,6 +5,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import "@mdi/font/css/materialdesignicons.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
+import "./assets/theme.css";
 
 import "@fontsource/roboto/100.css";
 import "@fontsource/roboto/300.css";

@@ -11,6 +11,7 @@ import CreateChatPage from "../pages/CreateChatPage.vue";
 import ProfilePage from "../pages/ProfilePage.vue";
 import EditProfilePage from "../pages/EditProfilePage.vue";
 import ChatsPage from "../pages/ChatsPage.vue";
+import UserSearchPage from "../pages/UserSearchPage.vue";
 import { useAuthStore } from "../stores/auth-store";
 
 const router = createRouter({
@@ -85,6 +86,11 @@ const router = createRouter({
             name: "EditProfile",
             component: EditProfilePage,
             meta: { requiresAuth: true },
+        },
+        {
+            path: "/users/search",
+            name: "User Search",
+            component: UserSearchPage,
         },
     ],
 });

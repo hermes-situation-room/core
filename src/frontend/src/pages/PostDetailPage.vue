@@ -34,8 +34,22 @@ const commentContent = ref()
 const comments = ref<CommentBo[] | null>(null);
 const editingComments = ref(false)
 const editCommentContent = ref()
+const commentSortBy = ref<'newest' | 'oldest'>('newest')
+const showCommentSortDropdown = ref(false)
 
 const currentUserUid = computed(() => authStore.userId.value || '');
+
+const sortedComments = computed(() => {
+    if (!comments.value) return null;
+    
+    const sorted = [...comments.value];
+    if (commentSortBy.value === 'newest') {
+        sorted.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    } else {
+        sorted.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+    }
+    return sorted;
+});
 
 const canSendMessage = computed(() => {
     return post.value && currentUserUid.value && post.value.creatorUid !== currentUserUid.value;
@@ -459,8 +473,48 @@ onMounted(() => {
                         Login to Comment
                     </RouterLink>
                 </div>
+                
+                <div v-if="comments && comments.length > 0" class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="mb-0">Comments ({{ comments.length }})</h6>
+                    <div class="dropdown">
+                        <button 
+                            class="btn btn-sm btn-outline-secondary dropdown-toggle"
+                            type="button"
+                            @click="showCommentSortDropdown = !showCommentSortDropdown"
+                        >
+                            <i class="fas fa-sort me-1"></i>
+                            {{ commentSortBy === 'newest' ? 'Newest First' : 'Oldest First' }}
+                        </button>
+                        <ul 
+                            :class="['dropdown-menu', 'dropdown-menu-end', { 'show': showCommentSortDropdown }]"
+                            style="min-width: 150px;"
+                        >
+                            <li>
+                                <a 
+                                    class="dropdown-item" 
+                                    href="#"
+                                    @click.prevent="commentSortBy = 'newest'; showCommentSortDropdown = false"
+                                    :class="{ 'active': commentSortBy === 'newest' }"
+                                >
+                                    <i class="fas fa-clock me-2"></i>Newest First
+                                </a>
+                            </li>
+                            <li>
+                                <a 
+                                    class="dropdown-item" 
+                                    href="#"
+                                    @click.prevent="commentSortBy = 'oldest'; showCommentSortDropdown = false"
+                                    :class="{ 'active': commentSortBy === 'oldest' }"
+                                >
+                                    <i class="fas fa-clock-rotate-left me-2"></i>Oldest First
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                
                 <div class="comment-list d-flex flex-column">
-                    <div v-for="comment in comments" :key="comment.uid" class="comment border mb-2 p-3 rounded" style="min-height: 50px;">
+                    <div v-for="comment in sortedComments" :key="comment.uid" class="comment border mb-2 p-3 rounded" style="min-height: 50px;">
                         <div v-if="!comment.inEdit" class="d-flex align-items-start gap-2 h-100">
                             <div class="d-flex align-items-center" style="min-height: 40px;">
                                 <a
