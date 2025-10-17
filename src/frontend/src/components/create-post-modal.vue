@@ -18,6 +18,10 @@ const postType = computed(() => {
     return authStore.userType.value;
 });
 
+const isJournalist = computed(() => {
+    return authStore.isJournalist.value;
+});
+
 const emit = defineEmits<{
     (e: 'close'): void;
     (e: 'postCreated'): void;
@@ -180,7 +184,10 @@ const selectPrivacyLevel = (level: string) => {
 
 onMounted(() => {
     loadTags();
-    loadPostPrivacyLevels();
+    
+    if (!isJournalist.value) {
+        loadPostPrivacyLevels();
+    }
 
     document.addEventListener('click', (e) => {
         const target = e.target as HTMLElement;
@@ -251,7 +258,7 @@ onMounted(() => {
                             ></textarea>
                         </div>
 
-                        <div class="mb-3">
+                        <div v-if="!isJournalist" class="mb-3">
                             <label class="form-label">Post Privacy Level</label>
                             <div class="privacy-dropdown dropdown">
                                 <button

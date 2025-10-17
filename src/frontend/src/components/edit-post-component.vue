@@ -15,6 +15,10 @@ const postType = computed(() => {
     return authStore.userType.value;
 });
 
+const isJournalist = computed(() => {
+    return authStore.isJournalist.value;
+});
+
 const formData = ref<{
     title: string;
     description: string;
@@ -97,7 +101,10 @@ const loadPost = async () => {
             console.log(originalPost)
             console.log(originalPost.value?.privacyLevel)
             selectedPrivacyLevel.value = Number(originalPost.value?.privacyLevel);
-            loadPostPrivacyLevels();
+            
+            if (!isJournalist.value) {
+                loadPostPrivacyLevels();
+            }
         } else {
             notification.error(result.responseMessage || 'Failed to load post');
         }
@@ -272,7 +279,7 @@ onMounted(() => {
                                 ></textarea>
                             </div>
 
-                            <div class="mb-3">
+                            <div v-if="!isJournalist" class="mb-3">
                                 <label class="form-label">Post Privacy Level</label>
                                 <div class="privacy-dropdown dropdown">
                                     <button
