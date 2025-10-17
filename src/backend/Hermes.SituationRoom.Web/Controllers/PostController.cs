@@ -17,7 +17,26 @@ public class PostController(IControllerInfrastructure infra, IPostService postSe
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_POST])]
     [ProducesResponseType(typeof(PostWithTagsDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<PostWithTagsDto>> GetPost(Guid uid) => Ok(await postService.GetPostAsync(uid));
+    public async Task<ActionResult<PostWithTagsDto>> GetPost(Guid uid)
+    {
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+        var userRoleClaim = User.FindFirst(System.Security.Claims.ClaimTypes.Role);
+
+        Guid.TryParse(userIdClaim?.Value, out var userId);
+
+        int userPrivacyLevel = 0;
+        if (userRoleClaim?.Value == "Journalist")
+            userPrivacyLevel = 2;
+        else if (userRoleClaim?.Value == "Activist")
+            userPrivacyLevel = 1;
+
+        var post = await postService.GetPostAsync(uid);
+
+        if (post.PrivacyLevel > userPrivacyLevel && userId != post.CreatorUid)
+            return Forbid();
+
+        return Ok(post);
+    }
 
     [HttpGet("internal/post/activist/by-tags")]
     [AllowAnonymous]
