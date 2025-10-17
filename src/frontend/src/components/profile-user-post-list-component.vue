@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {watch, onMounted, onBeforeUnmount, ref, computed} from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import {services} from '../services/api/index.ts';
+import {services} from '../services/api';
 import type {PostBo} from '../types/post.ts'
 import { useAuthStore } from '../stores/auth-store.ts';
 import { useNotification } from '../composables/use-notification.ts';
@@ -386,7 +386,6 @@ onBeforeUnmount(() => {
                     >
                         <div class="card-body flex-grow-1" style="cursor: pointer;" @click="viewPost(post.uid)"><div class="d-flex justify-content-between align-items-start mb-2">
                                 <h5 class="card-title mb-0 flex-grow-1 text-break">{{ post.title }}</h5>
-                                <!-- Three-dot menu button -->
                                 <div class="position-relative">
                                     <button 
                                         class="btn btn-link text-dark p-0 ms-2" 
@@ -450,22 +449,6 @@ onBeforeUnmount(() => {
                                 </span>
                             </div>
                             <small class="text-muted">{{ formatDate(post.timestamp) }}</small>
-                        </div>
-                        <div class="card-footer bg-light border-top">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <small class="text-muted d-flex align-items-center">
-                                    <i class="fas fa-user me-1"></i>
-                                    <span v-if="currentUserUid && post.creatorUid === currentUserUid">You</span>
-                                    <a 
-                                        v-else
-                                        href="#" 
-                                        class="text-primary text-decoration-none"
-                                        @click.prevent.stop="router.push({ path: '/profile', query: { id: post.creatorUid } })"
-                                    >
-                                        {{ displayName }}
-                                    </a>
-                                </small>
-                            </div>
                         </div>
                     </div>
                 </div>

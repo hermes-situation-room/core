@@ -3,9 +3,11 @@ import {nextTick, onMounted, onUnmounted, ref, watch} from 'vue';
 import {useRouter} from 'vue-router';
 import {services, sockets} from '../services/api';
 import type {ChatBo} from '../types/chat';
-import { useAuthStore } from '../stores/auth-store';
+import type {UserProfileBo} from '../types/user';
+import {useAuthStore} from '../stores/auth-store';
 import type {CreateMessageDto, MessageBo} from "../types/message.ts";
-import { useNotification } from '../composables/use-notification.ts';
+import {useNotification} from '../composables/use-notification.ts';
+import ProfileIconDisplay from './profile-icon-display.vue';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -34,12 +36,14 @@ const editingContent = ref('');
 const messageInputRef = ref<HTMLInputElement | null>(null);
 const isSocketConnected = ref(false);
 const otherUserDisplayName = ref<string>('');
+const otherUserProfile = ref<UserProfileBo | null>(null);
+const messageSenderProfiles = ref<Map<string, UserProfileBo>>(new Map());
 
 const noChat = ref<boolean>(true);
 
 
 watch(
-    () => props.chatId, 
+    () => props.chatId,
     async (_) => {
         await loadChat();
     }
@@ -63,18 +67,23 @@ const loadChat = async () => {
         const result = await services.chats.getChatById(chatId);
         if (result.isSuccess && result.data) {
             chat.value = result.data;
-            
-            // Load display name for other user
+
             const otherUserUid = getOtherUserUid();
             if (otherUserUid) {
-                const displayNameResult = await services.users.getDisplayName(otherUserUid);
+                const displayNameResult = await services.users.getUserProfile(otherUserUid, currentUserUid.value);
                 if (displayNameResult.isSuccess && displayNameResult.data) {
-                    otherUserDisplayName.value = displayNameResult.data;
+                    otherUserProfile.value = displayNameResult.data;
+                    otherUserDisplayName.value = getDisplayUserName(
+                        otherUserUid,
+                        displayNameResult.data.userName,
+                        displayNameResult.data.firstName,
+                        displayNameResult.data.lastName
+                    );
                 }
             }
-            
+
             await loadMessages(chatId);
-            
+
             // Try to initialize socket connection for real-time updates
             try {
                 await sockets.hub.initialize();
@@ -121,6 +130,22 @@ const loadMessages = async (chatId: string) => {
                     if (isNaN(dateB.getTime())) return -1;
                     return dateA.getTime() - dateB.getTime();
                 });
+
+            // Load profile data for unique message senders
+            const uniqueSenders = [...new Set(messages.value.map(m => m.senderUid))];
+            for (const senderUid of uniqueSenders) {
+                if (senderUid && senderUid !== currentUserUid.value) {
+                    try {
+                        const profileResult = await services.users.getUserProfile(senderUid, currentUserUid.value);
+                        if (profileResult.isSuccess && profileResult.data) {
+                            messageSenderProfiles.value.set(senderUid, profileResult.data);
+                        }
+                    } catch (err) {
+                        console.warn(`Failed to load profile for sender ${senderUid}:`, err);
+                    }
+                }
+            }
+
             setTimeout(() => scrollToBottom(false), 100);
         }
     } catch (error) {
@@ -129,7 +154,7 @@ const loadMessages = async (chatId: string) => {
     }
 };
 
-const handleIncomingMessage = (message: MessageBo) => {
+const handleIncomingMessage = async (message: MessageBo) => {
     if (!chat.value || message.chatUid !== chat.value.uid) {
         return;
     }
@@ -158,6 +183,18 @@ const handleIncomingMessage = (message: MessageBo) => {
     } else {
         if (message.senderUid !== currentUserUid.value) {
             messages.value.push(completeMessage);
+
+            if (message.senderUid && !messageSenderProfiles.value.has(message.senderUid)) {
+                try {
+                    const profileResult = await services.users.getUserProfile(message.senderUid, currentUserUid.value);
+                    if (profileResult.isSuccess && profileResult.data) {
+                        messageSenderProfiles.value.set(message.senderUid, profileResult.data);
+                    }
+                } catch (err) {
+                    console.warn(`Failed to load profile for new sender ${message.senderUid}:`, err);
+                }
+            }
+
             scrollToBottom();
         }
     }
@@ -220,7 +257,7 @@ const sendMessage = async () => {
 
         if (result.isSuccess && result.data) {
             const message = (await services.messages.getMessageById(result.data)).data!;
-                messages.value.push(message);
+            messages.value.push(message);
             scrollToBottom();
         } else {
             notification.error('Failed to send message');
@@ -264,13 +301,13 @@ const saveEdit = async (messageId: string) => {
             if (messageIndex !== -1 && messages.value[messageIndex]) {
                 messages.value[messageIndex].content = newContent;
             }
-             cancelEdit();
-         } else {
-             notification.error('Failed to update message');
-         }
-     } catch (error) {
-         notification.error('Failed to update message');
-     }
+            cancelEdit();
+        } else {
+            notification.error('Failed to update message');
+        }
+    } catch (error) {
+        notification.error('Failed to update message');
+    }
 };
 
 const deleteMessage = async (messageId: string) => {
@@ -280,15 +317,15 @@ const deleteMessage = async (messageId: string) => {
 
     try {
         const result = await services.messages.deleteMessage(messageId);
-         if (result.isSuccess) {
-             messages.value = messages.value.filter(m => m.uid !== messageId);
-             notification.deleted('Message deleted');
-         } else {
-             notification.error('Failed to delete message');
-         }
-     } catch (error) {
-         notification.error('Failed to delete message');
-     }
+        if (result.isSuccess) {
+            messages.value = messages.value.filter(m => m.uid !== messageId);
+            notification.deleted('Message deleted');
+        } else {
+            notification.error('Failed to delete message');
+        }
+    } catch (error) {
+        notification.error('Failed to delete message');
+    }
 };
 
 const scrollToBottom = async (smooth = true) => {
@@ -321,6 +358,13 @@ const getOtherUserUid = () => {
     return chat.value.user1Uid === currentUserUid.value ? chat.value.user2Uid : chat.value.user1Uid;
 };
 
+function getDisplayUserName(creatorUid: string, userName?: string, firstName?: string, lastName?: string): string {
+    return userName ||
+        (firstName && lastName
+            ? `${firstName} ${lastName}`
+            : creatorUid.substring(0, 8) + '...');
+}
+
 const isMyMessage = (message: MessageBo) => {
     return message.senderUid === currentUserUid.value;
 };
@@ -334,18 +378,18 @@ const shouldShowEditMode = (message: MessageBo) => {
 
 const formatTime = (timestamp: string) => {
     let dateString = timestamp;
-    
+
     if (!timestamp.includes('Z') && !timestamp.includes('+') && !timestamp.includes('-', 10)) {
         dateString = timestamp + 'Z';
     }
-    
+
     const date = new Date(dateString);
-    
+
     if (isNaN(date.getTime())) {
         console.error("Invalid Date:", dateString)
         return '';
     }
-    
+
     return date.toLocaleTimeString(navigator.language || 'en-US', {
         hour: '2-digit',
         minute: '2-digit'
@@ -368,173 +412,175 @@ onUnmounted(async () => {
 </script>
 
 <template>
-  <div style="height: calc(100vh - 80px);">
-    <div class="d-flex justify-content-center h-100">
-      <div class="col-12 d-flex flex-column h-100">
-        <div v-if="loading" class="d-flex justify-content-center align-items-center flex-grow-1">
-          <div class="text-center">
-            <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
-              <span class="visually-hidden">Loading...</span>
-            </div>
-            <div class="text-muted">Loading chat...</div>
-          </div>
-        </div>
-
-        <template v-else-if="chat">
-          <div class="chat-header">
-            <div class="card-body py-3">
-              <div class="d-flex justify-content-between align-items-center">
-                <div>
-                  <button v-if="props.isMobile" class="btn btn-link text-decoration-none p-0 me-3" @click="router.replace('/chats')">
-                    ← Back
-                  </button>
-                  <span class="fw-bold">
-                    Chat with: 
-                    <a 
-                      href="#" 
-                      class="text-primary text-decoration-none"
-                      @click.prevent="router.push({ path: '/profile', query: { id: getOtherUserUid() } })"
-                    >
-                      {{ otherUserDisplayName || getOtherUserUid() }}
-                    </a>
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="flex-grow-1 d-flex flex-column" style="min-height: 0;">
-            <div
-                id="messages-container"
-                class="card-body overflow-auto flex-grow-1"
-                style="max-height: 100%;"
-            >
-              <div v-if="loadingMessages" class="text-center py-5">
-                <div class="spinner-border text-primary" role="status">
-                  <span class="visually-hidden">Loading messages...</span>
-                </div>
-              </div>
-
-              <div v-if="!loadingMessages && messages.length === 0" class="text-center text-muted py-5">
-                <i class="fas fa-comments fa-3x mb-3"></i>
-                <p>No messages yet. Start the conversation!</p>
-              </div>
-
-              <div v-else>
-                <div
-                    v-for="message in messages"
-                    :key="message.uid"
-                    class="mb-3"
-                    :class="{'text-end': isMyMessage(message)}"
-                >
-                  <div
-                      class="d-inline-block rounded position-relative"
-                      :class="isMyMessage(message) ? 'bg-primary text-white' : 'bg-light'"
-                      style="max-width: 70%;"
-                  >
-                    <div v-if="shouldShowEditMode(message)" class="px-3 py-2">
-                      <input
-                          v-model="editingContent"
-                          type="text"
-                          class="form-control form-control-sm mb-2"
-                          @keyup.enter="saveEdit(message.uid)"
-                          @keyup.esc="cancelEdit"
-                      />
-                      <div class="d-flex gap-1">
-                        <button
-                            class="btn btn-success btn-sm"
-                            @click="saveEdit(message.uid)"
-                        >
-                          Save
-                        </button>
-                        <button
-                            class="btn btn-secondary btn-sm"
-                            @click="cancelEdit"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
-
-                    <div v-else class="px-3 py-2">
-                      <div>{{ message.content }}</div>
-                      <div class="d-flex justify-content-between align-items-center mt-1">
-                        <small
-                            class="d-block"
-                            :class="isMyMessage(message) ? 'text-white-50' : 'text-muted'"
-                        >
-                          {{ message.timestamp ? formatTime(message.timestamp) : 'Just now' }}
-                        </small>
-
-                        <div v-if="isMyMessage(message)" class="d-flex gap-1 ms-2">
-                          <button
-                              class="btn btn-sm p-0 border-0 bg-transparent"
-                              :class="isMyMessage(message) ? 'text-white-50' : 'text-muted'"
-                              @click="startEditMessage(message)"
-                              title="Edit message"
-                          >
-                            <i class="fas fa-edit"></i>
-                          </button>
-                          <button
-                              class="btn btn-sm p-0 border-0 bg-transparent"
-                              :class="isMyMessage(message) ? 'text-white-50' : 'text-muted'"
-                              @click="deleteMessage(message.uid)"
-                              title="Delete message"
-                          >
-                            <i class="fas fa-trash"></i>
-                          </button>
+    <div style="height: calc(100vh - 80px);">
+        <div class="d-flex justify-content-center h-100">
+            <div class="col-12 d-flex flex-column h-100">
+                <div v-if="loading" class="d-flex justify-content-center align-items-center flex-grow-1">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+                            <span class="visually-hidden">Loading...</span>
                         </div>
-                      </div>
+                        <div class="text-muted">Loading chat...</div>
                     </div>
-                  </div>
                 </div>
-              </div>
-            </div>
 
-            <div class="card-footer bg-white border-top">
-              <form @submit.prevent="sendMessage" class="d-flex flex-column gap-2">
-                <div class="d-flex gap-2">
-                  <input
-                      ref="messageInputRef"
-                      v-model="newMessage"
-                      type="text"
-                      class="form-control"
-                      placeholder="Type a message..."
-                      :disabled="sending"
-                      maxlength="1000"
-                      autocomplete="off"
-                  />
-                  <button
-                      type="submit"
-                      class="btn btn-primary"
-                      :disabled="!newMessage.trim() || sending"
-                  >
-                    <span v-if="sending" class="spinner-border spinner-border-sm me-1"></span>
-                    Send
-                  </button>
+                <template v-else-if="chat">
+                    <div class="chat-header">
+                        <div class="card-body py-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <a
+                                        href="#"
+                                        class="text-primary text-decoration-none d-flex align-items-center gap-2 fw-bold"
+                                        @click.prevent="router.push({ path: '/profile', query: { id: getOtherUserUid() } })"
+                                    >
+                                      <span v-if="props.isMobile" class="me-2" @click.stop="router.replace('/chats')" style="cursor: pointer;">&lt;</span>
+                                      <ProfileIconDisplay
+                                          :icon="otherUserProfile?.profileIcon"
+                                          :color="otherUserProfile?.profileIconColor"
+                                          size="lg"
+                                          class="bg-white"
+                                      />
+                                      {{ otherUserDisplayName || getOtherUserUid() }}
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex-grow-1 d-flex flex-column" style="min-height: 0;">
+                        <div
+                            id="messages-container"
+                            class="card-body overflow-auto flex-grow-1"
+                            style="max-height: 100%;"
+                        >
+                            <div v-if="loadingMessages" class="text-center py-5">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading messages...</span>
+                                </div>
+                            </div>
+
+                            <div v-if="!loadingMessages && messages.length === 0" class="text-center text-muted py-5">
+                                <i class="fas fa-comments fa-3x mb-3"></i>
+                                <p>No messages yet. Start the conversation!</p>
+                            </div>
+
+                            <div v-else>
+                                <div
+                                    v-for="message in messages"
+                                    :key="message.uid"
+                                    class="mb-3 d-flex"
+                                    :class="{'justify-content-end': isMyMessage(message), 'justify-content-start': !isMyMessage(message)}"
+                                >
+
+                                    <div
+                                        class="rounded position-relative"
+                                        :class="isMyMessage(message) ? 'bg-primary text-white' : 'bg-light'"
+                                        style="max-width: 70%;"
+                                    >
+                                        <div v-if="shouldShowEditMode(message)" class="px-3 py-2">
+                                            <input
+                                                v-model="editingContent"
+                                                type="text"
+                                                class="form-control form-control-sm mb-2"
+                                                @keyup.enter="saveEdit(message.uid)"
+                                                @keyup.esc="cancelEdit"
+                                            />
+                                            <div class="d-flex gap-1">
+                                                <button
+                                                    class="btn btn-success btn-sm"
+                                                    @click="saveEdit(message.uid)"
+                                                >
+                                                    Save
+                                                </button>
+                                                <button
+                                                    class="btn btn-secondary btn-sm"
+                                                    @click="cancelEdit"
+                                                >
+                                                    Cancel
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div v-else class="px-3 py-2">
+                                            <div>{{ message.content }}</div>
+                                            <div class="d-flex justify-content-between align-items-center mt-1">
+                                                <small
+                                                    class="d-block"
+                                                    :class="isMyMessage(message) ? 'text-white-50' : 'text-muted'"
+                                                >
+                                                    {{ message.timestamp ? formatTime(message.timestamp) : 'Just now' }}
+                                                </small>
+
+                                                <div v-if="isMyMessage(message)" class="d-flex gap-1 ms-2">
+                                                    <button
+                                                        class="btn btn-sm p-0 border-0 bg-transparent"
+                                                        :class="isMyMessage(message) ? 'text-white-50' : 'text-muted'"
+                                                        @click="startEditMessage(message)"
+                                                        title="Edit message"
+                                                    >
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button
+                                                        class="btn btn-sm p-0 border-0 bg-transparent"
+                                                        :class="isMyMessage(message) ? 'text-white-50' : 'text-muted'"
+                                                        @click="deleteMessage(message.uid)"
+                                                        title="Delete message"
+                                                    >
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-footer bg-white border-top">
+                            <form @submit.prevent="sendMessage" class="d-flex flex-column gap-2">
+                                <div class="d-flex gap-2">
+                                    <input
+                                        ref="messageInputRef"
+                                        v-model="newMessage"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder="Type a message..."
+                                        :disabled="sending"
+                                        maxlength="1000"
+                                        autocomplete="off"
+                                    />
+                                    <button
+                                        type="submit"
+                                        class="btn btn-primary"
+                                        :disabled="!newMessage.trim() || sending"
+                                    >
+                                        <span v-if="sending" class="spinner-border spinner-border-sm me-1"></span>
+                                        Send
+                                    </button>
+                                </div>
+                                <small v-if="newMessage.length > 800" class="text-muted text-end">
+                                    {{ newMessage.length }}/1000 characters
+                                </small>
+                            </form>
+                        </div>
+                    </div>
+                </template>
+
+                <div v-else-if="noChat" class="text-center py-5">
+                    <i class="fas fa-info-circle fa-3x text-primary mb-3"></i>
+                    <h5 class="text-muted">Select chat</h5>
                 </div>
-                <small v-if="newMessage.length > 800" class="text-muted text-end">
-                  {{ newMessage.length }}/1000 characters
-                </small>
-              </form>
+
+                <div v-else class="text-center py-5">
+                    <i class="fas fa-exclamation-circle fa-3x text-danger mb-3"></i>
+                    <h5 class="text-muted">Chat not found</h5>
+                    <button class="btn btn-primary mt-3" @click="router.replace('/chats')">
+                        Back to Chats
+                    </button>
+                </div>
             </div>
-          </div>
-        </template>
-
-        <div v-else-if="noChat" class="text-center py-5">
-            <i class="fas fa-info-circle fa-3x text-primary mb-3"></i>
-            <h5 class="text-muted">Select chat</h5>
         </div>
-
-        <div v-else class="text-center py-5">
-          <i class="fas fa-exclamation-circle fa-3x text-danger mb-3"></i>
-          <h5 class="text-muted">Chat not found</h5>
-          <button class="btn btn-primary mt-3" @click="router.replace('/chats')">
-            Back to Chats
-          </button>
-        </div>
-      </div>
     </div>
-  </div>
 </template>
 

@@ -5,6 +5,8 @@ import { services } from '../services/api';
 import type {UserProfileBo, ActivistBo, JournalistBo} from '../types/user';
 import { useAuthStore } from '../stores/auth-store';
 import { useNotification } from '../composables/use-notification.ts';
+import ProfileIconSelector from './profile-icon-selector.vue';
+import { ProfileIcon, DEFAULT_COLOR } from '../types/profile-icon.ts';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -24,6 +26,11 @@ const employer = ref('');
 const isFirstNameVisible = ref(true);
 const isLastNameVisible = ref(true);
 const isEmailVisible = ref(true);
+
+const iconSelection = ref<{ icon: ProfileIcon; color: string }>({
+    icon: ProfileIcon.User,
+    color: DEFAULT_COLOR
+});
 
 const isActivist = computed(() => {
     return activistPrivacy.value != null;
@@ -53,6 +60,11 @@ const loadProfile = async () => {
             emailAddress.value = result.data.emailAddress || '';
             userName.value = result.data.userName || '';
             employer.value = result.data.employer || '';
+            
+            iconSelection.value = {
+                icon: (result.data.profileIcon as ProfileIcon) || ProfileIcon.User,
+                color: result.data.profileIconColor ? result.data.profileIconColor : DEFAULT_COLOR
+            };
 
             if (result.data.userName) {
                 const privacyResult = await services.users.getActivistPrivacy(userId);
@@ -101,6 +113,8 @@ const saveProfile = async () => {
                 firstName: firstName.value.trim() || undefined,
                 lastName: lastName.value.trim() || undefined,
                 emailAddress: emailAddress.value.trim() || undefined,
+                profileIcon: iconSelection.value.icon,
+                profileIconColor: iconSelection.value.color,
                 userName: userName.value,
                 isFirstNameVisible: isFirstNameVisible.value,
                 isLastNameVisible: isLastNameVisible.value,
@@ -115,6 +129,8 @@ const saveProfile = async () => {
                 firstName: firstName.value.trim(),
                 lastName: lastName.value.trim(),
                 emailAddress: emailAddress.value.trim(),
+                profileIcon: iconSelection.value.icon,
+                profileIconColor: iconSelection.value.color,
                 employer: employer.value
             };
 
@@ -188,6 +204,11 @@ onMounted(() => {
                         </div>
 
                         <form @submit.prevent="saveProfile">
+                            <div class="mb-4">
+                                <h5 class="border-bottom pb-2 mb-3">Profile Icon</h5>
+                                <ProfileIconSelector v-model="iconSelection" />
+                            </div>
+
                             <div class="mb-4">
                                 <h5 class="border-bottom pb-2 mb-3">Basic Information</h5>
                                 

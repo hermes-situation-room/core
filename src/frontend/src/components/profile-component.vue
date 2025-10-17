@@ -2,10 +2,11 @@
 import { ref, onMounted, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { services } from '../services/api';
-import type { UserProfileBo } from '../types/user';
+import type { UserProfileBo } from '../types/user.ts';
 import { useAuthStore } from '../stores/auth-store';
 import { useNotification } from '../composables/use-notification.ts';
 import ProfileUserPostListComponent from './profile-user-post-list-component.vue';
+import ProfileIconDisplay from './profile-icon-display.vue';
 import PrivacyLevelPersonalOverviewComponent from './privacy-level-personal-overview-component.vue';
 
 const route = useRoute();
@@ -146,8 +147,12 @@ watch(() => route.query.id, () => {
 
                     <div class="card-body p-4">
                         <div class="text-center mb-4">
-                            <div class="mb-3">
-                                <i class="fa-solid fa-circle-user text-muted" style="font-size: 6rem;"></i>
+                            <div class="mb-3 d-flex justify-content-center">
+                                <ProfileIconDisplay 
+                                    :icon="userProfile.profileIcon" 
+                                    :color="userProfile.profileIconColor" 
+                                    size="xl" 
+                                />
                             </div>
                             <span v-if="isActivist" class="badge border border-dark text-dark fs-6 px-3 py-2">
                                 <i class="fas fa-bullhorn me-2"></i>

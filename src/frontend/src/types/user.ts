@@ -5,6 +5,8 @@ export interface UserProfileBo {
     emailAddress?: string;
     userName?: string;
     employer?: string;
+    profileIcon?: string;
+    profileIconColor?: string;
 }
 
 export interface ActivistBo {
@@ -13,6 +15,8 @@ export interface ActivistBo {
     firstName?: string;
     lastName?: string;
     emailAddress?: string;
+    profileIcon?: string;
+    profileIconColor?: string;
     userName: string;
     isFirstNameVisible: boolean;
     isLastNameVisible: boolean;
@@ -25,6 +29,8 @@ export interface JournalistBo {
     firstName: string;
     lastName: string;
     emailAddress: string;
+    profileIcon?: string;
+    profileIconColor?: string;
     employer: string;
 }
 
@@ -41,4 +47,6 @@ export interface LoginFormData {
     isFirstNameVisible?: boolean;
     isLastNameVisible?: boolean;
     isEmailVisible?: boolean;
+    profileIcon?: string;
+    profileIconColor?: string;
 }

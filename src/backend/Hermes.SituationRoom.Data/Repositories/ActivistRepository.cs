@@ -133,6 +133,11 @@ public sealed class ActivistRepository(IHermessituationRoomContext context, IUse
         activist.UserU.FirstName = updatedActivist.FirstName;
         activist.UserU.LastName = updatedActivist.LastName;
         activist.UserU.EmailAddress = updatedActivist.EmailAddress;
+        
+        if (updatedActivist.ProfileIcon is not null)
+            activist.UserU.ProfileIcon = updatedActivist.ProfileIcon;
+        if (updatedActivist.ProfileIconColor is not null)
+            activist.UserU.ProfileIconColor = updatedActivist.ProfileIconColor;
 
         activist.Username = updatedActivist.UserName;
         activist.IsFirstNameVisible = updatedActivist.IsFirstNameVisible;
@@ -195,6 +200,8 @@ public sealed class ActivistRepository(IHermessituationRoomContext context, IUse
             user.FirstName,
             user.LastName,
             user.EmailAddress,
+            user.ProfileIcon,
+            user.ProfileIconColor,
             activist.Username,
             activist.IsFirstNameVisible,
             activist.IsLastNameVisible,

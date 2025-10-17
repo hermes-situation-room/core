@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import {computed, ref} from 'vue'
 import {RouterLink, useRouter} from 'vue-router'
-import type {LoginFormData, UserType} from '../types/user'
+import type {LoginFormData, UserType} from '../types/user.ts'
 import {useAuthStore} from '../stores/auth-store'
 import {services} from "../services/api";
 import {useNotification} from '../composables/use-notification.ts';
+import ProfileIconSelector from './profile-icon-selector.vue';
+import ProfileIconDisplay from './profile-icon-display.vue';
+import {ProfileIcon, DEFAULT_COLOR} from '../types/profile-icon.ts';
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -21,9 +24,16 @@ const formData = ref<LoginFormData>({
     employer: '',
     isFirstNameVisible: true,
     isLastNameVisible: true,
-    isEmailVisible: true
+    isEmailVisible: true,
+    profileIcon: ProfileIcon.User,
+    profileIconColor: DEFAULT_COLOR
 })
 const isLoading = ref(false)
+const iconSelection = ref({
+    icon: ProfileIcon.User,
+    color: DEFAULT_COLOR
+})
+const profileIconModalRef = ref<HTMLDivElement | null>(null)
 
 const isJournalist = computed(() => selectedUserType.value === 'journalist')
 const isActivist = computed(() => selectedUserType.value === 'activist')
@@ -50,7 +60,24 @@ function selectUserType(type: UserType) {
         employer: '',
         isFirstNameVisible: true,
         isLastNameVisible: true,
-        isEmailVisible: true
+        isEmailVisible: true,
+        profileIcon: ProfileIcon.User,
+        profileIconColor: DEFAULT_COLOR
+    }
+    
+    iconSelection.value = {
+        icon: ProfileIcon.User,
+        color: DEFAULT_COLOR
+    }
+}
+
+function updateIconSelection() {
+    formData.value.profileIcon = iconSelection.value.icon
+    formData.value.profileIconColor = iconSelection.value.color
+    
+    const closeButton = profileIconModalRef.value?.querySelector('[data-bs-dismiss="modal"]') as HTMLButtonElement
+    if (closeButton) {
+        closeButton.click()
     }
 }
 
@@ -71,7 +98,9 @@ async function handleRegister() {
                 emailAddress: formData.value.emailAddress || undefined,
                 isFirstNameVisible: formData.value.isFirstNameVisible ?? true,
                 isLastNameVisible: formData.value.isLastNameVisible ?? true,
-                isEmailVisible: formData.value.isEmailVisible ?? true
+                isEmailVisible: formData.value.isEmailVisible ?? true,
+                profileIcon: formData.value.profileIcon || ProfileIcon.User,
+                profileIconColor: formData.value.profileIconColor || DEFAULT_COLOR
             })
         } else {
             if (!formData.value.firstName || !formData.value.lastName ||
@@ -86,7 +115,9 @@ async function handleRegister() {
                 lastName: formData.value.lastName,
                 emailAddress: formData.value.emailAddress,
                 password: formData.value.password,
-                employer: formData.value.employer
+                employer: formData.value.employer,
+                profileIcon: formData.value.profileIcon || ProfileIcon.User,
+                profileIconColor: formData.value.profileIconColor || DEFAULT_COLOR
             })
         }
 
@@ -149,6 +180,27 @@ async function handleRegister() {
                             </div>
 
                             <form @submit.prevent="handleRegister">
+                                <div class="mb-3">
+                                    <label class="form-label">Profile Icon</label>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <ProfileIconDisplay 
+                                            :icon="formData.profileIcon" 
+                                            :color="formData.profileIconColor" 
+                                            size="md" 
+                                        />
+                                        <button 
+                                            type="button" 
+                                            class="btn btn-outline-secondary btn-sm"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#profileIconModal"
+                                            :disabled="isLoading"
+                                        >
+                                            <i class="fas fa-edit me-1"></i>
+                                            Edit Profile Icon
+                                        </button>
+                                    </div>
+                                </div>
+
                                 <div v-if="isActivist" class="mb-3">
                                     <label class="form-label">Username</label>
                                     <input
@@ -305,6 +357,24 @@ async function handleRegister() {
                                 </RouterLink>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div ref="profileIconModalRef" class="modal fade" id="profileIconModal" tabindex="-1" aria-labelledby="profileIconModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="profileIconModalLabel">Choose Your Profile Icon</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <ProfileIconSelector v-model="iconSelection" />
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" @click="updateIconSelection">Select Icon</button>
                     </div>
                 </div>
             </div>

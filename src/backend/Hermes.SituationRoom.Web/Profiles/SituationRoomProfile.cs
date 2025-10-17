@@ -20,6 +20,8 @@ public class SituationRoomProfile : Profile
                 src.FirstName,
                 src.LastName,
                 src.EmailAddress,
+                src.ProfileIcon,
+                src.ProfileIconColor,
                 src.UserName,
                 src.IsFirstNameVisible,
                 src.IsLastNameVisible,
@@ -34,6 +36,8 @@ public class SituationRoomProfile : Profile
                 src.FirstName,
                 src.LastName,
                 src.EmailAddress,
+                src.ProfileIcon,
+                src.ProfileIconColor,
                 src.UserName,
                 src.IsFirstNameVisible,
                 src.IsLastNameVisible,
@@ -52,6 +56,8 @@ public class SituationRoomProfile : Profile
                 src.FirstName,
                 src.LastName,
                 src.EmailAddress,
+                src.ProfileIcon,
+                src.ProfileIconColor,
                 src.Employer
             ));
         CreateMap<UpdateJournalistRequestDto, JournalistBo>()
@@ -63,6 +69,8 @@ public class SituationRoomProfile : Profile
                 src.FirstName,
                 src.LastName,
                 src.EmailAddress,
+                src.ProfileIcon,
+                src.ProfileIconColor,
                 src.Employer
             ));
 
@@ -77,7 +85,9 @@ public class SituationRoomProfile : Profile
                 null,
                 src.FirstName,
                 src.LastName,
-                src.EmailAddress
+                src.EmailAddress,
+                null,
+                null
             ));
         CreateMap<UpdateUserRequestDto, UserBo>()
             .ConstructUsing(src => new(
@@ -87,7 +97,9 @@ public class SituationRoomProfile : Profile
                 null,
                 src.FirstName,
                 src.LastName,
-                src.EmailAddress
+                src.EmailAddress,
+                src.ProfileIcon,
+                src.ProfileIconColor
             ));
 
         // Post mappings
@@ -125,6 +137,8 @@ public class SituationRoomProfile : Profile
                 DateTime.UtcNow,
                 src.CreatorUid,
                 src.PostUid,
+                null,
+                null,
                 src.Content
             ));
         CreateMap<UpdateCommentRequestDto, CommentBo>()
@@ -133,6 +147,8 @@ public class SituationRoomProfile : Profile
                 DateTime.UtcNow,
                 Guid.Empty,
                 Guid.Empty,
+                null,
+                null,
                 src.Content
             ));
 

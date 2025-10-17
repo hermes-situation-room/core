@@ -17,6 +17,10 @@ public partial class User
 
     public byte[] PasswordSalt { get; set; }
 
+    public string ProfileIcon { get; set; }
+
+    public string ProfileIconColor { get; set; }
+
     public virtual Activist Activist { get; set; }
 
     public virtual ICollection<Chat> ChatUser1Us { get; set; } = new List<Chat>();

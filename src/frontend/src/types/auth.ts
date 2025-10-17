@@ -17,6 +17,8 @@ export interface RegisterActivistDto {
     isFirstNameVisible: boolean;
     isLastNameVisible: boolean;
     isEmailVisible: boolean;
+    profileIcon?: string;
+    profileIconColor?: string;
 }
 
 export interface RegisterJournalistDto {
@@ -25,6 +27,8 @@ export interface RegisterJournalistDto {
     emailAddress: string;
     password: string;
     employer: string;
+    profileIcon?: string;
+    profileIconColor?: string;
 }
 
 export interface CurrentUserResponse {

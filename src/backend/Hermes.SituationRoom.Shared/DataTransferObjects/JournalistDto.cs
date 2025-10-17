@@ -5,5 +5,7 @@ public record JournalistDto(Guid Uid,
     string? FirstName,
     string? LastName,
     string? EmailAddress,
+    string? ProfileIcon,
+    string? ProfileIconColor,
     string Employer
 );
