@@ -19,6 +19,8 @@ export const ProfileIcon = {
     Sparkles: 'Sparkles',
 } as const;
 
+export type ProfileIcon = keyof typeof ProfileIcon;
+
 export const DEFAULT_COLORS = [
     '#3b82f6', // Blue
     '#a855f7', // Purple  
