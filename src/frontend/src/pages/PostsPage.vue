@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {computed, onMounted, ref} from 'vue';
 import {useRoute, useRouter} from 'vue-router';
-import CreatePostModal from './create-post-modal.vue';
+import CreatePostModal from '../components/create-post-modal.vue';
 import {services} from '../services/api';
 import { useAuthStore } from '../stores/auth-store';
 import { useNotification } from '../composables/use-notification.ts';
@@ -515,3 +515,4 @@ onMounted(() => {
         </div>
     </div>
 </template>
+

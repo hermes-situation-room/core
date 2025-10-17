@@ -5,7 +5,7 @@ import { services } from '../services/api';
 import type {UserProfileBo, ActivistBo, JournalistBo} from '../types/user';
 import { useAuthStore } from '../stores/auth-store';
 import { useNotification } from '../composables/use-notification.ts';
-import ProfileIconSelector from './profile-icon-selector.vue';
+import ProfileIconSelector from '../components/profile-icon-selector.vue';
 import { ProfileIcon, DEFAULT_COLOR } from '../types/profile-icon.ts';
 
 const router = useRouter();
@@ -362,3 +362,4 @@ onMounted(() => {
         </div>
     </div>
 </template>
+

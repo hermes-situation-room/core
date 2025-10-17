@@ -1,4 +1,4 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { services } from '../services/api';
@@ -371,3 +371,4 @@ onMounted(() => {
         </div>
     </div>
 </template>
+

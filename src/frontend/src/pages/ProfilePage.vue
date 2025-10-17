@@ -5,9 +5,9 @@ import { services } from '../services/api';
 import type { UserProfileBo } from '../types/user.ts';
 import { useAuthStore } from '../stores/auth-store';
 import { useNotification } from '../composables/use-notification.ts';
-import ProfileUserPostListComponent from './profile-user-post-list-component.vue';
-import ProfileIconDisplay from './profile-icon-display.vue';
-import PrivacyLevelPersonalOverviewComponent from './privacy-level-personal-overview-component.vue';
+import ProfileUserPostListComponent from '../components/profile-user-post-list-component.vue';
+import ProfileIconDisplay from '../components/profile-icon-display.vue';
+import PrivacyLevelPersonalOverviewComponent from '../components/privacy-level-personal-overview-component.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -245,3 +245,4 @@ watch(() => route.query.id, () => {
         </div>
     </div>
 </template>
+

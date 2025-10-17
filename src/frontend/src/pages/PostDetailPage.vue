@@ -1,4 +1,4 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { services } from '../services/api';
@@ -8,7 +8,7 @@ import { useAuthStore } from '../stores/auth-store';
 import { useNotification } from '../composables/use-notification.ts';
 import { useContextMenu } from '../composables/use-context-menu';
 import type { CommentBo, CreateCommentDto, UpdateCommentDto } from '../types/comment';
-import ProfileIconDisplay from './profile-icon-display.vue';
+import ProfileIconDisplay from '../components/profile-icon-display.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -520,3 +520,4 @@ onMounted(() => {
         </div>
     </div>
 </template>
+

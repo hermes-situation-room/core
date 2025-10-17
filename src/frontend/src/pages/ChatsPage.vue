@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
-import chatsListComponent from './chats-list-component.vue';
-import chatDetailComponent from './chat-detail-component.vue';
+import ChatsListComponent from '../components/chats-list-component.vue';
+import ChatDetailComponent from '../components/chat-detail-component.vue';
 import { useRoute } from 'vue-router';
 
 const route = useRoute();
@@ -42,22 +42,22 @@ const selectedChatId = ref<undefined | string>(undefined)
         <div class="chat-list-wrapper"
             :class="{listMobileOpen: isMobile && !isMobileChatOpen}"
         >
-            <chats-list-component
+            <ChatsListComponent
                 v-if="!isMobile || (isMobile && !isMobileChatOpen)"
                 v-model:chat-selected="selectedChatId"
             >
-            </chats-list-component>
+            </ChatsListComponent>
         </div>
         <div 
             class="chat-detail-wrapper"
             :class="{detailMobileOpen: isMobile && isMobileChatOpen}"
         >
-            <chat-detail-component
+            <ChatDetailComponent
                 v-if="!isMobile || (isMobile && isMobileChatOpen)"
                 v-model:chat-id="selectedChatId"
                 :is-mobile="isMobile"
             >
-            </chat-detail-component>
+            </ChatDetailComponent>
         </div>
     </div>
 </template>
@@ -111,3 +111,4 @@ const selectedChatId = ref<undefined | string>(undefined)
     }
     }
 </style>
+
