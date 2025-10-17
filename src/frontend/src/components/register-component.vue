@@ -7,7 +7,7 @@ import {services} from "../services/api";
 import {useNotification} from '../composables/use-notification.ts';
 import ProfileIconSelector from './profile-icon-selector.vue';
 import ProfileIconDisplay from './profile-icon-display.vue';
-import {ProfileIcon, DEFAULT_COLOR} from '../types/profileIcon.ts';
+import {ProfileIcon, DEFAULT_COLOR} from '../types/profile-icon.ts';
 
 const router = useRouter()
 const authStore = useAuthStore()

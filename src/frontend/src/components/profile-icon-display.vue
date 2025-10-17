@@ -1,6 +1,6 @@
 ﻿<script setup lang="ts">
 import { computed } from 'vue';
-import { ProfileIcon, ICON_MAP, DEFAULT_COLOR } from '../types/profileIcon.ts';
+import { ProfileIcon, ICON_MAP, DEFAULT_COLOR } from '../types/profile-icon.ts';
 
 interface Props {
     icon?: string;

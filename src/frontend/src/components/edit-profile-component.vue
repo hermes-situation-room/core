@@ -6,7 +6,7 @@ import type {UserProfileBo, ActivistBo, JournalistBo} from '../types/user';
 import { useAuthStore } from '../stores/auth-store';
 import { useNotification } from '../composables/use-notification.ts';
 import ProfileIconSelector from './profile-icon-selector.vue';
-import { ProfileIcon, DEFAULT_COLOR } from '../types/profileIcon.ts';
+import { ProfileIcon, DEFAULT_COLOR } from '../types/profile-icon.ts';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -63,7 +63,7 @@ const loadProfile = async () => {
             
             iconSelection.value = {
                 icon: (result.data.profileIcon as ProfileIcon) || ProfileIcon.User,
-                color: (result.data.profileIconColor as ProfileIconColor) || ProfileIconColor.Blue
+                color: result.data.profileIconColor ? result.data.profileIconColor : DEFAULT_COLOR
             };
 
             if (result.data.userName) {

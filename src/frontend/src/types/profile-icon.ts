@@ -1,35 +1,41 @@
-﻿export enum ProfileIcon {
-    User = 'User',
-    UserCircle = 'UserCircle',
-    Star = 'Star',
-    Heart = 'Heart',
-    Rocket = 'Rocket',
-    Shield = 'Shield',
-    Zap = 'Zap',
-    Camera = 'Camera',
-    Smile = 'Smile',
-    Globe = 'Globe',
-    Music = 'Music',
-    Briefcase = 'Briefcase',
-    Book = 'Book',
-    Coffee = 'Coffee',
-    Mountain = 'Mountain',
-    Flame = 'Flame',
-    Crown = 'Crown',
-    Sparkles = 'Sparkles'
-}
+export const ProfileIcon = {
+    User: 'User',
+    UserCircle: 'UserCircle',
+    Star: 'Star',
+    Heart: 'Heart',
+    Rocket: 'Rocket',
+    Shield: 'Shield',
+    Zap: 'Zap',
+    Camera: 'Camera',
+    Smile: 'Smile',
+    Globe: 'Globe',
+    Music: 'Music',
+    Briefcase: 'Briefcase',
+    Book: 'Book',
+    Coffee: 'Coffee',
+    Mountain: 'Mountain',
+    Flame: 'Flame',
+    Crown: 'Crown',
+    Sparkles: 'Sparkles',
+} as const;
 
-export enum ProfileIconColor {
-    Blue = 'Blue',
-    LightBlue = 'LightBlue',
-    Purple = 'Purple',
-    Green = 'Green',
-    Orange = 'Orange',
-    Pink = 'Pink',
-    Red = 'Red',
-    Black = 'Black',
-    Gray = 'Gray'
-}
+export const DEFAULT_COLORS = [
+    '#3b82f6', // Blue
+    '#a855f7', // Purple  
+    '#22c55e', // Green
+    '#f97316', // Orange
+    '#ec4899', // Pink
+    '#ef4444'  // Red
+] as const;
+
+export const DEFAULT_COLOR_NAMES = [
+    'Blue',
+    'Purple',
+    'Green',
+    'Orange',
+    'Pink',
+    'Red'
+] as const;
 
 export const ICON_MAP = {
     User: 'fa-user',
@@ -52,14 +58,4 @@ export const ICON_MAP = {
     Sparkles: 'fa-sparkles'
 } as const;
 
-export const COLOR_MAP: Record<ProfileIconColor, string> = {
-    [ProfileIconColor.Blue]: '#3b82f6',
-    [ProfileIconColor.LightBlue]: '#22c5c0',
-    [ProfileIconColor.Green]: '#22c55e',
-    [ProfileIconColor.Orange]: '#f97316',
-    [ProfileIconColor.Pink]: '#ec4899',
-    [ProfileIconColor.Purple]: '#a855f7',
-    [ProfileIconColor.Red]: '#dc2d2d',
-    [ProfileIconColor.Black]: '#232323',
-    [ProfileIconColor.Gray]: '#888888'
-};
+export const DEFAULT_COLOR: string = '#3b82f6';

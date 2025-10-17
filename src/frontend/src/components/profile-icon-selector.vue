@@ -1,5 +1,5 @@
 ﻿<script setup lang="ts">
-import {ICON_MAP, ProfileIcon} from '../types/profileIcon.ts';
+import {ICON_MAP, ProfileIcon} from '../types/profile-icon.ts';
 import ColorPicker from './color-picker.vue';
 
 interface ProfileIconSelection {

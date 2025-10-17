@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
-import { DEFAULT_COLORS, DEFAULT_COLOR_NAMES, DEFAULT_COLOR } from '../types/profileIcon.ts';
+import { DEFAULT_COLORS, DEFAULT_COLOR_NAMES, DEFAULT_COLOR } from '../types/profile-icon.ts';
 
 const props = defineProps<{
     modelValue: string;
