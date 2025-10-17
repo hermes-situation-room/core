@@ -239,9 +239,9 @@ public sealed class UserRepository(IHermessituationRoomContext context) : IUserR
                 userProfileBo = userProfileBo with
                 {
                     UserName = activist.Username,
-                    FirstName = privacyLevel.IsFirstNameVisible != null ? userProfileBo.FirstName : "[REDACTED]",
-                    LastName = privacyLevel.IsLastNameVisible != null ? userProfileBo.LastName : "[REDACTED]",
-                    EmailAddress = privacyLevel.IsEmailVisible != null ? userProfileBo.EmailAddress : "[REDACTED]"
+                    FirstName = privacyLevel.IsFirstNameVisible != null ? userProfileBo.FirstName : activist.IsFirstNameVisible ? userProfileBo.FirstName : "[REDACTED]",
+                    LastName = privacyLevel.IsLastNameVisible != null ? userProfileBo.LastName : activist.IsLastNameVisible ? userProfileBo.LastName : "[REDACTED]",
+                    EmailAddress = privacyLevel.IsEmailVisible != null ? userProfileBo.EmailAddress : activist.IsEmailVisible ? userProfileBo.EmailAddress : "[REDACTED]"
                 };
             else
                 userProfileBo = userProfileBo with
