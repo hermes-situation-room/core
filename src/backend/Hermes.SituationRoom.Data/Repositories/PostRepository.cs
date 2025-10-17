@@ -105,8 +105,7 @@ public sealed class PostRepository(IHermessituationRoomContext context) : IPostR
         var queryable = context.Posts
             .AsNoTracking()
             .Where(p => p.CreatorUid == userUid &&
-            p.PrivacyLevel <= privacyLevel ||
-            p.CreatorUid == loggedInUserUid
+            p.PrivacyLevel <= privacyLevel
         );
 
         if (!string.IsNullOrWhiteSpace(query))
