@@ -4,9 +4,11 @@ import { services } from '../services/api';
 import type { CreatePostDto } from '../types/post';
 import { useAuthStore } from '../stores/auth-store';
 import { useNotification } from '../composables/use-notification.ts';
+import { useTextFormatting } from '../composables/use-text-formatting.ts';
 
 const authStore = useAuthStore();
 const notification = useNotification();
+const { getFormattingHelp } = useTextFormatting();
 
 interface Props {
     show: boolean;
@@ -256,6 +258,13 @@ onMounted(() => {
                                 :disabled="loading"
                                 required
                             ></textarea>
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>
+                                <strong>Formatting:</strong>
+                                <span v-for="(help, index) in getFormattingHelp()" :key="index" class="ms-2">
+                                    <code class="text-muted">{{ help }}</code>
+                                </span>
+                            </div>
                         </div>
 
                         <div v-if="!isJournalist" class="mb-3">

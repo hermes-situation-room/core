@@ -16,6 +16,9 @@ const userProfile = ref<UserProfileBo | null>(null);
 const activistPrivacy = ref<ActivistBo | null>(null);
 const loading = ref(false);
 const saving = ref(false);
+const showDeleteModal = ref(false);
+const deleteConfirmText = ref('');
+const deleting = ref(false);
 
 const firstName = ref('');
 const lastName = ref('');
@@ -162,6 +165,54 @@ const saveProfile = async () => {
 const cancel = () => {
     const userId = authStore.userId.value || '';
     router.push({ path: '/profile', query: { id: userId } });
+};
+
+const openDeleteModal = () => {
+    showDeleteModal.value = true;
+    deleteConfirmText.value = '';
+};
+
+const closeDeleteModal = () => {
+    showDeleteModal.value = false;
+    deleteConfirmText.value = '';
+};
+
+const deleteAccount = async () => {
+    const userId = authStore.userId.value || '';
+    
+    if (!userId) {
+        notification.error('You must be logged in');
+        return;
+    }
+    
+    if (deleteConfirmText.value !== 'DELETE MY ACCOUNT') {
+        notification.warning('Please type the confirmation text exactly');
+        return;
+    }
+    
+    deleting.value = true;
+    
+    try {
+        const result = await services.users.deleteUser(userId);
+        
+        if (result.isSuccess) {
+            notification.success('Your account has been permanently deleted');
+            closeDeleteModal();
+            
+            // Log out and redirect after a short delay
+            setTimeout(async () => {
+                await authStore.logout();
+                router.push('/');
+            }, 1500);
+        } else {
+            notification.error(result.responseMessage || 'Failed to delete account');
+        }
+    } catch (err) {
+        notification.error('An error occurred while deleting your account');
+        console.error('Delete account error:', err);
+    } finally {
+        deleting.value = false;
+    }
 };
 
 onMounted(() => {
@@ -335,27 +386,112 @@ onMounted(() => {
                                 </div>
                             </div>
 
-                            <div class="d-flex gap-2 justify-content-end">
+                            <div class="d-flex gap-2 justify-content-between">
                                 <button 
                                     type="button" 
-                                    class="btn btn-secondary"
-                                    @click="cancel"
-                                    :disabled="saving"
+                                    class="btn btn-danger"
+                                    @click="openDeleteModal"
+                                    :disabled="saving || deleting"
                                 >
-                                    <i class="fas fa-times me-1"></i>
+                                    <i class="fas fa-trash me-1"></i>
+                                    Delete Account
+                                </button>
+                                
+                                <div class="d-flex gap-2">
+                                    <button 
+                                        type="button" 
+                                        class="btn btn-secondary"
+                                        @click="cancel"
+                                        :disabled="saving"
+                                    >
+                                        <i class="fas fa-times me-1"></i>
+                                        Cancel
+                                    </button>
+                                    <button 
+                                        type="submit" 
+                                        class="btn btn-primary"
+                                        :disabled="saving"
+                                    >
+                                        <span v-if="saving" class="spinner-border spinner-border-sm me-1"></span>
+                                        <i v-else class="fas fa-save me-1"></i>
+                                        Save Changes
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Delete Account Confirmation Modal -->
+                <div 
+                    v-if="showDeleteModal"
+                    class="modal fade show d-block" 
+                    tabindex="-1" 
+                    style="background-color: rgba(0, 0, 0, 0.5);"
+                    @click.self="closeDeleteModal"
+                >
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header bg-danger text-white">
+                                <h5 class="modal-title">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    Delete Account Permanently
+                                </h5>
+                                <button 
+                                    type="button" 
+                                    class="btn-close btn-close-white" 
+                                    @click="closeDeleteModal"
+                                    :disabled="deleting"
+                                ></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="alert alert-danger mb-3">
+                                    <i class="fas fa-exclamation-circle me-2"></i>
+                                    <strong>Warning:</strong> This action cannot be undone!
+                                </div>
+                                
+                                <p class="mb-3">
+                                    Deleting your account will permanently remove:
+                                </p>
+                                <ul class="mb-3">
+                                    <li>Your profile and personal information</li>
+                                    <li>All your posts and comments</li>
+                                    <li>All your chat messages and conversations</li>
+                                    <li>All your privacy settings</li>
+                                </ul>
+                                
+                                <p class="fw-bold mb-2">
+                                    To confirm deletion, please type: <code>DELETE MY ACCOUNT</code>
+                                </p>
+                                <input
+                                    v-model="deleteConfirmText"
+                                    type="text"
+                                    class="form-control"
+                                    placeholder="Type confirmation text here"
+                                    :disabled="deleting"
+                                />
+                            </div>
+                            <div class="modal-footer">
+                                <button 
+                                    type="button" 
+                                    class="btn btn-secondary" 
+                                    @click="closeDeleteModal"
+                                    :disabled="deleting"
+                                >
                                     Cancel
                                 </button>
                                 <button 
-                                    type="submit" 
-                                    class="btn btn-primary"
-                                    :disabled="saving"
+                                    type="button" 
+                                    class="btn btn-danger" 
+                                    @click="deleteAccount"
+                                    :disabled="deleting || deleteConfirmText !== 'DELETE MY ACCOUNT'"
                                 >
-                                    <span v-if="saving" class="spinner-border spinner-border-sm me-1"></span>
-                                    <i v-else class="fas fa-save me-1"></i>
-                                    Save Changes
+                                    <span v-if="deleting" class="spinner-border spinner-border-sm me-1"></span>
+                                    <i v-else class="fas fa-trash me-1"></i>
+                                    {{ deleting ? 'Deleting...' : 'Delete My Account' }}
                                 </button>
                             </div>
-                        </form>
+                        </div>
                     </div>
                 </div>
             </div>

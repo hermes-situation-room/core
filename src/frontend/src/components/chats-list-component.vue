@@ -36,6 +36,7 @@ const displayNames = ref<Map<string, string>>(new Map());
 const userProfiles = ref<Map<string, UserProfileBo>>(new Map());
 const searchQuery = ref<string>('');
 const debouncedSearchQuery = ref<string>('');
+const searchMode = ref<'title' | 'messages'>('title');
 
 let searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -92,8 +93,14 @@ const filteredChats = computed(() => {
     const query = debouncedSearchQuery.value.toLowerCase().trim();
     return chatsWithLastMessage.value.filter(chat => {
         const displayName = getDisplayName(chat).toLowerCase();
-        const lastMessage = (chat.lastMessage || '').toLowerCase();
         
+        // Search mode: title only
+        if (searchMode.value === 'title') {
+            return displayName.includes(query);
+        }
+        
+        // Search mode: messages (searches last message content)
+        const lastMessage = (chat.lastMessage || '').toLowerCase();
         const hasRealTimestamp = chat.lastMessageTime && chat.lastMessageTime !== chat.uid;
         
         return displayName.includes(query) || (hasRealTimestamp && lastMessage.includes(query));
@@ -337,9 +344,17 @@ onBeforeUnmount(() => {
                     <input
                         v-model="searchQuery"
                         type="text"
-                        class="form-control border-start-0"
-                        placeholder="Search chats..."
+                        class="form-control border-start-0 border-end-0"
+                        :placeholder="searchMode === 'title' ? 'Search by name...' : 'Search in messages...'"
                     />
+                    <button
+                        class="btn btn-outline-secondary border-start-0"
+                        type="button"
+                        @click="searchMode = searchMode === 'title' ? 'messages' : 'title'"
+                        :title="searchMode === 'title' ? 'Switch to message search' : 'Switch to name search'"
+                    >
+                        <i :class="searchMode === 'title' ? 'fas fa-user' : 'fas fa-comment'"></i>
+                    </button>
                 </div>
             </div>
             <div class="flex-shrink-0">

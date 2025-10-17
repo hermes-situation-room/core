@@ -122,7 +122,7 @@ This document lists all features mentioned in the Situation Room documentation w
   - User-only visibility
 
 #### 2.2.2.4 Account Management
-- ❌ **Profile Deletion**
+- ✅ **Profile Deletion**
   - Permanent account deletion
   - Data removal process
   - Quick access deletion button
@@ -162,10 +162,10 @@ This document lists all features mentioned in the Situation Room documentation w
   - Background notification support
 
 #### 2.2.3.6 Search Enhancement
-- 🟡 **Chat Search**
+- ✅ **Chat Search**
   - Currently searches chat titles only
-  - ❌ Full message content search
-  - ❌ Toggle between title/content search
+  - ✅ Full message content search
+  - ✅ Toggle between title/content search
 
 ### 2.2.4 Post and Comment Features
 
@@ -184,10 +184,10 @@ This document lists all features mentioned in the Situation Room documentation w
   - Administrator approval system
   - Tag management interface
 
-- ❌ **Post Formatting**
-  - Bold, italic text formatting
-  - Bullet points and lists
-  - Text colors and styling
+- 🟡 **Post Formatting**
+  - ✅ Bold, italic text formatting
+  - ✅ Bullet points and lists
+  - ❌ Text colors and styling
 
 - ❌ **Spell Checker**
   - Real-time spelling validation

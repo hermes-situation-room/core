@@ -7,6 +7,7 @@ import type { UserProfileBo } from '../types/user.ts';
 import { useAuthStore } from '../stores/auth-store';
 import { useNotification } from '../composables/use-notification.ts';
 import { useContextMenu } from '../composables/use-context-menu';
+import { useTextFormatting } from '../composables/use-text-formatting.ts';
 import type { CommentBo, CreateCommentDto, UpdateCommentDto } from '../types/comment';
 import ProfileIconDisplay from '../components/profile-icon-display.vue';
 
@@ -14,6 +15,7 @@ const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
 const notification = useNotification();
+const { formatText } = useTextFormatting();
 const { 
     contextMenuItemId: contextMenuPostId,
     contextMenuPosition,
@@ -298,6 +300,29 @@ onMounted(() => {
 });
 </script>
 
+<style scoped>
+.formatted-content {
+    line-height: 1.6;
+}
+
+.formatted-content :deep(ul) {
+    margin: 1rem 0;
+    padding-left: 2rem;
+}
+
+.formatted-content :deep(li) {
+    margin: 0.5rem 0;
+}
+
+.formatted-content :deep(strong) {
+    font-weight: 700;
+}
+
+.formatted-content :deep(em) {
+    font-style: italic;
+}
+</style>
+
 <template>
     <div class="container py-4">
         <div class="row justify-content-center">
@@ -374,11 +399,7 @@ onMounted(() => {
                       
                         <div>
                             <h6 class="text-muted text-uppercase mb-3">Content</h6>
-                            <div class="text-dark">
-                                <p v-for="paragraph in post.content.split('\n')" :key="paragraph" class="mb-3">
-                                    {{ paragraph }}
-                                </p>
-                            </div>
+                            <div class="text-dark formatted-content" v-html="formatText(post.content)"></div>
                         </div>
 
                         <div class="mb-4">
