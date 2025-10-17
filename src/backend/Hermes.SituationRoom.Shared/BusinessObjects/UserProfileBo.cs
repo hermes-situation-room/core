@@ -8,5 +8,11 @@ public record UserProfileBo(Guid Uid,
     string? UserName,
     string? Employer,
     string? ProfileIcon,
-    string? ProfileIconColor
+    string? ProfileIconColor,
+    string? Bio = null,
+    string? PublishedWorkLink = null,
+    string? LinkedInUrl = null,
+    string? TwitterUrl = null,
+    string? WebsiteUrl = null,
+    List<string>? Specializations = null
 );

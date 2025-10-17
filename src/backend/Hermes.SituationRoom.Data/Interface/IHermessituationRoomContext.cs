@@ -28,6 +28,18 @@ public interface IHermessituationRoomContext : ICurrentDbContext
     
     DbSet<UserChatReadStatus> UserChatReadStatuses { get; set; }
 
+    DbSet<PostLike> PostLikes { get; set; }
+
+    DbSet<SpecializationTag> SpecializationTags { get; set; }
+
+    DbSet<JournalistSpecialization> JournalistSpecializations { get; set; }
+
+    DbSet<Report> Reports { get; set; }
+
+    DbSet<UserTag> UserTags { get; set; }
+
+    DbSet<Notification> Notifications { get; set; }
+
     /// <summary>
     /// We use this method and interface to wrap the DbSet.Local property. Local is based on the EF Core internal type
     /// LocalView which is nearly impossible to mock. Henceforth, we shall use this method from now on to allow us to

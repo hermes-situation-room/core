@@ -9,5 +9,10 @@ public record UserBo(Guid Uid,
     string? LastName,
     string? EmailAddress,
     string? ProfileIcon,
-    string? ProfileIconColor
+    string? ProfileIconColor,
+    string? Bio = null,
+    string? PublishedWorkLink = null,
+    string? LinkedInUrl = null,
+    string? TwitterUrl = null,
+    string? WebsiteUrl = null
 );

@@ -38,19 +38,43 @@ const editingComments = ref(false)
 const editCommentContent = ref()
 const commentSortBy = ref<'newest' | 'oldest'>('newest')
 const showCommentSortDropdown = ref(false)
+const likeCount = ref(0)
+const userHasLiked = ref(false)
+const likingPost = ref(false)
+const replyingToComment = ref<string | null>(null);
+const replyContent = ref('');
+const showReplies = ref<Set<string>>(new Set());
 
 const currentUserUid = computed(() => authStore.userId.value || '');
 
 const sortedComments = computed(() => {
     if (!comments.value) return null;
     
-    const sorted = [...comments.value];
+    // Separate top-level comments and replies
+    const topLevelComments = comments.value.filter(comment => !comment.parentCommentUid);
+    const replies = comments.value.filter(comment => comment.parentCommentUid);
+    
+    // Sort top-level comments
+    const sortedTopLevel = [...topLevelComments];
     if (commentSortBy.value === 'newest') {
-        sorted.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+        sortedTopLevel.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
     } else {
-        sorted.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+        sortedTopLevel.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
     }
-    return sorted;
+    
+    // Group replies under their parent comments
+    const commentsWithReplies = sortedTopLevel.map(comment => {
+        const commentReplies = replies
+            .filter(reply => reply.parentCommentUid === comment.uid)
+            .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()); // Replies always sorted oldest first
+        
+        return {
+            ...comment,
+            replies: commentReplies
+        };
+    });
+    
+    return commentsWithReplies;
 });
 
 const canSendMessage = computed(() => {
@@ -283,6 +307,54 @@ const deleteComment = async (comment:CommentBo) => {
     
 }
 
+const startReply = (commentId: string) => {
+    replyingToComment.value = commentId;
+    replyContent.value = '';
+    showReplies.value.add(commentId);
+};
+
+const cancelReply = () => {
+    replyingToComment.value = null;
+    replyContent.value = '';
+};
+
+const postReply = async (parentCommentId: string) => {
+    try {
+        if (!authStore.userId.value) {
+            notification.warning('You must be logged in to create a reply');
+            return;
+        }
+
+        if (!replyContent.value.trim()) {
+            notification.warning('Reply content cannot be empty');
+            return;
+        }
+
+        const replyData: CreateCommentDto = {
+            postUid: route.params.id as string,
+            content: replyContent.value.trim(),
+            creatorUid: authStore.userId.value,
+            parentCommentUid: parentCommentId
+        }
+
+        await services.comments.createComment(replyData);
+        replyContent.value = "";
+        replyingToComment.value = null;
+
+        await loadComments();
+    } catch (err) {
+        notification.error(err instanceof Error ? err.message : 'An error occurred');
+    }
+};
+
+const toggleReplies = (commentId: string) => {
+    if (showReplies.value.has(commentId)) {
+        showReplies.value.delete(commentId);
+    } else {
+        showReplies.value.add(commentId);
+    }
+};
+
 const formatDate = (dateString: string) => {
     const date = new Date(dateString + 'Z') || new Date().toISOString();
     return date.toLocaleDateString(navigator.language || 'en-US', { 
@@ -294,9 +366,56 @@ const formatDate = (dateString: string) => {
     });
 };
 
+const loadLikeStats = async () => {
+    if (!post.value) return;
+    
+    try {
+        const result = await services.postLikes.getPostLikeStats(post.value.uid, currentUserUid.value);
+        if (result.isSuccess && result.data) {
+            likeCount.value = result.data.likeCount;
+            userHasLiked.value = result.data.userHasLiked;
+        }
+    } catch (error) {
+        console.error('Error loading like stats:', error);
+    }
+};
+
+const toggleLike = async () => {
+    if (!post.value) return;
+    
+    if (!currentUserUid.value) {
+        notification.warning('Please log in to like posts');
+        router.push('/login');
+        return;
+    }
+    
+    likingPost.value = true;
+    
+    try {
+        const result = await services.postLikes.toggleLike(post.value.uid, currentUserUid.value);
+        if (result.isSuccess) {
+            // Update local state
+            if (userHasLiked.value) {
+                likeCount.value--;
+                userHasLiked.value = false;
+            } else {
+                likeCount.value++;
+                userHasLiked.value = true;
+            }
+        } else {
+            notification.error(result.responseMessage || 'Failed to update like');
+        }
+    } catch (error) {
+        notification.error('An error occurred while updating like');
+    } finally {
+        likingPost.value = false;
+    }
+};
+
 onMounted(() => {
     loadPost();
-    loadComments()
+    loadComments();
+    loadLikeStats();
 });
 </script>
 
@@ -320,6 +439,21 @@ onMounted(() => {
 
 .formatted-content :deep(em) {
     font-style: italic;
+}
+
+.replies-container {
+    border-left: 2px solid #dee2e6;
+    padding-left: 1rem;
+}
+
+.reply {
+    background-color: #f8f9fa;
+    border-radius: 0.375rem;
+    margin-bottom: 0.5rem;
+}
+
+.reply:hover {
+    background-color: #e9ecef;
 }
 </style>
 
@@ -409,6 +543,22 @@ onMounted(() => {
                                     {{ tag }}
                                 </span>
                             </div>
+                        </div>
+                        
+                        <div class="d-flex align-items-center gap-3 pt-3 border-top">
+                            <button
+                                @click="toggleLike"
+                                :disabled="likingPost"
+                                class="btn btn-sm d-flex align-items-center gap-2"
+                                :class="userHasLiked ? 'btn-primary' : 'btn-outline-primary'"
+                            >
+                                <i :class="userHasLiked ? 'fas fa-heart' : 'far fa-heart'"></i>
+                                <span>{{ userHasLiked ? 'Liked' : 'Like' }}</span>
+                                <span v-if="likeCount > 0" class="badge bg-light text-dark">{{ likeCount }}</span>
+                            </button>
+                            <span class="text-muted small">
+                                {{ likeCount }} {{ likeCount === 1 ? 'person likes' : 'people like' }} this post
+                            </span>
                         </div>
                     </div>
 
@@ -536,6 +686,7 @@ onMounted(() => {
                 
                 <div class="comment-list d-flex flex-column">
                     <div v-for="comment in sortedComments" :key="comment.uid" class="comment border mb-2 p-3 rounded" style="min-height: 50px;">
+                        <!-- Main Comment -->
                         <div v-if="!comment.inEdit" class="d-flex align-items-start gap-2 h-100">
                             <div class="d-flex align-items-center" style="min-height: 40px;">
                                 <a
@@ -574,9 +725,31 @@ onMounted(() => {
                                 <div class="text-break text-dark flex-grow-1">
                                     {{ comment.content }}
                                 </div>
+                                
+                                <!-- Comment Actions -->
+                                <div class="d-flex align-items-center gap-3 mt-2">
+                                    <button 
+                                        v-if="currentUserUid"
+                                        class="btn btn-sm btn-outline-secondary"
+                                        @click="startReply(comment.uid)"
+                                    >
+                                        <i class="fas fa-reply me-1"></i>
+                                        Reply
+                                    </button>
+                                    
+                                    <button 
+                                        v-if="comment.replies && comment.replies.length > 0"
+                                        class="btn btn-sm btn-link text-muted p-0"
+                                        @click="toggleReplies(comment.uid)"
+                                    >
+                                        <i :class="showReplies.has(comment.uid) ? 'fas fa-chevron-down' : 'fas fa-chevron-right'" class="me-1"></i>
+                                        {{ comment.replies.length }} {{ comment.replies.length === 1 ? 'reply' : 'replies' }}
+                                    </button>
+                                </div>
                             </div>
                         </div>
                         
+                        <!-- Edit Comment Form -->
                         <div v-else class="d-flex justify-content-between align-items-center gap-2">
                             <input v-model="editCommentContent" type="text" maxlength="255" class="rounded w-100 form-control">
                             
@@ -588,6 +761,81 @@ onMounted(() => {
                                 <i class="fas fa-times me-1"></i>
                                 Cancel
                             </button>
+                        </div>
+                        
+                        <!-- Reply Form -->
+                        <div v-if="replyingToComment === comment.uid" class="mt-3 p-3 bg-light rounded">
+                            <div class="d-flex gap-2">
+                                <input 
+                                    v-model="replyContent" 
+                                    type="text" 
+                                    maxlength="255" 
+                                    class="form-control" 
+                                    placeholder="Write a reply..."
+                                >
+                                <button 
+                                    class="btn btn-primary btn-sm"
+                                    @click="postReply(comment.uid)"
+                                >
+                                    <i class="fas fa-paper-plane me-1"></i>
+                                    Reply
+                                </button>
+                                <button 
+                                    class="btn btn-secondary btn-sm"
+                                    @click="cancelReply()"
+                                >
+                                    <i class="fas fa-times me-1"></i>
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Replies Section -->
+                        <div v-if="comment.replies && comment.replies.length > 0 && showReplies.has(comment.uid)" class="mt-3">
+                            <div class="replies-container ms-4">
+                                <div v-for="reply in comment.replies" :key="reply.uid" class="reply mb-2 p-2 bg-light rounded">
+                                    <div class="d-flex align-items-start gap-2">
+                                        <div class="d-flex align-items-center" style="min-height: 30px;">
+                                            <a
+                                                href="#"
+                                                class="text-decoration-none"
+                                                @click.prevent="router.push({ path: '/profile', query: { id: reply.creatorUid } })"
+                                                title="View profile"
+                                            >
+                                                <ProfileIconDisplay
+                                                    :icon="reply?.profileIcon"
+                                                    :color="reply?.profileIconColor"
+                                                    size="sm"
+                                                    class="bg-white"
+                                                />
+                                            </a>
+                                        </div>
+                                        
+                                        <div class="flex-grow-1">
+                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                <a
+                                                    href="#"
+                                                    class="text-primary text-decoration-none fw-bold small"
+                                                    @click.prevent="router.push({ path: '/profile', query: { id: reply.creatorUid } })"
+                                                >
+                                                    {{ reply.displayName }}
+                                                </a>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <small class="text-muted">{{ formatDate(reply.timestamp) }}</small>
+                                                    <div v-if="reply.creatorUid == currentUserUid" class="d-flex gap-2">
+                                                        <i class="fas fa-edit text-muted small" style="cursor: pointer;" @click="editCommentToggle(reply)" title="Edit reply"></i>
+                                                        <i class="fas fa-trash text-muted small" style="cursor: pointer;" @click="deleteComment(reply)" title="Delete reply"></i>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="text-break text-dark small">
+                                                {{ reply.content }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

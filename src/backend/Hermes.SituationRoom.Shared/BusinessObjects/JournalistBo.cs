@@ -10,7 +10,13 @@ public record JournalistBo(Guid Uid,
     string? EmailAddress,
     string? ProfileIcon,
     string? ProfileIconColor,
-    string Employer
+    string Employer,
+    string? Bio = null,
+    string? PublishedWorkLink = null,
+    string? LinkedInUrl = null,
+    string? TwitterUrl = null,
+    string? WebsiteUrl = null,
+    List<Guid>? SpecializationTagUids = null
 )
     : UserBo(Uid,
         Password,
@@ -20,5 +26,10 @@ public record JournalistBo(Guid Uid,
         LastName,
         EmailAddress,
         ProfileIcon,
-        ProfileIconColor
+        ProfileIconColor,
+        Bio,
+        PublishedWorkLink,
+        LinkedInUrl,
+        TwitterUrl,
+        WebsiteUrl
     );

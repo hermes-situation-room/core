@@ -21,6 +21,16 @@ public partial class User
 
     public string ProfileIconColor { get; set; }
 
+    public string Bio { get; set; }
+
+    public string PublishedWorkLink { get; set; }
+
+    public string LinkedInUrl { get; set; }
+
+    public string TwitterUrl { get; set; }
+
+    public string WebsiteUrl { get; set; }
+
     public virtual Activist Activist { get; set; }
 
     public virtual ICollection<Chat> ChatUser1Us { get; set; } = new List<Chat>();
@@ -40,4 +50,16 @@ public partial class User
     public virtual ICollection<PrivacyLevelPersonal> PrivacyLevelPersonalOwnerUs { get; set; } = new List<PrivacyLevelPersonal>();
 
     public virtual ICollection<UserChatReadStatus> UserChatReadStatuses { get; set; } = new List<UserChatReadStatus>();
+
+    public virtual ICollection<PostLike> PostLikes { get; set; } = new List<PostLike>();
+
+    public virtual ICollection<Report> ReportsSubmitted { get; set; } = new List<Report>();
+
+    public virtual ICollection<Report> ReportsReviewed { get; set; } = new List<Report>();
+
+    public virtual ICollection<UserTag> UserTagsOwned { get; set; } = new List<UserTag>();
+
+    public virtual ICollection<UserTag> UserTagsTagged { get; set; } = new List<UserTag>();
+
+    public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
 }

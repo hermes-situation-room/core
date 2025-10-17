@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { computed, watch, onMounted, ref } from "vue";
 import { useAuthStore } from "../stores/auth-store";
+import { useTheme } from "../composables/use-theme";
 import NavbarComponent from "./navbar-component.vue";
 import { services, sockets } from "../services/api";
 import ToastContainer from "./toast-container.vue";
 
 const authStore = useAuthStore();
+const { theme } = useTheme(); // Initialize theme on app load
 
 const totalUnreadMessages = ref(0);
 const isSocketConnected = ref(false);

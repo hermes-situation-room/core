@@ -218,6 +218,42 @@ watch(() => route.query.id, () => {
                                 <label class="text-muted small mb-1">Employer</label>
                                 <div class="fw-medium">{{ userProfile.employer }}</div>
                             </div>
+                            
+                            <div v-if="userProfile.bio" class="mb-3">
+                                <label class="text-muted small mb-1">Bio</label>
+                                <div class="fw-medium">{{ userProfile.bio }}</div>
+                            </div>
+                            
+                            <div v-if="userProfile.publishedWorkLink || userProfile.linkedInUrl || userProfile.twitterUrl || userProfile.websiteUrl" class="mb-3">
+                                <label class="text-muted small mb-1">Links</label>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <a v-if="userProfile.publishedWorkLink" :href="userProfile.publishedWorkLink" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-secondary">
+                                        <i class="fas fa-file-alt me-1"></i>
+                                        Published Work
+                                    </a>
+                                    <a v-if="userProfile.linkedInUrl" :href="userProfile.linkedInUrl" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-secondary">
+                                        <i class="fab fa-linkedin me-1"></i>
+                                        LinkedIn
+                                    </a>
+                                    <a v-if="userProfile.twitterUrl" :href="userProfile.twitterUrl" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-secondary">
+                                        <i class="fab fa-twitter me-1"></i>
+                                        Twitter
+                                    </a>
+                                    <a v-if="userProfile.websiteUrl" :href="userProfile.websiteUrl" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-secondary">
+                                        <i class="fas fa-globe me-1"></i>
+                                        Website
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <div v-if="userProfile.specializations && userProfile.specializations.length > 0" class="mb-3">
+                                <label class="text-muted small mb-1">Specializations</label>
+                                <div class="d-flex flex-wrap gap-1">
+                                    <span v-for="spec in userProfile.specializations" :key="spec" class="badge bg-secondary">
+                                        {{ spec }}
+                                    </span>
+                                </div>
+                            </div>
                         </div>
                         
                         <button 

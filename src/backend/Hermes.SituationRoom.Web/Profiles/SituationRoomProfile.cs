@@ -58,7 +58,13 @@ public class SituationRoomProfile : Profile
                 src.EmailAddress,
                 src.ProfileIcon,
                 src.ProfileIconColor,
-                src.Employer
+                src.Employer,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
             ));
         CreateMap<UpdateJournalistRequestDto, JournalistBo>()
             .ConstructUsing(src => new(
@@ -71,7 +77,13 @@ public class SituationRoomProfile : Profile
                 src.EmailAddress,
                 src.ProfileIcon,
                 src.ProfileIconColor,
-                src.Employer
+                src.Employer,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
             ));
 
         // User mappings
@@ -87,6 +99,11 @@ public class SituationRoomProfile : Profile
                 src.LastName,
                 src.EmailAddress,
                 null,
+                null,
+                null,
+                null,
+                null,
+                null,
                 null
             ));
         CreateMap<UpdateUserRequestDto, UserBo>()
@@ -99,7 +116,12 @@ public class SituationRoomProfile : Profile
                 src.LastName,
                 src.EmailAddress,
                 src.ProfileIcon,
-                src.ProfileIconColor
+                src.ProfileIconColor,
+                null,
+                null,
+                null,
+                null,
+                null
             ));
 
         // Post mappings
@@ -139,7 +161,8 @@ public class SituationRoomProfile : Profile
                 src.PostUid,
                 null,
                 null,
-                src.Content
+                src.Content,
+                src.ParentCommentUid
             ));
         CreateMap<UpdateCommentRequestDto, CommentBo>()
             .ConstructUsing(src => new(
@@ -149,7 +172,8 @@ public class SituationRoomProfile : Profile
                 Guid.Empty,
                 null,
                 null,
-                src.Content
+                src.Content,
+                null
             ));
 
         // Chat mappings
@@ -214,5 +238,16 @@ public class SituationRoomProfile : Profile
         // Login mappings
         CreateMap<LoginActivistRequestDto, LoginActivistBo>();
         CreateMap<LoginJournalistRequestDto, LoginJournalistBo>();
+
+        // PostLike mappings
+        CreateMap<PostLikeBo, PostLikeDto>();
+        CreateMap<PostLikeDto, PostLikeBo>();
+        CreateMap<CreatePostLikeDto, PostLikeBo>()
+            .ConstructUsing(src => new(
+                Guid.NewGuid(),
+                src.PostUid,
+                src.UserUid,
+                DateTime.UtcNow
+            ));
     }
 }

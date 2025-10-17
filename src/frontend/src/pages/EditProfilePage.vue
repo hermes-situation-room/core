@@ -25,6 +25,11 @@ const lastName = ref('');
 const emailAddress = ref('');
 const userName = ref('');
 const employer = ref('');
+const bio = ref('');
+const publishedWorkLink = ref('');
+const linkedInUrl = ref('');
+const twitterUrl = ref('');
+const websiteUrl = ref('');
 
 const isFirstNameVisible = ref(true);
 const isLastNameVisible = ref(true);
@@ -63,6 +68,11 @@ const loadProfile = async () => {
             emailAddress.value = result.data.emailAddress || '';
             userName.value = result.data.userName || '';
             employer.value = result.data.employer || '';
+            bio.value = result.data.bio || '';
+            publishedWorkLink.value = result.data.publishedWorkLink || '';
+            linkedInUrl.value = result.data.linkedInUrl || '';
+            twitterUrl.value = result.data.twitterUrl || '';
+            websiteUrl.value = result.data.websiteUrl || '';
             
             iconSelection.value = {
                 icon: (result.data.profileIcon as ProfileIcon) || ProfileIcon.User,
@@ -134,7 +144,12 @@ const saveProfile = async () => {
                 emailAddress: emailAddress.value.trim(),
                 profileIcon: iconSelection.value.icon,
                 profileIconColor: iconSelection.value.color,
-                employer: employer.value
+                employer: employer.value,
+                bio: bio.value.trim() || undefined,
+                publishedWorkLink: publishedWorkLink.value.trim() || undefined,
+                linkedInUrl: linkedInUrl.value.trim() || undefined,
+                twitterUrl: twitterUrl.value.trim() || undefined,
+                websiteUrl: websiteUrl.value.trim() || undefined
             };
 
             result = await services.users.updateJournalist(userId, journalistData);
@@ -327,6 +342,79 @@ onMounted(() => {
                                         class="form-control" 
                                         v-model="employer"
                                         maxlength="200"
+                                    />
+                                </div>
+                            </div>
+
+                            <div v-if="isJournalist" class="mb-4">
+                                <h5 class="border-bottom pb-2 mb-3">Professional Information</h5>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Bio</label>
+                                    <textarea 
+                                        class="form-control" 
+                                        v-model="bio"
+                                        rows="4"
+                                        maxlength="1000"
+                                        placeholder="Tell others about yourself and your work..."
+                                    ></textarea>
+                                    <small class="text-muted">{{ bio.length }}/1000 characters</small>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        <i class="fas fa-file-alt me-1"></i>
+                                        Published Work Link
+                                    </label>
+                                    <input 
+                                        type="url" 
+                                        class="form-control" 
+                                        v-model="publishedWorkLink"
+                                        placeholder="https://example.com/my-work"
+                                        maxlength="500"
+                                    />
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">
+                                            <i class="fab fa-linkedin me-1"></i>
+                                            LinkedIn URL
+                                        </label>
+                                        <input 
+                                            type="url" 
+                                            class="form-control" 
+                                            v-model="linkedInUrl"
+                                            placeholder="https://linkedin.com/in/..."
+                                            maxlength="500"
+                                        />
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">
+                                            <i class="fab fa-twitter me-1"></i>
+                                            Twitter URL
+                                        </label>
+                                        <input 
+                                            type="url" 
+                                            class="form-control" 
+                                            v-model="twitterUrl"
+                                            placeholder="https://twitter.com/..."
+                                            maxlength="500"
+                                        />
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        <i class="fas fa-globe me-1"></i>
+                                        Website URL
+                                    </label>
+                                    <input 
+                                        type="url" 
+                                        class="form-control" 
+                                        v-model="websiteUrl"
+                                        placeholder="https://your-website.com"
+                                        maxlength="500"
                                     />
                                 </div>
                             </div>

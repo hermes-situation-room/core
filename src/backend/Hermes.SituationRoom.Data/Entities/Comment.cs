@@ -15,7 +15,13 @@ public partial class Comment
 
     public Guid PostUid { get; set; }
 
+    public Guid? ParentCommentUid { get; set; }
+
     public virtual User CreatorU { get; set; }
 
     public virtual Post PostU { get; set; }
+
+    public virtual Comment ParentCommentU { get; set; }
+
+    public virtual ICollection<Comment> Replies { get; set; } = new List<Comment>();
 }

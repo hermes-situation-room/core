@@ -49,6 +49,7 @@ const loadingTags = ref(false);
 const loadingPrivacyLevels = ref(false);
 const error = ref('');
 const showPrivacyDropdown = ref(false);
+const showFormattingHelp = ref(false);
 
 const loadPostPrivacyLevels = async () => {
     loadingPrivacyLevels.value = true;
@@ -258,12 +259,22 @@ onMounted(() => {
                                 :disabled="loading"
                                 required
                             ></textarea>
-                            <div class="form-text">
-                                <i class="fas fa-info-circle me-1"></i>
-                                <strong>Formatting:</strong>
-                                <span v-for="(help, index) in getFormattingHelp()" :key="index" class="ms-2">
-                                    <code class="text-muted">{{ help }}</code>
-                                </span>
+                            <div class="form-text d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    <strong>Formatting:</strong>
+                                    <span v-for="(help, index) in getFormattingHelp()" :key="index" class="ms-2">
+                                        <code class="text-muted">{{ help }}</code>
+                                    </span>
+                                </div>
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-outline-secondary"
+                                    @click="showFormattingHelp = true"
+                                >
+                                    <i class="fas fa-question-circle me-1"></i>
+                                    Help
+                                </button>
                             </div>
                         </div>
 
@@ -348,6 +359,85 @@ onMounted(() => {
                     >
                     <span v-if="loading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
                         {{ loading ? 'Creating...' : 'Create Post' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Formatting Help Modal -->
+    <div 
+        v-if="showFormattingHelp"
+        class="modal fade show d-block" 
+        tabindex="-1" 
+        style="background-color: rgba(0, 0, 0, 0.5); z-index: 1060;"
+        @click.self="showFormattingHelp = false"
+    >
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-question-circle me-2"></i>
+                        Text Formatting Guide
+                    </h5>
+                    <button 
+                        type="button" 
+                        class="btn-close" 
+                        @click="showFormattingHelp = false"
+                    ></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <h6 class="fw-bold">Bold Text</h6>
+                        <p class="mb-2">
+                            <code>**your text**</code> 
+                            <i class="fas fa-arrow-right mx-2"></i>
+                            <strong>your text</strong>
+                        </p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6 class="fw-bold">Italic Text</h6>
+                        <p class="mb-2">
+                            <code>*your text*</code>
+                            <i class="fas fa-arrow-right mx-2"></i>
+                            <em>your text</em>
+                        </p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6 class="fw-bold">Bullet Lists</h6>
+                        <p class="mb-1">Start lines with <code>-</code> or <code>*</code>:</p>
+                        <div class="row">
+                            <div class="col-6">
+                                <small class="text-muted">Input:</small>
+                                <pre class="bg-light p-2 rounded"><code>- First item
+- Second item
+- Third item</code></pre>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted">Output:</small>
+                                <ul>
+                                    <li>First item</li>
+                                    <li>Second item</li>
+                                    <li>Third item</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info mb-0">
+                        <i class="fas fa-lightbulb me-2"></i>
+                        <small>You can combine formatting: <code>**bold and *italic***</code></small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button 
+                        type="button" 
+                        class="btn btn-primary" 
+                        @click="showFormattingHelp = false"
+                    >
+                        Got it!
                     </button>
                 </div>
             </div>

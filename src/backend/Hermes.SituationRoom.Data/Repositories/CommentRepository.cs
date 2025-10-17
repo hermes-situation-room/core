@@ -18,6 +18,7 @@ public sealed class CommentRepository(IHermessituationRoomContext context) : ICo
             CreatorUid = commentBo.CreatorUid,
             PostUid = commentBo.PostUid,
             Content = commentBo.Content,
+            ParentCommentUid = commentBo.ParentCommentUid,
         };
 
         context.Comments.Add(newComment);
@@ -82,6 +83,7 @@ public sealed class CommentRepository(IHermessituationRoomContext context) : ICo
         comment.PostUid,
         comment.CreatorU?.ProfileIcon,
         comment.CreatorU?.ProfileIconColor,
-        comment.Content
+        comment.Content,
+        comment.ParentCommentUid
     );
 }
