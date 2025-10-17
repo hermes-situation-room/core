@@ -38,9 +38,16 @@ public class PostService(IPostRepository postRepository, ITagService tagService,
         return mapper.Map<IReadOnlyList<PostWithTagsDto>>(posts);
     }
 
-    public async Task<IReadOnlyList<PostWithTagsDto>> GetUserPostsAsync(Guid userUid, int limit, int offset, string? query = null, string? sortBy = null)
+    public async Task<IReadOnlyList<PostWithTagsDto>> GetUserPostsAsync(Guid userUid, Guid loggedInUserUid, string? loggedInUserRole, int limit, int offset, string? query = null, string? sortBy = null)
     {
-        var posts = await GetTagsFromPosts(await postRepository.GetUserPostsAsync(userUid, limit, offset, query, sortBy));
+        int privacyLevel = 0;
+
+        if (loggedInUserRole == "Journalist")
+            privacyLevel = 2;
+        else if (loggedInUserRole == "Activist")
+            privacyLevel = 1;
+
+        var posts = await GetTagsFromPosts(await postRepository.GetUserPostsAsync(userUid, privacyLevel, loggedInUserUid, limit, offset, query, sortBy));
         return mapper.Map<IReadOnlyList<PostWithTagsDto>>(posts);
     }
 

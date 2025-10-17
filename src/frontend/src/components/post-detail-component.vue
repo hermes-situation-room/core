@@ -107,6 +107,8 @@ const loadPost = async () => {
             }
         } else {
             notification.error(result.responseMessage || 'Failed to load post');
+            if (result.responseCode == 403)
+                router.push('/')
         }
     } catch (err) {
         notification.error('Error loading post');

@@ -100,11 +100,14 @@ public sealed class PostRepository(IHermessituationRoomContext context) : IPostR
         return posts.Select(MapToBoWithTags).ToList();
     }
 
-    public async Task<IReadOnlyList<PostBo>> GetUserPostsAsync(Guid userUid, int limit, int offset, string? query = null, string? sortBy = null)
+    public async Task<IReadOnlyList<PostBo>> GetUserPostsAsync(Guid userUid, int privacyLevel, Guid loggedInUserUid, int limit, int offset, string? query = null, string? sortBy = null)
     {
         var queryable = context.Posts
             .AsNoTracking()
-            .Where(u => u.CreatorUid == userUid);
+            .Where(p => p.CreatorUid == userUid &&
+            p.PrivacyLevel <= privacyLevel ||
+            p.CreatorUid == loggedInUserUid
+        );
 
         if (!string.IsNullOrWhiteSpace(query))
         {
