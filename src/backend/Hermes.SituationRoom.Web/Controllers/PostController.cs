@@ -44,8 +44,15 @@ public class PostController(IControllerInfrastructure infra, IPostService postSe
     [AllowAnonymous]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_POST])]
     [ProducesResponseType(typeof(IReadOnlyList<PostWithTagsDto>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<IReadOnlyList<PostWithTagsDto>>> GetUserPosts(Guid userUid, [FromQuery] int? limit, [FromQuery] int? offset, [FromQuery] string? query, [FromQuery] string? sortBy) =>
-        Ok(await postService.GetUserPostsAsync(userUid, limit ?? 12, offset ?? 0, query, sortBy));
+    public async Task<ActionResult<IReadOnlyList<PostWithTagsDto>>> GetUserPosts(Guid userUid, [FromQuery] int? limit, [FromQuery] int? offset, [FromQuery] string? query, [FromQuery] string? sortBy)
+    {
+        var loggedInUserIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+        var loggedInUserRoleClaim = User.FindFirst(System.Security.Claims.ClaimTypes.Role);
+
+        Guid.TryParse(loggedInUserIdClaim?.Value, out var loggedInUserUid);
+
+        return Ok(await postService.GetUserPostsAsync(userUid, loggedInUserUid, loggedInUserRoleClaim?.Value, limit ?? 12, offset ?? 0, query, sortBy));
+    }
 
     [HttpGet("internal/post/activist")]
     [AllowAnonymous]

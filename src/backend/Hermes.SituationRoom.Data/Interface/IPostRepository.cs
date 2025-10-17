@@ -14,7 +14,7 @@ public interface IPostRepository
 
     Task<IReadOnlyList<PostWithTagsBo>> GetJournalistPostsByTagsAsync(IReadOnlyList<Tag> tags, int limit, int offset, string? query = null, string? sortBy = null);
 
-    Task<IReadOnlyList<PostBo>> GetUserPostsAsync(Guid userUid, int limit, int offset, string? query = null, string? sortBy = null);
+    Task<IReadOnlyList<PostBo>> GetUserPostsAsync(Guid userUid, int privacyLevel, Guid loggedInUserUid, int limit, int offset, string? query = null, string? sortBy = null);
 
     Task<IReadOnlyList<PostBo>> GetAllActivistPostsAsync(int privacyLevel, Guid userUid, int limit, int offset, string? query = null, string? sortBy = null);
 
