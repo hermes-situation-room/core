@@ -27,7 +27,7 @@ const isFirstNameVisible = ref(true);
 const isLastNameVisible = ref(true);
 const isEmailVisible = ref(true);
 
-const iconSelection = ref({
+const iconSelection = ref<{ icon: ProfileIcon; color: string }>({
     icon: ProfileIcon.User,
     color: DEFAULT_COLOR
 });
