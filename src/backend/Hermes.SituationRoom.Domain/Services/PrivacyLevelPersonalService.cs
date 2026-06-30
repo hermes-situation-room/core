@@ -20,9 +20,13 @@ public class PrivacyLevelPersonalService(IPrivacyLevelPersonalRepository privacy
         return await privacyLevelPersonalRepository.AddAsync(privacyLevelBo);
     }
 
-    public async Task<PrivacyLevelPersonalDto> UpdatePrivacyLevelPersonalAsync(UpdatePrivacyLevelPersonalRequestDto updatePrivacyLevelPersonalDto)
+    public async Task<PrivacyLevelPersonalDto> UpdatePrivacyLevelPersonalAsync(Guid callerUid, UpdatePrivacyLevelPersonalRequestDto updatePrivacyLevelPersonalDto)
     {
         var existingPrivacyLevel = await privacyLevelPersonalRepository.GetPrivacyLevelPersonalBoAsync(updatePrivacyLevelPersonalDto.Uid);
+        if (existingPrivacyLevel.OwnerUid != callerUid)
+        {
+            throw new UnauthorizedAccessException("Cannot modify another user's privacy level.");
+        }
         var privacyLevelBo = new PrivacyLevelPersonalBo(
             updatePrivacyLevelPersonalDto.Uid,
             updatePrivacyLevelPersonalDto.IsFirstNameVisible,
@@ -35,6 +39,13 @@ public class PrivacyLevelPersonalService(IPrivacyLevelPersonalRepository privacy
         return mapper.Map<PrivacyLevelPersonalDto>(updatedPrivacyLevel);
     }
 
-    public Task DeletePrivacyLevelPersonalAsync(Guid privacyLevelPersonalUid) =>
-        privacyLevelPersonalRepository.DeleteAsync(privacyLevelPersonalUid);
+    public async Task DeletePrivacyLevelPersonalAsync(Guid callerUid, Guid privacyLevelPersonalUid)
+    {
+        var existingPrivacyLevel = await privacyLevelPersonalRepository.GetPrivacyLevelPersonalBoAsync(privacyLevelPersonalUid);
+        if (existingPrivacyLevel.OwnerUid != callerUid)
+        {
+            throw new UnauthorizedAccessException("Cannot delete another user's privacy level.");
+        }
+        await privacyLevelPersonalRepository.DeleteAsync(privacyLevelPersonalUid);
+    }
 }

@@ -8,7 +8,7 @@ public interface IPrivacyLevelPersonalService
 
     Task<Guid> CreatePrivacyLevelPersonalAsync(CreatePrivacyLevelPersonalRequestDto createPrivacyLevelPersonalDto);
 
-    Task<PrivacyLevelPersonalDto> UpdatePrivacyLevelPersonalAsync(UpdatePrivacyLevelPersonalRequestDto updatePrivacyLevelPersonalDto);
+    Task<PrivacyLevelPersonalDto> UpdatePrivacyLevelPersonalAsync(Guid callerUid, UpdatePrivacyLevelPersonalRequestDto updatePrivacyLevelPersonalDto);
 
-    Task DeletePrivacyLevelPersonalAsync(Guid privacyLevelPersonalUid);
+    Task DeletePrivacyLevelPersonalAsync(Guid callerUid, Guid privacyLevelPersonalUid);
 }

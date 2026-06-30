@@ -1,6 +1,6 @@
 import type {BaseResultBo} from "../models/bo/base-result-bo";
 import ApiBaseClient from "./base/api-base-client";
-import type {NotificationBo, CreateNotificationDto} from "../../types/notification";
+import type {NotificationBo} from "../../types/notification";
 
 export default function notificationsApi(apiBaseClient: ApiBaseClient) {
     return {
@@ -30,13 +30,6 @@ export default function notificationsApi(apiBaseClient: ApiBaseClient) {
          */
         async getById(uid: string): Promise<BaseResultBo<NotificationBo>> {
             return await apiBaseClient.get<NotificationBo>(`services/api/internal/notification/${uid}`);
-        },
-
-        /**
-         * Create a new notification
-         */
-        async create(notificationData: CreateNotificationDto): Promise<BaseResultBo<string>> {
-            return await apiBaseClient.post<CreateNotificationDto>(`services/api/internal/notification`, notificationData);
         },
 
         /**
