@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import {computed, onMounted, onBeforeUnmount, ref, watch} from 'vue';
 import {useRouter, useRoute} from 'vue-router';
-import {services} from '../../services/api';
+import {services, sockets} from '../../services/api';
 import type {PostBo, PostFilter} from '../../types/post';
 import type { UserProfileBo } from '../../types/user.ts';
 import { useAuthStore } from '../../stores/auth-store';
 import { useNotification } from '../../composables/use-notification.ts';
+import { useConfirm } from '../../composables/use-confirm.ts';
 import { useContextMenu } from '../../composables/use-context-menu';
 import ProfileIconDisplay from '../profile-icon-display.vue';
+import ReportReasonModal from '../report-reason-modal.vue';
 
 type SortOption = 'newest' | 'oldest' | 'title-asc' | 'title-desc';
 
@@ -28,6 +30,7 @@ const router = useRouter();
 const route = useRoute();
 const authStore = useAuthStore();
 const notification = useNotification();
+const { confirm } = useConfirm();
 const currentUserUid = computed(() => authStore.userId.value || '');
 const {
     contextMenuItemId: contextMenuPostId,
@@ -233,7 +236,12 @@ const deletePost = async (postId: string, event?: Event) => {
         return;
     }
     
-    if (!confirm('Are you sure you want to delete this post?')) {
+    if (!(await confirm({
+        title: 'Delete post',
+        message: 'Are you sure you want to delete this post?',
+        confirmLabel: 'Delete',
+        danger: true,
+    }))) {
         return;
     }
 
@@ -253,6 +261,25 @@ const deletePost = async (postId: string, event?: Event) => {
 const isOwnPost = (postId: string): boolean => {
     const post = posts.value.find(p => p.uid === postId);
     return post ? post.creatorUid === currentUserUid.value : false;
+};
+
+const showReportModal = ref(false);
+const reportTargetUid = ref('');
+
+const reportPost = (postId: string, event?: Event) => {
+    if (event) {
+        event.stopPropagation();
+    }
+
+    closeAllMenus();
+
+    if (!currentUserUid.value) {
+        notification.warning('Please log in to report posts');
+        return;
+    }
+
+    reportTargetUid.value = postId;
+    showReportModal.value = true;
 };
 
 const goToPage = (page: number) => {
@@ -281,9 +308,88 @@ const previousPage = () => {
     }
 };
 
-onMounted(() => {
+const ensureCreatorProfile = async (creatorUid: string) => {
+    if (!creatorUid || displayNames.value.has(creatorUid)) {
+        return;
+    }
+    try {
+        const profileResult = await services.users.getUserProfile(creatorUid, currentUserUid.value || creatorUid);
+        if (profileResult.isSuccess && profileResult.data) {
+            userProfiles.value.set(creatorUid, profileResult.data);
+            displayNames.value.set(creatorUid, getDisplayUserName(creatorUid, profileResult.data.userName, profileResult.data.firstName, profileResult.data.lastName));
+        } else {
+            displayNames.value.set(creatorUid, creatorUid.substring(0, 8) + '...');
+        }
+    } catch (err) {
+        displayNames.value.set(creatorUid, creatorUid.substring(0, 8) + '...');
+    }
+};
+
+// Whether a post still matches the active tag/search/privacy filters (category is resolved
+// server-side via loadPosts, so a freshly created post is handled by reloading page 1).
+const matchesLocalFilters = (post: PostBo): boolean => {
+    const privacyLevel = authStore.isJournalist.value ? 2 : authStore.isActivist.value ? 1 : 0;
+    if (post.privacyLevel > privacyLevel && post.creatorUid !== currentUserUid.value) {
+        return false;
+    }
+    if (props.filterTags && props.filterTags.length > 0) {
+        const upperTags = props.filterTags.map(tag => tag.toUpperCase());
+        const postTags = (post.tags || []).map(tag => tag.toUpperCase());
+        if (!upperTags.some(tag => postTags.includes(tag))) {
+            return false;
+        }
+    }
+    if (props.searchQuery && props.searchQuery.trim()) {
+        const query = props.searchQuery.toLowerCase().trim();
+        const haystack = `${post.title} ${post.description} ${post.content}`.toLowerCase();
+        if (!haystack.includes(query)) {
+            return false;
+        }
+    }
+    return true;
+};
+
+const handlePostCreated = (_post: PostBo) => {
+    // We cannot tell activist/journalist category from the DTO alone, so reload the current
+    // (filtered) page to let the server decide. Only refresh page 1 to avoid disrupting pagination.
+    if (currentPage.value === 1) {
+        loadPosts();
+    }
+};
+
+const handlePostUpdated = async (post: PostBo) => {
+    if (!post || !post.uid) return;
+    const index = posts.value.findIndex(existing => existing.uid === post.uid);
+    if (index === -1) {
+        return;
+    }
+    if (!matchesLocalFilters(post)) {
+        // The update pushed it out of the active filter/search; drop it from the list.
+        posts.value.splice(index, 1);
+        return;
+    }
+    await ensureCreatorProfile(post.creatorUid);
+    posts.value.splice(index, 1, post);
+};
+
+const handlePostDeleted = (postUid: string) => {
+    if (!postUid) return;
+    posts.value = posts.value.filter(post => post.uid !== postUid);
+};
+
+onMounted(async () => {
     initializePageFromUrl();
     loadPosts();
+
+    try {
+        await sockets.hub.initialize();
+        await sockets.hub.registerToEvent('PostCreated', handlePostCreated);
+        await sockets.hub.registerToEvent('PostUpdated', handlePostUpdated);
+        await sockets.hub.registerToEvent('PostDeleted', handlePostDeleted);
+        await sockets.hub.joinPosts();
+    } catch (error) {
+        console.warn('Failed to connect to real-time post updates. The board will update on reload:', error);
+    }
 });
 
 watch(() => props.searchQuery, () => {
@@ -318,9 +424,17 @@ watch([() => props.filterTags, () => props.sortBy], () => {
     loadPosts();
 }, {immediate: true});
 
-onBeforeUnmount(() => {
+onBeforeUnmount(async () => {
     if (searchDebounceTimer) {
         clearTimeout(searchDebounceTimer);
+    }
+    try {
+        await sockets.hub.leavePosts();
+        await sockets.hub.unregisterFromEvent('PostCreated', handlePostCreated);
+        await sockets.hub.unregisterFromEvent('PostUpdated', handlePostUpdated);
+        await sockets.hub.unregisterFromEvent('PostDeleted', handlePostDeleted);
+    } catch (error) {
+        console.warn('Error leaving post updates:', error);
     }
 });
 </script>
@@ -391,12 +505,19 @@ onBeforeUnmount(() => {
                                         >
                                             <i class="fas fa-envelope me-2"></i>Send Message
                                         </button>
-                                        <button 
+                                        <button
                                             v-else
                                             class="dropdown-item"
                                             @click="showMobileMenu = null; router.push('/login')"
                                         >
                                             <i class="fas fa-sign-in-alt me-2"></i>Log In to Message
+                                        </button>
+                                        <button
+                                            v-if="currentUserUid"
+                                            class="dropdown-item text-danger"
+                                            @click="reportPost(post.uid, $event)"
+                                        >
+                                            <i class="fas fa-flag me-2"></i>Report
                                         </button>
                                     </template>
                                 </div>
@@ -484,15 +605,30 @@ onBeforeUnmount(() => {
                 >
                     <i class="fas fa-envelope me-2"></i>Send Message
                 </button>
-                <button 
+                <button
                     v-else
                     class="dropdown-item"
                     @click="showContextMenu = false; router.push('/login')"
                 >
                     <i class="fas fa-sign-in-alt me-2"></i>Log In to Message
                 </button>
+                <button
+                    v-if="currentUserUid"
+                    class="dropdown-item text-danger"
+                    @click="reportPost(contextMenuPostId)"
+                >
+                    <i class="fas fa-flag me-2"></i>Report Post
+                </button>
             </template>
         </div>
+
+        <ReportReasonModal
+            :show="showReportModal"
+            target-type="Post"
+            target-label="Post"
+            :target-uid="reportTargetUid"
+            @close="showReportModal = false"
+        />
 
         <div v-if="!loading && (currentPage > 1 || hasMorePosts)" class="d-flex justify-content-center align-items-center gap-3 mt-4">
             <button 

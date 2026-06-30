@@ -7,20 +7,21 @@ import type {UserProfileBo} from '../types/user';
 import {useAuthStore} from '../stores/auth-store';
 import type {CreateMessageDto, MessageBo} from "../types/message.ts";
 import {useNotification} from '../composables/use-notification.ts';
+import {useConfirm} from '../composables/use-confirm.ts';
 import ProfileIconDisplay from './profile-icon-display.vue';
+import AttachmentPicker from './attachments/attachment-picker.vue';
+import AttachmentList from './attachments/attachment-list.vue';
+import type { AttachmentDto } from '../services/api/attachments-api';
 
 const router = useRouter();
 const authStore = useAuthStore();
 const notification = useNotification();
+const {confirm} = useConfirm();
 
 const props = defineProps({
     chatId: {
         type: String,
         required: false,
-    },
-    isMobile: {
-        type: Boolean,
-        required: false
     }
 });
 
@@ -39,7 +40,47 @@ const otherUserDisplayName = ref<string>('');
 const otherUserProfile = ref<UserProfileBo | null>(null);
 const messageSenderProfiles = ref<Map<string, UserProfileBo>>(new Map());
 
+// Attachments uploaded for the message currently being composed (linked on send via attachmentIds).
+const pendingAttachments = ref<AttachmentDto[]>([]);
+// messageUid -> its attachments, fetched lazily through the authorized by-message endpoint.
+const messageAttachments = ref<Map<string, AttachmentDto[]>>(new Map());
+const fetchingAttachmentsFor = ref<Set<string>>(new Set());
+
 const noChat = ref<boolean>(true);
+
+// Composer options for ephemeral messages.
+const disappearAfterSeconds = ref<number>(0); // 0 = off
+const isViewOnce = ref<boolean>(false);
+// Maps a view-once message uid -> the plaintext revealed via the consume GET, so we can render it
+// exactly once this session. Once revealed it stays in this map (cannot be re-fetched) until the
+// message leaves the list, so re-renders keep showing the same revealed content.
+const revealedViewOnceContent = ref<Map<string, string>>(new Map());
+// View-once messages the current user is currently fetching/has fetched (the consume GET is fired
+// once; subsequent taps are ignored even before the response arrives).
+const revealingViewOnceIds = ref<Set<string>>(new Set());
+
+const disappearOptions = [
+    {label: 'Off', value: 0},
+    {label: '1 hour', value: 3600},
+    {label: '1 day', value: 86400},
+];
+
+const isExpired = (message: MessageBo): boolean => {
+    if (!message.expiresAt) return false;
+    const expires = new Date(message.expiresAt);
+    return !isNaN(expires.getTime()) && expires.getTime() <= Date.now();
+};
+
+const normalizeMessage = (message: MessageBo, fallbackChatUid: string): MessageBo => ({
+    uid: message.uid,
+    chatUid: message.chatUid || fallbackChatUid,
+    senderUid: message.senderUid || '',
+    content: message.content || '',
+    timestamp: message.timestamp || new Date().toISOString(),
+    expiresAt: message.expiresAt ?? null,
+    isViewOnce: message.isViewOnce ?? false,
+    isConsumed: message.isConsumed ?? false,
+});
 
 
 watch(
@@ -68,17 +109,40 @@ const loadChat = async () => {
         if (result.isSuccess && result.data) {
             chat.value = result.data;
 
-            const otherUserUid = getOtherUserUid();
-            if (otherUserUid) {
-                const displayNameResult = await services.users.getUserProfile(otherUserUid, currentUserUid.value);
-                if (displayNameResult.isSuccess && displayNameResult.data) {
-                    otherUserProfile.value = displayNameResult.data;
-                    otherUserDisplayName.value = getDisplayUserName(
-                        otherUserUid,
-                        displayNameResult.data.userName,
-                        displayNameResult.data.firstName,
-                        displayNameResult.data.lastName
-                    );
+            if (chat.value.isGroup) {
+                // Resolve every other member's profile so the header can list participants.
+                const otherMemberUids = getMemberUids().filter(uid => uid && uid !== currentUserUid.value);
+                const names: string[] = [];
+                for (const memberUid of otherMemberUids) {
+                    const profileResult = await services.users.getUserProfile(memberUid, currentUserUid.value);
+                    if (profileResult.isSuccess && profileResult.data) {
+                        messageSenderProfiles.value.set(memberUid, profileResult.data);
+                        names.push(getDisplayUserName(
+                            memberUid,
+                            profileResult.data.userName,
+                            profileResult.data.firstName,
+                            profileResult.data.lastName
+                        ));
+                    } else {
+                        names.push(memberUid.substring(0, 8) + '...');
+                    }
+                }
+                otherUserDisplayName.value = (chat.value.name && chat.value.name.trim())
+                    ? chat.value.name
+                    : (names.length > 0 ? names.join(', ') : 'Group chat');
+            } else {
+                const otherUserUid = getOtherUserUid();
+                if (otherUserUid) {
+                    const displayNameResult = await services.users.getUserProfile(otherUserUid, currentUserUid.value);
+                    if (displayNameResult.isSuccess && displayNameResult.data) {
+                        otherUserProfile.value = displayNameResult.data;
+                        otherUserDisplayName.value = getDisplayUserName(
+                            otherUserUid,
+                            displayNameResult.data.userName,
+                            displayNameResult.data.firstName,
+                            displayNameResult.data.lastName
+                        );
+                    }
                 }
             }
 
@@ -91,6 +155,7 @@ const loadChat = async () => {
                 await sockets.hub.registerToEvent('ReceiveMessage', handleIncomingMessage);
                 await sockets.hub.registerToEvent('UpdateMessage', handleMessageUpdate);
                 await sockets.hub.registerToEvent('DeleteMessage', handleMessageDelete);
+                await sockets.hub.registerToEvent('MessageExpired', handleMessageExpired);
                 isSocketConnected.value = true;
             } catch (socketError) {
                 console.warn('Failed to connect to real-time messaging. Messages will not update automatically:', socketError);
@@ -115,13 +180,9 @@ const loadMessages = async (chatId: string) => {
         const result = await services.messages.getMessagesByChat(chatId);
         if (result.isSuccess && result.data) {
             messages.value = result.data
-                .map(msg => ({
-                    uid: msg.uid,
-                    chatUid: chatId,
-                    senderUid: msg.senderUid || '',
-                    content: msg.content || '',
-                    timestamp: msg.timestamp || new Date().toISOString()
-                }))
+                .map(msg => normalizeMessage(msg, chatId))
+                // Filter expired (disappeared) messages on load as a client-side safety net.
+                .filter(msg => !isExpired(msg))
                 .sort((a, b) => {
                     const dateA = new Date(a.timestamp);
                     const dateB = new Date(b.timestamp);
@@ -146,6 +207,11 @@ const loadMessages = async (chatId: string) => {
                 }
             }
 
+            // Fetch attachments for the loaded messages (authorized per-message endpoint).
+            for (const loadedMessage of messages.value) {
+                void loadMessageAttachments(loadedMessage.uid);
+            }
+
             setTimeout(() => scrollToBottom(false), 100);
         }
     } catch (error) {
@@ -154,18 +220,38 @@ const loadMessages = async (chatId: string) => {
     }
 };
 
+// Lazily fetch and cache the attachments linked to a message.
+const loadMessageAttachments = async (messageUid: string) => {
+    if (messageAttachments.value.has(messageUid) || fetchingAttachmentsFor.value.has(messageUid)) {
+        return;
+    }
+    fetchingAttachmentsFor.value.add(messageUid);
+    try {
+        const result = await services.attachments.getByMessage(messageUid);
+        if (result.isSuccess && result.data && result.data.length > 0) {
+            messageAttachments.value.set(messageUid, result.data);
+        }
+    } catch (err) {
+        // Non-fatal: the message still renders without its attachments.
+    } finally {
+        fetchingAttachmentsFor.value.delete(messageUid);
+    }
+};
+
+const attachmentsForMessage = (messageUid: string): AttachmentDto[] => {
+    return messageAttachments.value.get(messageUid) ?? [];
+};
+
 const handleIncomingMessage = async (message: MessageBo) => {
     if (!chat.value || message.chatUid !== chat.value.uid) {
         return;
     }
 
-    const completeMessage: MessageBo = {
-        uid: message.uid,
-        chatUid: chat.value.uid,
-        senderUid: message.senderUid || '',
-        content: message.content || '',
-        timestamp: message.timestamp || new Date().toISOString()
-    };
+    const completeMessage: MessageBo = normalizeMessage(message, chat.value.uid);
+
+    if (isExpired(completeMessage)) {
+        return;
+    }
 
     if (!completeMessage.timestamp) {
         completeMessage.timestamp = new Date().toISOString();
@@ -183,6 +269,7 @@ const handleIncomingMessage = async (message: MessageBo) => {
     } else {
         if (message.senderUid !== currentUserUid.value) {
             messages.value.push(completeMessage);
+            void loadMessageAttachments(completeMessage.uid);
 
             if (message.senderUid && !messageSenderProfiles.value.has(message.senderUid)) {
                 try {
@@ -234,14 +321,28 @@ const handleMessageDelete = (messageId: string) => {
     }
 };
 
+// A message disappeared (timer expired) or was consumed (view-once) for this user. The backend
+// sends (chatUid, messageId); chatUid may be null for a global scheduled purge.
+const handleMessageExpired = (_chatUid: string | null, messageId: string) => {
+    messages.value = messages.value.filter(m => m.uid !== messageId);
+    revealedViewOnceContent.value.delete(messageId);
+    revealingViewOnceIds.value.delete(messageId);
+    if (editingMessageId.value === messageId) {
+        editingMessageId.value = null;
+        editingContent.value = '';
+    }
+};
+
 
 const sendMessage = async () => {
-    if (!newMessage.value.trim() || !chat.value) {
+    // Allow sending a message that carries only attachments (no text).
+    if ((!newMessage.value.trim() && pendingAttachments.value.length === 0) || !chat.value) {
         return;
     }
 
     sending.value = true;
     const messageContent = newMessage.value.trim();
+    const attachmentIds = pendingAttachments.value.map(attachment => attachment.uid);
     newMessage.value = '';
     editingMessageId.value = null;
     editingContent.value = '';
@@ -250,15 +351,30 @@ const sendMessage = async () => {
         const messageData: CreateMessageDto = {
             content: messageContent,
             senderUid: currentUserUid.value,
-            chatUid: chat.value.uid
+            chatUid: chat.value.uid,
+            disappearAfterSeconds: disappearAfterSeconds.value > 0 ? disappearAfterSeconds.value : null,
+            isViewOnce: isViewOnce.value,
+            attachmentIds: attachmentIds.length > 0 ? attachmentIds : undefined,
         };
 
         const result = await services.messages.createMessage(messageData);
 
         if (result.isSuccess && result.data) {
-            const message = (await services.messages.getMessageById(result.data)).data!;
-            messages.value.push(message);
-            scrollToBottom();
+            // Fetch the persisted message to render it. The sender always sees their own content
+            // (incl. view-once); if the GET 404s (e.g. a disappear race purged it) we simply skip
+            // re-adding it rather than crashing or re-showing an already-gone message.
+            const fetchResult = await services.messages.getMessageById(result.data);
+            if (fetchResult.isSuccess && fetchResult.data) {
+                messages.value.push(normalizeMessage(fetchResult.data, chat.value.uid));
+                // Show the just-uploaded attachments immediately under the sent message.
+                if (pendingAttachments.value.length > 0) {
+                    messageAttachments.value.set(result.data, [...pendingAttachments.value]);
+                }
+                scrollToBottom();
+            }
+            // Reset ephemeral options and the composer attachments after a successful send.
+            isViewOnce.value = false;
+            pendingAttachments.value = [];
         } else {
             notification.error('Failed to send message');
             newMessage.value = messageContent;
@@ -311,7 +427,12 @@ const saveEdit = async (messageId: string) => {
 };
 
 const deleteMessage = async (messageId: string) => {
-    if (!confirm('Are you sure you want to delete this message?')) {
+    if (!(await confirm({
+        title: 'Delete message',
+        message: 'Are you sure you want to delete this message?',
+        confirmLabel: 'Delete',
+        danger: true,
+    }))) {
         return;
     }
 
@@ -353,9 +474,26 @@ const focusMessageInput = async () => {
     }
 };
 
+const getMemberUids = (): string[] => {
+    if (!chat.value) return [];
+    if (chat.value.memberUids && chat.value.memberUids.length > 0) {
+        return chat.value.memberUids;
+    }
+    return [chat.value.user1Uid, chat.value.user2Uid];
+};
+
 const getOtherUserUid = () => {
     if (!chat.value) return '';
-    return chat.value.user1Uid === currentUserUid.value ? chat.value.user2Uid : chat.value.user1Uid;
+    const others = getMemberUids().filter(uid => uid && uid !== currentUserUid.value);
+    return others[0] ?? (chat.value.user1Uid === currentUserUid.value ? chat.value.user2Uid : chat.value.user1Uid);
+};
+
+const getSenderDisplayName = (senderUid: string): string => {
+    const profile = messageSenderProfiles.value.get(senderUid);
+    if (profile) {
+        return getDisplayUserName(senderUid, profile.userName, profile.firstName, profile.lastName);
+    }
+    return senderUid.substring(0, 8) + '...';
 };
 
 function getDisplayUserName(creatorUid: string, userName?: string, firstName?: string, lastName?: string): string {
@@ -367,6 +505,45 @@ function getDisplayUserName(creatorUid: string, userName?: string, firstName?: s
 
 const isMyMessage = (message: MessageBo) => {
     return message.senderUid === currentUserUid.value;
+};
+
+// A view-once message that this user (a recipient) has not yet revealed: show a tap-to-reveal
+// affordance instead of the content. The sender always sees their own content. Once revealed, the
+// uid is in revealedViewOnceContent and this returns false so the content (not the lock) renders.
+const isHiddenViewOnce = (message: MessageBo): boolean => {
+    return !!message.isViewOnce
+        && !isMyMessage(message)
+        && !message.isConsumed
+        && !revealedViewOnceContent.value.has(message.uid);
+};
+
+// Content to render in a bubble: the revealed plaintext for a consumed view-once message we opened
+// this session, otherwise the message's own content (normal/disappearing, or the sender's own).
+const displayedContent = (message: MessageBo): string => {
+    const revealed = revealedViewOnceContent.value.get(message.uid);
+    return revealed !== undefined ? revealed : message.content;
+};
+
+const revealViewOnce = async (message: MessageBo) => {
+    if (!isHiddenViewOnce(message) || revealingViewOnceIds.value.has(message.uid)) {
+        return;
+    }
+    // The consume GET reveals the content exactly once; guard against double taps firing it twice.
+    revealingViewOnceIds.value.add(message.uid);
+    try {
+        const result = await services.messages.getMessageById(message.uid);
+        if (result.isSuccess && result.data) {
+            // Show the returned content once; it stays in the map so it cannot be revealed again.
+            revealedViewOnceContent.value.set(message.uid, result.data.content || '');
+        } else {
+            // Already consumed elsewhere / expired: the backend returns 404 (no content).
+            revealingViewOnceIds.value.delete(message.uid);
+            notification.error('This message is no longer available');
+        }
+    } catch (error) {
+        revealingViewOnceIds.value.delete(message.uid);
+        notification.error('Failed to open message');
+    }
 };
 
 const shouldShowEditMode = (message: MessageBo) => {
@@ -401,6 +578,12 @@ onMounted(() => {
 });
 
 onUnmounted(async () => {
+    // Remove this component's message listeners so they don't accumulate across remounts
+    // (otherwise navigating back into a chat would handle each incoming message multiple times).
+    await sockets.hub.unregisterFromEvent('ReceiveMessage', handleIncomingMessage);
+    await sockets.hub.unregisterFromEvent('UpdateMessage', handleMessageUpdate);
+    await sockets.hub.unregisterFromEvent('DeleteMessage', handleMessageDelete);
+    await sockets.hub.unregisterFromEvent('MessageExpired', handleMessageExpired);
     if (chat.value && isSocketConnected.value) {
         try {
             await sockets.hub.leaveChat(chat.value.uid);
@@ -430,11 +613,12 @@ onUnmounted(async () => {
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
                                     <a
+                                        v-if="!chat.isGroup"
                                         href="#"
                                         class="text-primary text-decoration-none d-flex align-items-center gap-2 fw-bold"
                                         @click.prevent="router.push({ path: '/profile', query: { id: getOtherUserUid() } })"
                                     >
-                                      <span v-if="props.isMobile" class="me-2" @click.stop="router.replace('/chats')" style="cursor: pointer;">&lt;</span>
+                                      <span class="me-2 d-md-none" @click.stop="router.replace('/chats')" style="cursor: pointer;">&lt;</span>
                                       <ProfileIconDisplay
                                           :icon="otherUserProfile?.profileIcon"
                                           :color="otherUserProfile?.profileIconColor"
@@ -443,6 +627,19 @@ onUnmounted(async () => {
                                       />
                                       {{ otherUserDisplayName || getOtherUserUid() }}
                                     </a>
+                                    <div
+                                        v-else
+                                        class="text-primary d-flex align-items-center gap-2 fw-bold"
+                                    >
+                                      <span class="me-2 d-md-none" @click.stop="router.replace('/chats')" style="cursor: pointer;">&lt;</span>
+                                      <span
+                                          class="d-inline-flex align-items-center justify-content-center rounded-circle bg-secondary text-white"
+                                          style="width: 40px; height: 40px;"
+                                      >
+                                          <i class="fas fa-users"></i>
+                                      </span>
+                                      {{ otherUserDisplayName || 'Group chat' }}
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -482,6 +679,8 @@ onUnmounted(async () => {
                                             <input
                                                 v-model="editingContent"
                                                 type="text"
+                                                spellcheck="true"
+                                                lang="en"
                                                 class="form-control form-control-sm mb-2"
                                                 @keyup.enter="saveEdit(message.uid)"
                                                 @keyup.esc="cancelEdit"
@@ -503,7 +702,48 @@ onUnmounted(async () => {
                                         </div>
 
                                         <div v-else class="px-3 py-2">
-                                            <div>{{ message.content }}</div>
+                                            <div
+                                                v-if="chat.isGroup && !isMyMessage(message)"
+                                                class="small fw-bold mb-1 text-primary"
+                                            >
+                                                {{ getSenderDisplayName(message.senderUid) }}
+                                            </div>
+
+                                            <!-- View-once recipient view: tap to reveal, then consume -->
+                                            <div
+                                                v-if="isHiddenViewOnce(message)"
+                                                class="d-flex align-items-center gap-2 fst-italic"
+                                                role="button"
+                                                tabindex="0"
+                                                title="Tap to view once"
+                                                @click="revealViewOnce(message)"
+                                                @keyup.enter="revealViewOnce(message)"
+                                            >
+                                                <i class="fas fa-eye-slash"></i>
+                                                <span>View once · tap to reveal</span>
+                                            </div>
+                                            <div v-else-if="displayedContent(message)">{{ displayedContent(message) }}</div>
+
+                                            <!-- Attachments linked to this message -->
+                                            <AttachmentList
+                                                v-if="attachmentsForMessage(message.uid).length"
+                                                :attachments="attachmentsForMessage(message.uid)"
+                                                compact
+                                            />
+
+                                            <!-- Ephemeral indicators -->
+                                            <div
+                                                v-if="message.isViewOnce || message.expiresAt"
+                                                class="small mt-1"
+                                                :class="isMyMessage(message) ? 'text-white-50' : 'text-muted'"
+                                            >
+                                                <span v-if="message.isViewOnce" class="me-2">
+                                                    <i class="fas fa-eye"></i> View once
+                                                </span>
+                                                <span v-if="message.expiresAt">
+                                                    <i class="fas fa-clock"></i> Disappears
+                                                </span>
+                                            </div>
                                             <div class="d-flex justify-content-between align-items-center mt-1">
                                                 <small
                                                     class="d-block"
@@ -539,6 +779,40 @@ onUnmounted(async () => {
 
                         <div class="card-footer bg-white border-top">
                             <form @submit.prevent="sendMessage" class="d-flex flex-column gap-2">
+                                <div class="d-flex align-items-center gap-3 flex-wrap">
+                                    <label class="d-flex align-items-center gap-1 small text-muted mb-0">
+                                        <i class="fas fa-clock"></i>
+                                        Disappear
+                                        <select
+                                            v-model.number="disappearAfterSeconds"
+                                            class="form-select form-select-sm"
+                                            style="width: auto;"
+                                            :disabled="sending"
+                                        >
+                                            <option v-for="opt in disappearOptions" :key="opt.value" :value="opt.value">
+                                                {{ opt.label }}
+                                            </option>
+                                        </select>
+                                    </label>
+                                    <div class="form-check form-switch mb-0">
+                                        <input
+                                            id="viewOnceToggle"
+                                            v-model="isViewOnce"
+                                            class="form-check-input"
+                                            type="checkbox"
+                                            role="switch"
+                                            :disabled="sending"
+                                        />
+                                        <label class="form-check-label small text-muted" for="viewOnceToggle">
+                                            <i class="fas fa-eye"></i> View once
+                                        </label>
+                                    </div>
+                                </div>
+                                <AttachmentPicker
+                                    v-model="pendingAttachments"
+                                    :disabled="sending"
+                                    compact
+                                />
                                 <div class="d-flex gap-2">
                                     <input
                                         ref="messageInputRef"
@@ -549,11 +823,13 @@ onUnmounted(async () => {
                                         :disabled="sending"
                                         maxlength="1000"
                                         autocomplete="off"
+                                        spellcheck="true"
+                                        lang="en"
                                     />
                                     <button
                                         type="submit"
                                         class="btn btn-primary"
-                                        :disabled="!newMessage.trim() || sending"
+                                        :disabled="(!newMessage.trim() && pendingAttachments.length === 0) || sending"
                                     >
                                         <span v-if="sending" class="spinner-border spinner-border-sm me-1"></span>
                                         Send

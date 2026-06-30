@@ -7,4 +7,10 @@ public record MessageBo(string Content,
     DateTime Timestamp)
 {
     public Guid? Uid { get; init; }
+
+    public DateTime? ExpiresAt { get; init; }
+
+    public bool IsViewOnce { get; init; }
+
+    public bool IsConsumed { get; init; }
 }

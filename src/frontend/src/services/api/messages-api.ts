@@ -37,6 +37,13 @@ export default function messagesApi(apiBaseClient: ApiBaseClient) {
          */
         async deleteMessage(messageId: string): Promise<BaseResultBo<undefined>> {
             return await apiBaseClient.delete(`services/api/internal/message/${messageId}`);
+        },
+
+        /**
+         * Mark a view-once message as viewed by the current user (consumes its content).
+         */
+        async markViewed(messageId: string): Promise<BaseResultBo<string>> {
+            return await apiBaseClient.post(`services/api/internal/message/${messageId}/mark-viewed`, {});
         }
     };
 }

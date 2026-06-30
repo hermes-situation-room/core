@@ -13,7 +13,8 @@ public record ActivistBo(Guid Uid,
     string UserName,
     bool IsFirstNameVisible,
     bool IsLastNameVisible,
-    bool IsEmailVisible
+    bool IsEmailVisible,
+    bool IsAdmin = false
 )
     : UserBo(Uid,
         Password,
@@ -23,5 +24,6 @@ public record ActivistBo(Guid Uid,
         LastName,
         EmailAddress,
         ProfileIcon,
-        ProfileIconColor
+        ProfileIconColor,
+        IsAdmin: IsAdmin
     );

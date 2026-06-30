@@ -14,5 +14,6 @@ public record UserBo(Guid Uid,
     string? PublishedWorkLink = null,
     string? LinkedInUrl = null,
     string? TwitterUrl = null,
-    string? WebsiteUrl = null
+    string? WebsiteUrl = null,
+    bool IsAdmin = false
 );

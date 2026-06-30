@@ -515,7 +515,7 @@ onMounted(() => {
                     v-if="showDeleteModal"
                     class="modal fade show d-block" 
                     tabindex="-1" 
-                    style="background-color: rgba(0, 0, 0, 0.5);"
+                    style="background-color: var(--modal-backdrop);"
                     @click.self="closeDeleteModal"
                 >
                     <div class="modal-dialog modal-dialog-centered">

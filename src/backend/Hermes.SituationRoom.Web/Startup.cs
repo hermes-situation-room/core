@@ -4,6 +4,7 @@ using Configurations;
 using Data.Context;
 using Data.Interface;
 using Domain.Hubs;
+using Domain.Services;
 using Extensions;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
@@ -11,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using Middlewares;
 using Serilog;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.DependencyInjection;
 
 public class Startup
 {
@@ -85,6 +87,8 @@ public class Startup
 
         services.AddSignalR();
 
+        services.AddHostedService<ExpiredMessagePurgeService>();
+
         services.AddSingleton<IUserIdProvider, NameIdentifierUserIdProvider>();
         
         services.AddCors(options =>
@@ -109,6 +113,8 @@ public class Startup
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     {
+        SeedAdminUser(app);
+
         app.UseSwaggerAndSwaggerUI();
         app.UseSerilogRequestLogging();
         app.UseHttpsRedirection()
@@ -123,5 +129,21 @@ public class Startup
                 endpoints.MapControllers();
                 endpoints.MapHub<ChatHub>("/chatHub");
             });
+    }
+
+    private void SeedAdminUser(IApplicationBuilder app)
+    {
+        var seedEmail = Configuration["Admin:SeedEmail"];
+        var seedUsername = Configuration["Admin:SeedUsername"];
+
+        if (string.IsNullOrWhiteSpace(seedEmail) && string.IsNullOrWhiteSpace(seedUsername))
+            return;
+
+        using var scope = app.ApplicationServices.CreateScope();
+        var userRepository = scope.ServiceProvider.GetRequiredService<IUserRepository>();
+
+        var promoted = userRepository.PromoteToAdminAsync(seedEmail, seedUsername).GetAwaiter().GetResult();
+        if (promoted)
+            Log.Information("Seeded admin role for configured user.");
     }
 }

@@ -25,4 +25,6 @@ public interface IUserRepository
     Task<UserBo> UpdateAsync(UserBo updatedUser);
 
     Task DeleteAsync(Guid userUid);
+
+    Task<bool> PromoteToAdminAsync(string? emailAddress, string? username);
 }

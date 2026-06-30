@@ -1,38 +1,34 @@
-﻿namespace Hermes.SituationRoom.Domain.Services;
+namespace Hermes.SituationRoom.Domain.Services;
 
 using Data.Interface;
 using Interfaces;
 using Shared.BusinessObjects;
 using Shared.DataTransferObjects;
-using Shared.Enums;
+using Shared.Exceptions;
 
 public class TagService(ITagRepository repository) : ITagService
 {
     public async Task CreatePostTagAsync(CreateTagDto createTagDto)
     {
-        var tag = MapToTag(createTagDto.Tag);
+        var tag = await ValidateTagNameAsync(createTagDto.Tag);
         await repository.AddAsync(new(createTagDto.PostUid, tag));
     }
 
-    public async Task<IReadOnlyList<Tag>> GetAllTagsFromPostAsync(Guid postUid) =>
+    public async Task<IReadOnlyList<string>> GetAllTagsFromPostAsync(Guid postUid) =>
         await repository.GetAllTagsFromPostAsync(postUid);
 
-    public async Task<Dictionary<Guid, IReadOnlyList<Tag>>> GetAllTagsFromPostsAsync(IEnumerable<Guid> postUids) =>
+    public async Task<Dictionary<Guid, IReadOnlyList<string>>> GetAllTagsFromPostsAsync(IEnumerable<Guid> postUids) =>
         await repository.GetAllTagsFromPostsAsync(postUids);
 
-    public IReadOnlyList<string> GetAllTags() => repository.GetAllTags().Select(t => t.ToString()).ToList();
+    public async Task<IReadOnlyList<string>> GetAllTags() => await repository.GetAllNamesAsync();
 
     public async Task DeletePostTagAsync(TagBo tagBo) => await repository.DeleteAsync(tagBo);
-    
-    public static Tag MapToTag(string tag)
+
+    public async Task<string> ValidateTagNameAsync(string tag)
     {
-        try
-        {
-            return Enum.Parse<Tag>(tag);
-        }
-        catch (Exception e)
-        {
-            throw new ArgumentException($"Tag '{tag}' is not valid.", e);
-        }
+        if (!await repository.ExistsByNameAsync(tag))
+            throw new ValidationBusinessException("Tag", $"Tag '{tag}' is not a valid post tag.");
+
+        return tag;
     }
 }

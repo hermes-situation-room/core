@@ -42,7 +42,6 @@ const showPasswordRequirements = ref(false)
 const {
     isValid: isPasswordValid,
     checks: passwordChecks,
-    errors: passwordErrors,
 } = useReactivePasswordValidation(password)
 
 const isJournalist = computed(() => selectedUserType.value === 'journalist')

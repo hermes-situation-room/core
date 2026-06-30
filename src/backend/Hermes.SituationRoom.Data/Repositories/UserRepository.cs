@@ -187,6 +187,45 @@ public sealed class UserRepository(IHermessituationRoomContext context) : IUserR
         }
     }
 
+    public async Task<bool> PromoteToAdminAsync(string? emailAddress, string? username)
+    {
+        if (string.IsNullOrWhiteSpace(emailAddress) && string.IsNullOrWhiteSpace(username))
+            return false;
+
+        User? user = null;
+
+        if (!string.IsNullOrWhiteSpace(emailAddress))
+        {
+            user = await context.Users
+                .AsTracking()
+                .FirstOrDefaultAsync(u => u.EmailAddress == emailAddress);
+        }
+
+        if (user is null && !string.IsNullOrWhiteSpace(username))
+        {
+            var activistUserUid = await context.Activists
+                .AsNoTracking()
+                .Where(a => a.Username == username)
+                .Select(a => (Guid?)a.UserUid)
+                .FirstOrDefaultAsync();
+
+            if (activistUserUid is not null)
+            {
+                user = await context.Users
+                    .AsTracking()
+                    .FirstOrDefaultAsync(u => u.Uid == activistUserUid.Value);
+            }
+        }
+
+        if (user is null || user.IsAdmin)
+            return false;
+
+        user.IsAdmin = true;
+        await context.SaveChangesAsync();
+
+        return true;
+    }
+
     private static UserBo MapToBo(User user) => new(user.Uid,
         null,
         user.PasswordHash,
@@ -200,7 +239,8 @@ public sealed class UserRepository(IHermessituationRoomContext context) : IUserR
         user.PublishedWorkLink,
         user.LinkedInUrl,
         user.TwitterUrl,
-        user.WebsiteUrl
+        user.WebsiteUrl,
+        user.IsAdmin
     );
 
     private static UserProfileBo MapToUserProfileBo(User user) => new(user.Uid,

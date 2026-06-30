@@ -28,7 +28,13 @@ public static class DependencyRegistrationExtension
         services.AddScoped<IMessageRepository, MessageRepository>();
         services.AddScoped<IUserChatReadStatusRepository, UserChatReadStatusRepository>();
         services.AddScoped<IPostLikeRepository, PostLikeRepository>();
-        
+        services.AddScoped<INotificationRepository, NotificationRepository>();
+        services.AddScoped<IReportRepository, ReportRepository>();
+        services.AddScoped<IUserTagRepository, UserTagRepository>();
+        services.AddScoped<ITagRequestRepository, TagRequestRepository>();
+        services.AddScoped<IContentFilterRuleRepository, ContentFilterRuleRepository>();
+        services.AddScoped<IAttachmentRepository, AttachmentRepository>();
+
         // Domain
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IActivistService, ActivistService>();
@@ -42,8 +48,22 @@ public static class DependencyRegistrationExtension
         services.AddScoped<IAuthorizationService, AuthorizationService>();
         services.AddScoped<IUserChatReadStatusService, UserChatReadStatusService>();
         services.AddScoped<IPostLikeService, PostLikeService>();
+        services.AddScoped<INotificationService, NotificationService>();
+        services.AddScoped<IReportService, ReportService>();
+        services.AddScoped<IUserTagService, UserTagService>();
+        services.AddScoped<ITagRequestService, TagRequestService>();
+        services.AddScoped<IContentFilterService, ContentFilterService>();
+        services.AddScoped<IAttachmentService, AttachmentService>();
+
+        // File storage (encrypted at rest on local filesystem — E2EE_DESIGN.md §7.1)
+        services.Configure<FileStorageOptions>(configuration.GetSection(FileStorageOptions.SectionName));
+        services.AddSingleton<IFileStorageService, FileStorageService>();
 
         services.AddScoped<IEncryptionService, EncryptionService>();
+        services.AddScoped<IBreachedPasswordService, BreachedPasswordService>();
+
+        // Outbound HTTP (e.g. Have I Been Pwned breach check)
+        services.AddHttpClient();
 
         var connectionString = configuration.GetConnectionString("SituationRoomDb");
         services.AddDatabaseMigrations(connectionString,

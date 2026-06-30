@@ -11,6 +11,12 @@ import messageStatusApi from "./messageStatus-api.ts";
 import commentsApi from "./comments-api.ts";
 import privacyLevelPersonalApi from "./privacy-level-personal-api.ts";
 import postLikesApi from "./post-likes-api.ts";
+import notificationsApi from "./notifications-api.ts";
+import userTagsApi from "./user-tags-api.ts";
+import tagRequestsApi from "./tag-requests-api.ts";
+import contentFilterApi from "./content-filter-api.ts";
+import reportsApi from "./reports-api.ts";
+import attachmentsApi from "./attachments-api.ts";
 
 const apiBaseClient = new ApiBaseClient();
 
@@ -26,6 +32,12 @@ export const services = {
     userChatMessageStatus: messageStatusApi(apiBaseClient),
     privacyLevelPersonal: privacyLevelPersonalApi(apiBaseClient),
     postLikes: postLikesApi(apiBaseClient),
+    notifications: notificationsApi(apiBaseClient),
+    userTags: userTagsApi(apiBaseClient),
+    tagRequests: tagRequestsApi(apiBaseClient),
+    contentFilter: contentFilterApi(apiBaseClient),
+    reports: reportsApi(apiBaseClient),
+    attachments: attachmentsApi(apiBaseClient),
 }
 
 const socketBaseClient = new SocketBaseClient();
@@ -59,6 +71,18 @@ export const sockets = {
             socketBaseClient.registerToEvent(event, action);
         },
         /**
+         * Removes a handler registered for the given event-name. Pass the same action reference
+         * used in registerToEvent to remove only that handler, leaving other components' listeners
+         * on the same event intact. Omit the action to remove all handlers this client registered
+         * for the event. Call on unmount to avoid leaks.
+         * @param event Event-name to unregister
+         * @param action Optional: the exact handler reference passed to registerToEvent
+         */
+        unregisterFromEvent: async(event: string, action?: Function) => {
+            await initPromise;
+            socketBaseClient.unregisterFromEvent(event, action);
+        },
+        /**
          * Send a JoinChat event over the socket to the backend
          * @param chatId Guid (string) with the chatId
          */
@@ -89,6 +113,36 @@ export const sockets = {
         updateReadChat: async (chatId: string) => {
             await initPromise;
             socketBaseClient.sendEvent("UpdateReadChat", [chatId]);
+        },
+        /**
+         * Join the shared "posts" feed group to receive live post create/update/delete events
+         */
+        joinPosts: async () => {
+            await initPromise;
+            socketBaseClient.sendEvent("JoinPosts", []);
+        },
+        /**
+         * Leave the shared "posts" feed group
+         */
+        leavePosts: async () => {
+            await initPromise;
+            socketBaseClient.sendEvent("LeavePosts", []);
+        },
+        /**
+         * Join the per-post comment group to receive live comment events for a post
+         * @param postId Guid (string) with the postId
+         */
+        joinPostComments: async (postId: string) => {
+            await initPromise;
+            socketBaseClient.sendEvent("JoinPostComments", [postId]);
+        },
+        /**
+         * Leave the per-post comment group
+         * @param postId Guid (string) with the postId to be left
+         */
+        leavePostComments: async (postId: string) => {
+            await initPromise;
+            socketBaseClient.sendEvent("LeavePostComments", [postId]);
         }
     }
 }

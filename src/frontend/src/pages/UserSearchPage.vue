@@ -15,7 +15,6 @@ const searchQuery = ref('');
 const searchResults = ref<UserProfileBo[]>([]);
 const isSearching = ref(false);
 const hasSearched = ref(false);
-const searchType = ref<'username' | 'name' | 'email'>('username');
 
 const currentUserId = computed(() => authStore.userId.value || '');
 

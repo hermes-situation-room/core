@@ -1,20 +1,28 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { services } from '../services/api';
+import { services, sockets } from '../services/api';
 import type { PostBo } from '../types/post';
 import type { UserProfileBo } from '../types/user.ts';
 import { useAuthStore } from '../stores/auth-store';
 import { useNotification } from '../composables/use-notification.ts';
+import { useConfirm } from '../composables/use-confirm.ts';
 import { useContextMenu } from '../composables/use-context-menu';
 import { useTextFormatting } from '../composables/use-text-formatting.ts';
 import type { CommentBo, CreateCommentDto, UpdateCommentDto } from '../types/comment';
 import ProfileIconDisplay from '../components/profile-icon-display.vue';
+import ReportReasonModal from '../components/report-reason-modal.vue';
+import PostLikeBar from '../components/post-like-bar.vue';
+import CommentEditor from '../components/comment-editor.vue';
+import CommentList from '../components/comment-list.vue';
+import AttachmentList from '../components/attachments/attachment-list.vue';
+import type { AttachmentDto } from '../services/api/attachments-api';
 
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
 const notification = useNotification();
+const { confirm } = useConfirm();
 const { formatText } = useTextFormatting();
 const { 
     contextMenuItemId: contextMenuPostId,
@@ -27,6 +35,7 @@ const {
 } = useContextMenu();
 
 const post = ref<PostBo | null>(null);
+const attachments = ref<AttachmentDto[]>([]);
 const loading = ref(false);
 const loadingComments = ref(false);
 const creatingChat = ref(false);
@@ -85,6 +94,37 @@ const isPostOwner = computed(() => {
     return post.value && currentUserUid.value && post.value.creatorUid === currentUserUid.value;
 });
 
+const showReportModal = ref(false);
+const reportTargetType = ref<'Post' | 'Comment'>('Post');
+const reportTargetUid = ref('');
+const reportTargetLabel = ref('Post');
+
+const openReportPost = () => {
+    closeAllMenus();
+    if (!currentUserUid.value) {
+        notification.warning('Please log in to report posts');
+        return;
+    }
+    if (!post.value) {
+        return;
+    }
+    reportTargetType.value = 'Post';
+    reportTargetLabel.value = 'Post';
+    reportTargetUid.value = post.value.uid;
+    showReportModal.value = true;
+};
+
+const openReportComment = (comment: CommentBo) => {
+    if (!currentUserUid.value) {
+        notification.warning('Please log in to report comments');
+        return;
+    }
+    reportTargetType.value = 'Comment';
+    reportTargetLabel.value = comment.parentCommentUid ? 'Reply' : 'Comment';
+    reportTargetUid.value = comment.uid;
+    showReportModal.value = true;
+};
+
 const privacyText = computed(() => {
     if (post.value?.privacyLevel === 2) return 'This post is visible for journalists'
     if (post.value?.privacyLevel === 1) return 'This post is visible for logged in users'
@@ -105,10 +145,15 @@ const deletePost = async () => {
         return;
     }
     
-    if (!confirm('Are you sure you want to delete this post?')) {
+    if (!(await confirm({
+        title: 'Delete post',
+        message: 'Are you sure you want to delete this post?',
+        confirmLabel: 'Delete',
+        danger: true,
+    }))) {
         return;
     }
-    
+
     try {
         const result = await services.posts.deletePost(post.value.uid);
         if (result.isSuccess) {
@@ -134,7 +179,12 @@ const loadPost = async () => {
         const result = await services.posts.getPostById(postId);
         if (result.isSuccess && result.data) {
             post.value = result.data;
-            
+
+            const attachmentResult = await services.attachments.getByPost(postId);
+            if (attachmentResult.isSuccess && attachmentResult.data) {
+                attachments.value = attachmentResult.data;
+            }
+
             if (post.value.creatorUid) {
                 const profileResult = await services.users.getUserProfile(post.value.creatorUid, currentUserUid.value || post.value.creatorUid);
                 if (profileResult.isSuccess && profileResult.data) {
@@ -287,7 +337,12 @@ const updateComment = async (comment:CommentBo) => {
 }
 
 const deleteComment = async (comment:CommentBo) => {
-    if (!confirm('Are you sure you want to delete this comment?')) {
+    if (!(await confirm({
+        title: 'Delete comment',
+        message: 'Are you sure you want to delete this comment?',
+        confirmLabel: 'Delete',
+        danger: true,
+    }))) {
         return;
     }
 
@@ -412,10 +467,103 @@ const toggleLike = async () => {
     }
 };
 
-onMounted(() => {
+// Turn an incoming CommentDto from SignalR into a fully-populated CommentBo (display name + edit flag).
+const hydrateIncomingComment = async (incoming: CommentBo): Promise<CommentBo> => {
+    const hydrated: CommentBo = { ...incoming, inEdit: false };
+    try {
+        const displayName = await services.users.getDisplayName(incoming.creatorUid);
+        if (displayName.isSuccess && displayName.data) {
+            hydrated.displayName = displayName.data;
+        }
+    } catch (err) {
+        // Leave displayName as provided by the payload (may be empty)
+    }
+    // The create broadcast payload may omit the author's avatar; backfill it so live
+    // comments render the same as reloaded ones (template reads profileIcon/profileIconColor).
+    if (!hydrated.profileIcon) {
+        try {
+            const profile = await services.users.getUserProfile(incoming.creatorUid, currentUserUid.value || '');
+            if (profile.isSuccess && profile.data) {
+                hydrated.profileIcon = profile.data.profileIcon ?? '';
+                hydrated.profileIconColor = profile.data.profileIconColor ?? '';
+            }
+        } catch (err) {
+            // Avatar stays default until a manual reload
+        }
+    }
+    return hydrated;
+};
+
+const upsertComment = async (incoming: CommentBo) => {
+    if (!incoming || !incoming.uid) return;
+    if (!comments.value) {
+        comments.value = [];
+    }
+    const existingIndex = comments.value.findIndex(comment => comment.uid === incoming.uid);
+    if (existingIndex !== -1) {
+        // De-dupe: the current user's own comment may already be in the list from loadComments.
+        return;
+    }
+    const hydrated = await hydrateIncomingComment(incoming);
+    comments.value = [...comments.value, hydrated];
+};
+
+const handleCommentCreated = (incoming: CommentBo) => {
+    upsertComment(incoming);
+};
+
+const handleCommentReplyAdded = (incoming: CommentBo) => {
+    upsertComment(incoming);
+};
+
+const handleCommentUpdated = (incoming: CommentBo) => {
+    if (!incoming || !incoming.uid || !comments.value) return;
+    const index = comments.value.findIndex(comment => comment.uid === incoming.uid);
+    if (index === -1) return;
+    const existing = comments.value[index];
+    if (!existing) return;
+    // Preserve local UI state (displayName, edit flag) and only apply the new content.
+    comments.value.splice(index, 1, { ...existing, content: incoming.content });
+};
+
+const handleCommentDeleted = (commentUid: string) => {
+    if (!commentUid || !comments.value) return;
+    // Remove the comment and any replies hanging off it.
+    comments.value = comments.value.filter(comment => comment.uid !== commentUid && comment.parentCommentUid !== commentUid);
+};
+
+onMounted(async () => {
     loadPost();
     loadComments();
     loadLikeStats();
+
+    const postId = route.params.id as string;
+    if (!postId) return;
+    try {
+        await sockets.hub.initialize();
+        await sockets.hub.registerToEvent('CommentCreated', handleCommentCreated);
+        await sockets.hub.registerToEvent('CommentUpdated', handleCommentUpdated);
+        await sockets.hub.registerToEvent('CommentDeleted', handleCommentDeleted);
+        await sockets.hub.registerToEvent('CommentReplyAdded', handleCommentReplyAdded);
+        await sockets.hub.joinPostComments(postId);
+    } catch (error) {
+        console.warn('Failed to connect to real-time comment updates. Comments will update on reload:', error);
+    }
+});
+
+onUnmounted(async () => {
+    const postId = route.params.id as string;
+    try {
+        if (postId) {
+            await sockets.hub.leavePostComments(postId);
+        }
+        await sockets.hub.unregisterFromEvent('CommentCreated', handleCommentCreated);
+        await sockets.hub.unregisterFromEvent('CommentUpdated', handleCommentUpdated);
+        await sockets.hub.unregisterFromEvent('CommentDeleted', handleCommentDeleted);
+        await sockets.hub.unregisterFromEvent('CommentReplyAdded', handleCommentReplyAdded);
+    } catch (error) {
+        console.warn('Error leaving comment updates:', error);
+    }
 });
 </script>
 
@@ -439,21 +587,6 @@ onMounted(() => {
 
 .formatted-content :deep(em) {
     font-style: italic;
-}
-
-.replies-container {
-    border-left: 2px solid #dee2e6;
-    padding-left: 1rem;
-}
-
-.reply {
-    background-color: #f8f9fa;
-    border-radius: 0.375rem;
-    margin-bottom: 0.5rem;
-}
-
-.reply:hover {
-    background-color: #e9ecef;
 }
 </style>
 
@@ -536,6 +669,11 @@ onMounted(() => {
                             <div class="text-dark formatted-content" v-html="formatText(post.content)"></div>
                         </div>
 
+                        <div v-if="attachments.length" class="mb-4">
+                            <h6 class="text-muted text-uppercase mb-3">Attachments</h6>
+                            <AttachmentList :attachments="attachments" />
+                        </div>
+
                         <div class="mb-4">
                             <h6 class="text-muted text-uppercase mb-3">Tags</h6>
                             <div class="d-flex flex-wrap gap-1">
@@ -545,21 +683,12 @@ onMounted(() => {
                             </div>
                         </div>
                         
-                        <div class="d-flex align-items-center gap-3 pt-3 border-top">
-                            <button
-                                @click="toggleLike"
-                                :disabled="likingPost"
-                                class="btn btn-sm d-flex align-items-center gap-2"
-                                :class="userHasLiked ? 'btn-primary' : 'btn-outline-primary'"
-                            >
-                                <i :class="userHasLiked ? 'fas fa-heart' : 'far fa-heart'"></i>
-                                <span>{{ userHasLiked ? 'Liked' : 'Like' }}</span>
-                                <span v-if="likeCount > 0" class="badge bg-light text-dark">{{ likeCount }}</span>
-                            </button>
-                            <span class="text-muted small">
-                                {{ likeCount }} {{ likeCount === 1 ? 'person likes' : 'people like' }} this post
-                            </span>
-                        </div>
+                        <PostLikeBar
+                            :like-count="likeCount"
+                            :user-has-liked="userHasLiked"
+                            :liking-post="likingPost"
+                            @toggle="toggleLike"
+                        />
                     </div>
 
                     <div class="card-footer bg-light">
@@ -582,16 +711,27 @@ onMounted(() => {
                                 </a>
                             </span>
                             </div>
-                            <button 
-                                v-if="canSendMessage"
-                                class="btn btn-primary btn-sm"
-                                :disabled="creatingChat"
-                                @click="sendDirectMessage"
-                            >
-                                <span v-if="creatingChat" class="spinner-border spinner-border-sm me-1"></span>
-                                <i v-else class="fas fa-comment me-1"></i>
-                                Direct Message
-                            </button>
+                            <div class="d-flex align-items-center gap-2">
+                                <button
+                                    v-if="canSendMessage"
+                                    class="btn btn-primary btn-sm"
+                                    :disabled="creatingChat"
+                                    @click="sendDirectMessage"
+                                >
+                                    <span v-if="creatingChat" class="spinner-border spinner-border-sm me-1"></span>
+                                    <i v-else class="fas fa-comment me-1"></i>
+                                    Direct Message
+                                </button>
+                                <button
+                                    v-if="currentUserUid && !isPostOwner"
+                                    class="btn btn-outline-danger btn-sm"
+                                    @click="openReportPost"
+                                    title="Report this post"
+                                >
+                                    <i class="fas fa-flag me-1"></i>
+                                    Report
+                                </button>
+                            </div>
                             <RouterLink 
                                 v-if="!currentUserUid"
                                 to="/login"
@@ -632,18 +772,11 @@ onMounted(() => {
                     </button>
                 </div>
 
-                <div class="comment-input mt-3 mb-2 d-flex gap-2">
-                    <input v-model="commentContent" maxlength="255" minlength="1" type="text" class="rounded w-100 form-control" placeholder="Comment...">
-                    <button v-if="currentUserUid" class="w-25 rounded btn btn-primary" @click="postComment">Comment</button>
-                    <RouterLink 
-                        v-else
-                        to="/login"
-                        class="btn btn-outline-primary btn-sm"
-                    >
-                        <i class="fas fa-sign-in-alt me-1"></i>
-                        Login to Comment
-                    </RouterLink>
-                </div>
+                <CommentEditor
+                    v-model="commentContent"
+                    :can-comment="!!currentUserUid"
+                    @submit="postComment"
+                />
                 
                 <div v-if="comments && comments.length > 0" class="d-flex justify-content-between align-items-center mb-2">
                     <h6 class="mb-0">Comments ({{ comments.length }})</h6>
@@ -684,163 +817,33 @@ onMounted(() => {
                     </div>
                 </div>
                 
-                <div class="comment-list d-flex flex-column">
-                    <div v-for="comment in sortedComments" :key="comment.uid" class="comment border mb-2 p-3 rounded" style="min-height: 50px;">
-                        <!-- Main Comment -->
-                        <div v-if="!comment.inEdit" class="d-flex align-items-start gap-2 h-100">
-                            <div class="d-flex align-items-center" style="min-height: 40px;">
-                                <a
-                                    href="#"
-                                    class="text-decoration-none"
-                                    @click.prevent="router.push({ path: '/profile', query: { id: comment.creatorUid } })"
-                                    title="View profile"
-                                >
-                                    <ProfileIconDisplay
-                                        :icon="comment?.profileIcon"
-                                        :color="comment?.profileIconColor"
-                                        size="lg"
-                                        class="bg-white"
-                                    />
-                                </a>
-                            </div>
-                            
-                            <div class="flex-grow-1 d-flex flex-column justify-content-between h-100">
-                                <div class="d-flex justify-content-between align-items-center mb-1">
-                                    <a
-                                        href="#"
-                                        class="text-primary text-decoration-none fw-bold"
-                                        @click.prevent="router.push({ path: '/profile', query: { id: comment.creatorUid } })"
-                                    >
-                                        {{ comment.displayName }}
-                                    </a>
-                                    <div class="d-flex align-items-center gap-2">
-                                        <small class="text-muted">{{ formatDate(comment.timestamp) }}</small>
-                                        <div v-if="comment.creatorUid == currentUserUid && !comment.inEdit" class="d-flex gap-2">
-                                            <i class="fas fa-edit text-muted" style="cursor: pointer;" @click="editCommentToggle(comment)" title="Edit comment"></i>
-                                            <i class="fas fa-trash text-muted" style="cursor: pointer;" @click="deleteComment(comment)" title="Delete comment"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="text-break text-dark flex-grow-1">
-                                    {{ comment.content }}
-                                </div>
-                                
-                                <!-- Comment Actions -->
-                                <div class="d-flex align-items-center gap-3 mt-2">
-                                    <button 
-                                        v-if="currentUserUid"
-                                        class="btn btn-sm btn-outline-secondary"
-                                        @click="startReply(comment.uid)"
-                                    >
-                                        <i class="fas fa-reply me-1"></i>
-                                        Reply
-                                    </button>
-                                    
-                                    <button 
-                                        v-if="comment.replies && comment.replies.length > 0"
-                                        class="btn btn-sm btn-link text-muted p-0"
-                                        @click="toggleReplies(comment.uid)"
-                                    >
-                                        <i :class="showReplies.has(comment.uid) ? 'fas fa-chevron-down' : 'fas fa-chevron-right'" class="me-1"></i>
-                                        {{ comment.replies.length }} {{ comment.replies.length === 1 ? 'reply' : 'replies' }}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Edit Comment Form -->
-                        <div v-else class="d-flex justify-content-between align-items-center gap-2">
-                            <input v-model="editCommentContent" type="text" maxlength="255" class="rounded w-100 form-control">
-                            
-                            <button class="btn btn-primary btn-sm d-flex align-items-center" @click="updateComment(comment)">
-                                <i class="fas fa-check me-1"></i>
-                                Confirm
-                            </button>
-                            <button class="btn btn-secondary btn-sm d-flex align-items-center" @click="editCommentToggle(comment)">
-                                <i class="fas fa-times me-1"></i>
-                                Cancel
-                            </button>
-                        </div>
-                        
-                        <!-- Reply Form -->
-                        <div v-if="replyingToComment === comment.uid" class="mt-3 p-3 bg-light rounded">
-                            <div class="d-flex gap-2">
-                                <input 
-                                    v-model="replyContent" 
-                                    type="text" 
-                                    maxlength="255" 
-                                    class="form-control" 
-                                    placeholder="Write a reply..."
-                                >
-                                <button 
-                                    class="btn btn-primary btn-sm"
-                                    @click="postReply(comment.uid)"
-                                >
-                                    <i class="fas fa-paper-plane me-1"></i>
-                                    Reply
-                                </button>
-                                <button 
-                                    class="btn btn-secondary btn-sm"
-                                    @click="cancelReply()"
-                                >
-                                    <i class="fas fa-times me-1"></i>
-                                    Cancel
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <!-- Replies Section -->
-                        <div v-if="comment.replies && comment.replies.length > 0 && showReplies.has(comment.uid)" class="mt-3">
-                            <div class="replies-container ms-4">
-                                <div v-for="reply in comment.replies" :key="reply.uid" class="reply mb-2 p-2 bg-light rounded">
-                                    <div class="d-flex align-items-start gap-2">
-                                        <div class="d-flex align-items-center" style="min-height: 30px;">
-                                            <a
-                                                href="#"
-                                                class="text-decoration-none"
-                                                @click.prevent="router.push({ path: '/profile', query: { id: reply.creatorUid } })"
-                                                title="View profile"
-                                            >
-                                                <ProfileIconDisplay
-                                                    :icon="reply?.profileIcon"
-                                                    :color="reply?.profileIconColor"
-                                                    size="sm"
-                                                    class="bg-white"
-                                                />
-                                            </a>
-                                        </div>
-                                        
-                                        <div class="flex-grow-1">
-                                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                                <a
-                                                    href="#"
-                                                    class="text-primary text-decoration-none fw-bold small"
-                                                    @click.prevent="router.push({ path: '/profile', query: { id: reply.creatorUid } })"
-                                                >
-                                                    {{ reply.displayName }}
-                                                </a>
-                                                <div class="d-flex align-items-center gap-2">
-                                                    <small class="text-muted">{{ formatDate(reply.timestamp) }}</small>
-                                                    <div v-if="reply.creatorUid == currentUserUid" class="d-flex gap-2">
-                                                        <i class="fas fa-edit text-muted small" style="cursor: pointer;" @click="editCommentToggle(reply)" title="Edit reply"></i>
-                                                        <i class="fas fa-trash text-muted small" style="cursor: pointer;" @click="deleteComment(reply)" title="Delete reply"></i>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            
-                                            <div class="text-break text-dark small">
-                                                {{ reply.content }}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <CommentList
+                    :comments="sortedComments ?? []"
+                    :current-user-uid="currentUserUid"
+                    :show-replies="showReplies"
+                    :replying-to-comment="replyingToComment"
+                    v-model:edit-comment-content="editCommentContent"
+                    v-model:reply-content="replyContent"
+                    @edit-toggle="editCommentToggle"
+                    @delete="deleteComment"
+                    @update="updateComment"
+                    @report="openReportComment"
+                    @start-reply="startReply"
+                    @cancel-reply="cancelReply"
+                    @post-reply="postReply"
+                    @toggle-replies="toggleReplies"
+                    @navigate-profile="(creatorUid: string) => router.push({ path: '/profile', query: { id: creatorUid } })"
+                />
             </div>
         </div>
+
+        <ReportReasonModal
+            :show="showReportModal"
+            :target-type="reportTargetType"
+            :target-label="reportTargetLabel"
+            :target-uid="reportTargetUid"
+            @close="showReportModal = false"
+        />
     </div>
 </template>
 

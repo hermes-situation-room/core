@@ -14,6 +14,6 @@ public class TagController(IControllerInfrastructure infra, ITagService tagServi
     [AllowAnonymous]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_TAG])]
     [ProducesResponseType(typeof(IReadOnlyList<string>), StatusCodes.Status200OK)]
-    public Task<ActionResult<IReadOnlyList<string>>> GetAllTags() =>
-        Task.FromResult<ActionResult<IReadOnlyList<string>>>(Ok(tagService.GetAllTags()));
+    public async Task<ActionResult<IReadOnlyList<string>>> GetAllTags() =>
+        Ok(await tagService.GetAllTags());
 }

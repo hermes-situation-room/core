@@ -4,9 +4,10 @@ using AutoMapper;
 using Hermes.SituationRoom.Data.Interface;
 using Hermes.SituationRoom.Shared.BusinessObjects;
 using Hermes.SituationRoom.Shared.DataTransferObjects;
+using Hermes.SituationRoom.Shared.Exceptions;
 using Interfaces;
 
-public class UserService(IUserRepository userRepository, IActivistRepository activistRepository, IEncryptionService encryptionService, IMapper mapper) : IUserService
+public class UserService(IUserRepository userRepository, IActivistRepository activistRepository, IEncryptionService encryptionService, IBreachedPasswordService breachedPasswordService, IMapper mapper) : IUserService
 {
     public async Task<UserDto> GetUserAsync(Guid userUid) 
     {
@@ -30,12 +31,15 @@ public class UserService(IUserRepository userRepository, IActivistRepository act
         return mapper.Map<IReadOnlyList<UserDto>>(usersWithoutSensitiveData);
     }
 
-    public Task<Guid> CreateUserAsync(CreateUserRequestDto createUserDto) 
+    public async Task<Guid> CreateUserAsync(CreateUserRequestDto createUserDto)
     {
+        if (await breachedPasswordService.IsBreachedAsync(createUserDto.Password))
+            throw new ValidationBusinessException("Password", "This password has appeared in a known data breach. Please choose a different password.");
+
         var userBo = mapper.Map<UserBo>(createUserDto);
         (byte[] hash, byte[] salt) = encryptionService.EncryptPassword(createUserDto.Password);
         userBo = userBo with { PasswordHash = hash, PasswordSalt = salt };
-        return userRepository.AddAsync(userBo);
+        return await userRepository.AddAsync(userBo);
     }
 
     public async Task<Guid> GetUserIdByEmailOrUsernameAsync(string usernameOrEmail)

@@ -31,6 +31,8 @@ public partial class User
 
     public string WebsiteUrl { get; set; }
 
+    public bool IsAdmin { get; set; }
+
     public virtual Activist Activist { get; set; }
 
     public virtual ICollection<Chat> ChatUser1Us { get; set; } = new List<Chat>();
@@ -62,4 +64,8 @@ public partial class User
     public virtual ICollection<UserTag> UserTagsTagged { get; set; } = new List<UserTag>();
 
     public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
+
+    public virtual ICollection<TagRequest> TagRequestsSubmitted { get; set; } = new List<TagRequest>();
+
+    public virtual ICollection<TagRequest> TagRequestsReviewed { get; set; } = new List<TagRequest>();
 }

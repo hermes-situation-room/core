@@ -46,8 +46,8 @@ export default function usersApi(apiBaseClient: ApiBaseClient) {
         /**
          * Delete user account permanently
          */
-        async deleteUser(uid: string): Promise<BaseResultBo<void>> {
-            return await apiBaseClient.delete<void>(`services/api/internal/user/${uid}`);
+        async deleteUser(uid: string): Promise<BaseResultBo<undefined>> {
+            return await apiBaseClient.delete(`services/api/internal/user/${uid}`);
         }
     };
 }

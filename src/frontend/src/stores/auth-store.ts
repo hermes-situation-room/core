@@ -6,6 +6,7 @@ interface AuthState {
     isAuthenticated: boolean;
     userType: UserType | null;
     userId: string | null;
+    isAdmin: boolean;
     isLoading: boolean;
 }
 
@@ -13,6 +14,7 @@ const state = reactive<AuthState>({
     isAuthenticated: false,
     userType: null,
     userId: null,
+    isAdmin: false,
     isLoading: false
 });
 
@@ -29,6 +31,7 @@ const initAuth = async () => {
             state.isAuthenticated = true;
             state.userType = response.data.userType as UserType;
             state.userId = response.data.userId;
+            state.isAdmin = response.data.isAdmin;
         } else {
             clearAuthState();
         }
@@ -44,6 +47,7 @@ const clearAuthState = () => {
     state.isAuthenticated = false;
     state.userType = null;
     state.userId = null;
+    state.isAdmin = false;
 };
 
 const refreshUserData = async () => {
@@ -54,6 +58,7 @@ const refreshUserData = async () => {
             state.isAuthenticated = true;
             state.userType = response.data.userType as UserType;
             state.userId = response.data.userId;
+            state.isAdmin = response.data.isAdmin;
             return true;
         } else {
             clearAuthState();
@@ -70,6 +75,7 @@ export const useAuthStore = () => {
     const isAuthenticated = computed(() => state.isAuthenticated);
     const userType = computed(() => state.userType);
     const userId = computed(() => state.userId);
+    const isAdmin = computed(() => state.isAdmin);
     const isActivist = computed(() => state.userType === 'activist');
     const isJournalist = computed(() => state.userType === 'journalist');
     const isLoading = computed(() => state.isLoading);
@@ -106,6 +112,7 @@ export const useAuthStore = () => {
         isAuthenticated,
         userType,
         userId,
+        isAdmin,
         isActivist,
         isJournalist,
         isLoading,

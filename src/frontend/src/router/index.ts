@@ -12,6 +12,9 @@ import ProfilePage from "../pages/ProfilePage.vue";
 import EditProfilePage from "../pages/EditProfilePage.vue";
 import ChatsPage from "../pages/ChatsPage.vue";
 import UserSearchPage from "../pages/UserSearchPage.vue";
+import AdminTagRequestsPage from "../pages/AdminTagRequestsPage.vue";
+import AdminContentFilterPage from "../pages/AdminContentFilterPage.vue";
+import ModerationPage from "../pages/ModerationPage.vue";
 import { useAuthStore } from "../stores/auth-store";
 
 const router = createRouter({
@@ -92,6 +95,24 @@ const router = createRouter({
             name: "User Search",
             component: UserSearchPage,
         },
+        {
+            path: "/admin/tag-requests",
+            name: "Admin Tag Requests",
+            component: AdminTagRequestsPage,
+            meta: { requiresAuth: true, requiresAdmin: true },
+        },
+        {
+            path: "/admin/content-filter",
+            name: "Admin Content Filter",
+            component: AdminContentFilterPage,
+            meta: { requiresAuth: true, requiresAdmin: true },
+        },
+        {
+            path: "/admin/moderation",
+            name: "Moderation",
+            component: ModerationPage,
+            meta: { requiresAuth: true, requiresAdmin: true },
+        },
     ],
 });
 
@@ -110,9 +131,12 @@ router.beforeEach(async (to, _, next) => {
     }
     
     const isAuthenticated = authStore.isAuthenticated.value;
+    const isAdmin = authStore.isAdmin.value;
 
     if (to.meta.requiresAuth && !isAuthenticated) {
         next({ name: "Login" });
+    } else if (to.meta.requiresAdmin && !isAdmin) {
+        next({ name: "Posts" });
     } else if (to.meta.guestOnly && isAuthenticated) {
         next({ name: "Posts" });
     } else {

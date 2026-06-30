@@ -116,10 +116,11 @@ This document lists all features mentioned in the Situation Room documentation w
   - Voucher identification display
 
 #### 2.2.2.3 User Organization
-- ❌ **Private User Tags**
-  - Searchable personal tags
-  - Contact organization for journalists
-  - User-only visibility
+- ❌ **Private User Tags** *(scaffolding only — not functional)*
+  - 🟡 `UserTag` entity, `UserTagDto`, and `UserTagBo` exist
+  - ❌ No repository, service, controller, or DI registration
+  - ❌ No frontend
+  - ❌ Searchable personal tags / contact organization / user-only visibility not wired
 
 #### 2.2.2.4 Account Management
 - ✅ **Profile Deletion**
@@ -156,10 +157,14 @@ This document lists all features mentioned in the Situation Room documentation w
   - Automatic deletion after viewing
 
 #### 2.2.3.5 Notifications
-- ❌ **Push Notifications**
+- ✅ **Push Notifications**
   - New message alerts
   - In-app notification system
   - Background notification support
+  - Real-time notification delivery via SignalR
+  - Notification bell with unread count badge
+  - Mark as read functionality
+  - Automatic notifications for messages, comments, replies, and likes
 
 #### 2.2.3.6 Search Enhancement
 - ✅ **Chat Search**
@@ -197,11 +202,12 @@ This document lists all features mentioned in the Situation Room documentation w
   - Suggestion system
 
 #### 2.2.4.3 Content Moderation
-- ❌ **Report Button**
-  - Report posts, comments, users
-  - Administrator notification system
-  - Moderation dashboard
-  - Content review workflow
+- 🟡 **Report Button** *(backend complete, no frontend / no usable consumer)*
+  - ✅ `Report` entity, repository, `ReportService`, and `ReportController` (full CRUD)
+  - ✅ Review workflow endpoint (`PUT internal/report/{uid}/review`) and status/target queries
+  - ✅ DI registered, migration V1_11 table created
+  - ❌ No frontend at all (no report button, no `reports-api.ts`)
+  - ❌ Review endpoints are NOT gated by an admin role (none exists), and there is no moderation dashboard to read reports
 
 - ✅ **Liking Posts**
   - Post approval system
@@ -225,10 +231,9 @@ This document lists all features mentioned in the Situation Room documentation w
 
 #### 2.2.5.3 Administrative Tools
 - ❌ **Admin Role and Interface**
-  - Dedicated administrator role
-  - Content moderation tools
-  - User management interface
-  - Bulk content operations
+  - ❌ No administrator role exists anywhere (no `IsAdmin` / admin authorization)
+  - ❌ Content moderation tools / user management interface / bulk operations
+  - ⚠️ Note: the Report controller exposes `internal/report` review endpoints intended for admins, but with no admin role they are ungated and have no UI
 
 #### 2.2.5.4 Content Management
 - ❌ **Content Filter**
@@ -330,7 +335,7 @@ This document lists all features mentioned in the Situation Room documentation w
 - Database migrations are managed through Evolve
 - Production deployment uses Docker with Nginx reverse proxy
 
-**Last Updated:** October 17, 2025
+**Last Updated:** June 29, 2026 (reconciled against actual code)
 
 ---
 
@@ -392,11 +397,11 @@ This document lists all features mentioned in the Situation Room documentation w
    - Database table and endpoints
    - Optimistic UI updates
 
-10. **Comment Threading** (Backend)
-   - Parent comment support in database
-   - Threaded conversation infrastructure
+10. **Comment Threading / Replies** (Frontend + Backend — complete)
+   - Parent comment support in database (`ParentCommentUID`)
+   - Threaded conversation infrastructure in `CommentService`
    - Reply relationships configured
-   - Frontend UI ready for integration
+   - Frontend reply UI implemented (collapsible replies, edit/delete)
 
 11. **Extended Journalist Profiles** (Frontend + Backend)
    - Bio field (1000 chars)
@@ -406,21 +411,22 @@ This document lists all features mentioned in the Situation Room documentation w
    - Database fields added
    - Edit and display UI complete
 
-### ⚠️ Requires Additional Backend Implementation
+### ⚠️ Remaining Gaps (verified against code)
 
-The following features have database entities/tables created but need service layer completion:
+Status of items previously listed as "needs backend work":
 
-- **Report Button**: Entity and table created, needs service/controller implementation
-- **Private User Tags**: Entity and table created, needs service/controller implementation  
-- **Push Notifications**: Entity and table created, needs notification service
-- **Real-Time Live Updates**: Requires SignalR hub method extensions
+- **Push Notifications**: ✅ Complete — `NotificationService` (with SignalR), repository, and `NotificationController` all implemented and DI-registered.
+- **Report Button**: 🟡 Backend complete (`ReportController`/`ReportService`/`ReportRepository`, review workflow, DI-registered) but **no frontend** and **no admin role** to consume the review endpoints.
+- **Private User Tags**: ❌ Still scaffolding only — `UserTag` entity/DTO/BO exist, but **no repository, service, controller, DI registration, or frontend**.
+- **Admin Role / Moderation Dashboard**: ❌ Not started — no admin role exists, so the Report review endpoints are ungated and unused.
+- **Real-Time Live Updates** (posts/comments/chat list): ❌ Not implemented — only chat messages are real-time via SignalR.
 
-**Note:** Database migration V1_11 is ready with all schema changes!
+**Note:** Database migration V1_11 created all schema (PostLike, Notification, Report, UserTag tables, comment threading, journalist profile fields), but the UserTag table has no backing service code.
 
 ### 🎉 Session Achievements
 
 **Frontend Implementation: 100% Complete**
-- 12 major features implemented
+- 13 major features implemented
 - Clean pages architecture established
 - Dark mode fully functional
 - Enhanced security with password policies
@@ -428,6 +434,7 @@ The following features have database entities/tables created but need service la
 - Liking posts with full backend integration
 - Extended journalist profiles
 - Comment replies with threaded conversations
+- Push notifications with real-time updates
 - Production-ready UI for all features
 
 **Backend Implementation: Major Features Complete**
@@ -437,7 +444,44 @@ The following features have database entities/tables created but need service la
 - ✅ Extended User/Journalist profile fields
 - ✅ SpecializationTag system
 - ✅ Report, UserTag, Notification entities created
+- ✅ Notification system with real-time SignalR integration
+- ✅ Automatic notification creation for user interactions
 - ✅ DbContext fully configured
 - ✅ Dependency injection registered
 
-**Last Updated:** October 17, 2025
+**Last Updated:** June 29, 2026 (reconciled against actual code)
+
+---
+
+## Implementation Summary — June 30, 2026 (multi-workflow build)
+
+> This section is the current source of truth and supersedes the older per-feature markers above where they conflict. Delivered across 8 orchestrated workflows; every workflow ran adversarial verification and both build gates (`dotnet build` backend = 0 errors, `yarn build` frontend = clean) pass. Work is on branch `future-features` (uncommitted). Migrations now run **V1_12 → V1_18**.
+
+### ✅ Now fully implemented (was future/partial)
+- **Admin role** — `IsAdmin` on User (V1_12), `"Admin"` claim, config-driven startup seed; frontend admin-role plumbing (`/me` → auth-store → router `requiresAdmin` guard → navbar gating).
+- **Report button + moderation** (§2.2.4.6 / §2.2.5.3) — report action on posts/comments/profiles; admin moderation dashboard at `/admin/moderation`; backend endpoints `[Authorize(Roles="Admin")]` (the previously open review endpoints are now gated).
+- **Breached-password check** (§2.2.1.1) — HIBP k-anonymity on all three registration paths (fail-open).
+- **Private User Tags** (§2.2.2.3) — full stack (repo/service/controller/DI + owner-scoped frontend).
+- **Expand/request post tags + admin approval** (§2.2.4.3) — V1_13; plus a **Tag enum→DB-table refactor** (V1_15) so approved custom tags are real and usable on posts.
+- **Content filter** (§2.2.5.4) — V1_14; applied to public posts/comments only (never private messages); admin-managed rules.
+- **Real-time live updates** (§2.2.5.1) — live posts, comments, and chat list via SignalR (previously chat messages only).
+- **Group chats** (§2.2.3.1) — n:m `ChatMember` model (V1_16), seeded from existing 1:1 chats.
+- **Disappearing & view-once messages** (§2.2.3.4) — V1_17; server-enforced, membership-guarded view-once consume; expired purge + live removal.
+- **File & media sharing** (§2.2.3.2) — V1_18; AES-256-GCM encrypted-at-rest local storage, authorized download, attachments on posts/messages.
+- **In-app redaction** (§2.2.3.3) — 🟡 client-side image redaction (burned into pixels before upload); video redaction is a follow-up.
+- **Post text colors** (§2.2.4.4) — XSS-safe color markup + formatting toolbar.
+- **Spell checker** (§2.2.4.5) — browser-native spellcheck on prose inputs.
+- **UI/UX cleanup** — shared confirm-dialog (replaces native `confirm()`); handler-specific SignalR unregister; theme-variable/dark-mode consistency; CSS-based responsiveness; PostDetailPage decomposed.
+
+### 🟡 Design spec only (implementation deferred)
+- **2FA** (§2.2.1.2) — `src/specs/2FA_DESIGN.md` (TOTP-primary).
+- **End-to-End Encryption** (§2.2.1.3) — `src/specs/E2EE_DESIGN.md` (its at-rest §7.1 scheme is what file storage adopted).
+
+### ❌ Not started (deferred by decision)
+- Secure voice/video calls (§2.2.6.1), anonymous financial support (§2.2.6.2), infrastructure: DB backup / Kubernetes / NoSQL (§2.2.5.5, §2.2.7.3).
+
+### Known follow-ups
+- File-storage KEK falls back to an insecure built-in dev key when `FileStorage:ServerKeyBase64` is unset (now logs a startup warning) — **set a real 32-byte key before deployment**.
+- Migrations V1_12–V1_18 are compile-verified and follow the V1_11 T-SQL conventions, but not yet run against a live DB. A local `docker compose up` smoke test was attempted on 2026-06-30 but is blocked on Apple Silicon (SQL Server 2022 segfaults under QEMU); validate in an x86/CI SQL Server, or locally via the arm64-native `mcr.microsoft.com/azure-sql-edge` image.
+
+**Last Updated:** June 30, 2026 (multi-workflow build)

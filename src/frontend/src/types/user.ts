@@ -7,6 +7,12 @@ export interface UserProfileBo {
     employer?: string;
     profileIcon?: string;
     profileIconColor?: string;
+    bio?: string;
+    publishedWorkLink?: string;
+    linkedInUrl?: string;
+    twitterUrl?: string;
+    websiteUrl?: string;
+    specializations?: string[];
 }
 
 export interface ActivistBo {
@@ -32,6 +38,12 @@ export interface JournalistBo {
     profileIcon?: string;
     profileIconColor?: string;
     employer: string;
+    bio?: string;
+    publishedWorkLink?: string;
+    linkedInUrl?: string;
+    twitterUrl?: string;
+    websiteUrl?: string;
+    specializations?: string[];
 }
 
 export type UserType = 'activist' | 'journalist';

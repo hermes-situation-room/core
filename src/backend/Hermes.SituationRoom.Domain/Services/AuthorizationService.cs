@@ -30,6 +30,9 @@ public class AuthorizationService(IHttpContextAccessor httpContextAccessor, IUse
             new Claim(ClaimTypes.Role, "Activist")
         };
 
+        if (activist.IsAdmin)
+            claims.Add(new Claim(ClaimTypes.Role, "Admin"));
+
         var claimsIdentity = new ClaimsIdentity(
             claims, CookieAuthenticationDefaults.AuthenticationScheme);
 
@@ -66,6 +69,9 @@ public class AuthorizationService(IHttpContextAccessor httpContextAccessor, IUse
             new Claim(ClaimTypes.NameIdentifier, journalist.Uid.ToString()),
             new Claim(ClaimTypes.Role, "Journalist")
         };
+
+        if (journalist.IsAdmin)
+            claims.Add(new Claim(ClaimTypes.Role, "Admin"));
 
         var claimsIdentity = new ClaimsIdentity(
             claims, CookieAuthenticationDefaults.AuthenticationScheme);
@@ -116,7 +122,8 @@ public class AuthorizationService(IHttpContextAccessor httpContextAccessor, IUse
         var currentUserBo = new CurrentUserBo
         {
             UserId = userId,
-            UserType = userType
+            UserType = userType,
+            IsAdmin = HttpContext.User.IsInRole("Admin")
         };
 
         var currentUserDto = mapper.Map<CurrentUserDto>(currentUserBo);

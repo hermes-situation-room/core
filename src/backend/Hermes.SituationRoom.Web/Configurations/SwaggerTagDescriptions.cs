@@ -17,6 +17,12 @@ public class SwaggerTagDescriptions : IDocumentFilter
     public const string ENDPOINT_TAG_INTERNAL_MESSAGE = "Internal Message";
     public const string ENDPOINT_TAG_INTERNAL_AUTHORIZATION = "Internal Authorization";
     public const string ENDPOINT_TAG_INTERNAL_READ_STATUS = "Internal Read Status";
+    public const string ENDPOINT_TAG_INTERNAL_NOTIFICATION = "Internal Notification";
+    public const string ENDPOINT_TAG_INTERNAL_REPORT = "Internal Report";
+    public const string ENDPOINT_TAG_INTERNAL_USER_TAG = "Internal User Tag";
+    public const string ENDPOINT_TAG_INTERNAL_TAG_REQUEST = "Internal Tag Request";
+    public const string ENDPOINT_TAG_INTERNAL_CONTENT_FILTER = "Internal Content Filter";
+    public const string ENDPOINT_TAG_INTERNAL_ATTACHMENT = "Internal Attachment";
 
     public void Apply(OpenApiDocument swaggerDoc, DocumentFilterContext context)
     {
@@ -35,6 +41,12 @@ public class SwaggerTagDescriptions : IDocumentFilter
             new() { Name = ENDPOINT_TAG_INTERNAL_PRIVACY_LEVEL, Description = internalScopeDescription },
             new() { Name = ENDPOINT_TAG_INTERNAL_MESSAGE, Description = internalScopeDescription },
             new() { Name = ENDPOINT_TAG_INTERNAL_READ_STATUS, Description = internalScopeDescription },
+            new() { Name = ENDPOINT_TAG_INTERNAL_NOTIFICATION, Description = internalScopeDescription },
+            new() { Name = ENDPOINT_TAG_INTERNAL_REPORT, Description = internalScopeDescription },
+            new() { Name = ENDPOINT_TAG_INTERNAL_USER_TAG, Description = internalScopeDescription },
+            new() { Name = ENDPOINT_TAG_INTERNAL_TAG_REQUEST, Description = internalScopeDescription },
+            new() { Name = ENDPOINT_TAG_INTERNAL_CONTENT_FILTER, Description = internalScopeDescription },
+            new() { Name = ENDPOINT_TAG_INTERNAL_ATTACHMENT, Description = internalScopeDescription },
         };
     }
 }

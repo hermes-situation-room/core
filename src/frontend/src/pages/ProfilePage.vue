@@ -8,6 +8,7 @@ import { useNotification } from '../composables/use-notification.ts';
 import ProfileUserPostListComponent from '../components/profile-user-post-list-component.vue';
 import ProfileIconDisplay from '../components/profile-icon-display.vue';
 import PrivacyLevelPersonalOverviewComponent from '../components/privacy-level-personal-overview-component.vue';
+import ReportReasonModal from '../components/report-reason-modal.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -61,6 +62,20 @@ const loadUser = async () => {
     } finally {
         loading.value = false;
     }
+};
+
+const showReportModal = ref(false);
+
+const openReportUser = () => {
+    if (!currentUserUid.value) {
+        notification.warning('Please log in to report users');
+        return;
+    }
+    if (!userProfile.value?.uid) {
+        notification.error('The user has not been properly loaded');
+        return;
+    }
+    showReportModal.value = true;
 };
 
 const goBack = () => {
@@ -256,13 +271,21 @@ watch(() => route.query.id, () => {
                             </div>
                         </div>
                         
-                        <button 
+                        <button
                             v-if="userProfile.uid !== currentUserUid && currentUserUid"
                             class="btn btn-primary btn-sm"
                             @click="sendDirectMessage()"
                         >
                             <i class="fas fa-comment me-1"></i>
                             Message
+                        </button>
+                        <button
+                            v-if="userProfile.uid !== currentUserUid && currentUserUid"
+                            class="btn btn-outline-danger btn-sm ms-2"
+                            @click="openReportUser()"
+                        >
+                            <i class="fas fa-flag me-1"></i>
+                            Report
                         </button>
                         <RouterLink 
                             v-else-if="!currentUserUid"
@@ -279,6 +302,15 @@ watch(() => route.query.id, () => {
                 </div>
             </div>
         </div>
+
+        <ReportReasonModal
+            v-if="userProfile"
+            :show="showReportModal"
+            target-type="User"
+            target-label="User"
+            :target-uid="userProfile.uid"
+            @close="showReportModal = false"
+        />
     </div>
 </template>
 

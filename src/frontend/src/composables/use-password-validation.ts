@@ -59,7 +59,7 @@ export function usePasswordValidation() {
 export function useReactivePasswordValidation(password: ReturnType<typeof ref<string>>) {
     const { validatePassword, MIN_PASSWORD_LENGTH } = usePasswordValidation();
     
-    const validation = computed(() => validatePassword(password.value));
+    const validation = computed(() => validatePassword(password.value ?? ''));
     
     const isValid = computed(() => validation.value.isValid);
     const errors = computed(() => validation.value.errors);

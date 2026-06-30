@@ -3,10 +3,11 @@
 using AutoMapper;
 using Hermes.SituationRoom.Data.Interface;
 using Hermes.SituationRoom.Shared.BusinessObjects;
-using Hermes.SituationRoom.Shared.DataTransferObjects; 
+using Hermes.SituationRoom.Shared.DataTransferObjects;
+using Hermes.SituationRoom.Shared.Exceptions;
 using Interfaces;
 
-public class ActivistService(IActivistRepository activistRepository, IEncryptionService encryptionService, IMapper mapper) : IActivistService
+public class ActivistService(IActivistRepository activistRepository, IEncryptionService encryptionService, IBreachedPasswordService breachedPasswordService, IMapper mapper) : IActivistService
 {
     public async Task<ActivistDto> GetActivistAsync(Guid activistUid)
     {
@@ -22,12 +23,15 @@ public class ActivistService(IActivistRepository activistRepository, IEncryption
         return mapper.Map<IReadOnlyList<ActivistDto>>(activistsWithoutSensitiveData);
     } 
 
-    public Task<Guid> CreateActivistAsync(CreateActivistRequestDto createActivistDto) 
+    public async Task<Guid> CreateActivistAsync(CreateActivistRequestDto createActivistDto)
     {
+        if (await breachedPasswordService.IsBreachedAsync(createActivistDto.Password))
+            throw new ValidationBusinessException("Password", "This password has appeared in a known data breach. Please choose a different password.");
+
         var activistBo = mapper.Map<ActivistBo>(createActivistDto);
         (byte[] hash, byte[] salt) = encryptionService.EncryptPassword(createActivistDto.Password);
         activistBo = activistBo with { PasswordHash = hash, PasswordSalt = salt };
-        return activistRepository.AddAsync(activistBo); 
+        return await activistRepository.AddAsync(activistBo);
     }
     
     public Task<Guid?> FindActivistIdByUsernameAsync(string username) =>

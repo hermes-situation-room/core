@@ -21,6 +21,14 @@
   --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
   --shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
   --shadow-lg: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+  /* Modal backdrop scrim */
+  --modal-backdrop: rgba(0, 0, 0, 0.5);
+  /* Notification accent colors (semantic) */
+  --notification-message: #007bff;
+  --notification-comment: #28a745;
+  --notification-reply: #17a2b8;
+  --notification-like: #dc3545;
+  --notification-default: #6c757d;
 }
 
 [data-theme='dark'],
@@ -46,6 +54,14 @@
   --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.5);
   --shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.6);
   --shadow-lg: 0 1rem 3rem rgba(0, 0, 0, 0.7);
+  /* Modal backdrop scrim */
+  --modal-backdrop: rgba(0, 0, 0, 0.7);
+  /* Notification accent colors (brighter for dark backgrounds) */
+  --notification-message: #4dabff;
+  --notification-comment: #4ade80;
+  --notification-reply: #3dd5c4;
+  --notification-like: #f87171;
+  --notification-default: #adb5bd;
 }
 
 /* Apply theme variables to Bootstrap components */
@@ -244,6 +260,18 @@ a:hover {
   color: #ffffff !important;
 }
 
+/* text-dark would be near-invisible on dark surfaces — track theme text color */
+[data-theme='dark'] .text-dark,
+.dark-theme .text-dark {
+  color: var(--text-primary) !important;
+}
+
+/* border-dark should follow the theme border in dark mode */
+[data-theme='dark'] .border-dark,
+.dark-theme .border-dark {
+  border-color: var(--border-color) !important;
+}
+
 /* Button adjustments for dark mode */
 [data-theme='dark'] .btn-outline-secondary,
 .dark-theme .btn-outline-secondary {
@@ -254,6 +282,22 @@ a:hover {
 [data-theme='dark'] .btn-outline-secondary:hover,
 .dark-theme .btn-outline-secondary:hover {
   background-color: var(--bg-tertiary);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+/* Solid dark buttons have no theme remap by default — keep them legible
+   against dark surfaces by using the themed dark surface + primary text. */
+[data-theme='dark'] .btn-dark,
+.dark-theme .btn-dark {
+  background-color: var(--bg-tertiary);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+[data-theme='dark'] .btn-dark:hover,
+.dark-theme .btn-dark:hover {
+  background-color: var(--border-color);
   border-color: var(--border-color);
   color: var(--text-primary);
 }

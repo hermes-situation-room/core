@@ -435,7 +435,7 @@ onMounted(() => {
             v-if="showFilterModal"
             class="modal fade show d-block" 
             tabindex="-1" 
-            style="background-color: rgba(0, 0, 0, 0.5);"
+            style="background-color: var(--modal-backdrop);"
             @click.self="closeFilterModal"
         >
             <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">

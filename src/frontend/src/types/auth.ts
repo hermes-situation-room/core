@@ -34,4 +34,5 @@ export interface RegisterJournalistDto {
 export interface CurrentUserResponse {
     userId: string;
     userType: string;
+    isAdmin: boolean;
 }

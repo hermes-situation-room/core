@@ -5,6 +5,9 @@ import type { CreatePostDto } from '../types/post';
 import { useAuthStore } from '../stores/auth-store';
 import { useNotification } from '../composables/use-notification.ts';
 import { useTextFormatting } from '../composables/use-text-formatting.ts';
+import FormattingToolbar from './formatting-toolbar.vue';
+import AttachmentPicker from './attachments/attachment-picker.vue';
+import type { AttachmentDto } from '../services/api/attachments-api';
 
 const authStore = useAuthStore();
 const notification = useNotification();
@@ -41,6 +44,7 @@ const formData = ref<{
 
 const availableTags = ref<string[]>([]);
 const selectedTags = ref<string[]>([]);
+const attachments = ref<AttachmentDto[]>([]);
 const availablePostPrivacyLevels = ref<string[]>([]);
 const selectedPrivacyLevelName = ref<string>('');
 const selectedPrivacyLevelIndex = ref<number>(0);
@@ -95,6 +99,32 @@ const loadTags = async () => {
     }
 };
 
+const newTagName = ref('');
+const requestingTag = ref(false);
+
+const requestNewTag = async () => {
+    const name = newTagName.value.trim();
+    if (!name) {
+        notification.warning('Enter a tag name to request');
+        return;
+    }
+
+    requestingTag.value = true;
+    try {
+        const result = await services.tagRequests.createTagRequest({ name });
+        if (result.isSuccess) {
+            notification.created('Tag request submitted for admin approval');
+            newTagName.value = '';
+        } else {
+            notification.error(result.responseMessage || 'Failed to request tag');
+        }
+    } catch (err) {
+        notification.error(err instanceof Error ? err.message : 'Error requesting tag');
+    } finally {
+        requestingTag.value = false;
+    }
+};
+
 const toggleTag = (tag: string) => {
     const index = selectedTags.value.indexOf(tag);
     if (index > -1) {
@@ -116,6 +146,7 @@ watch(() => props.show, (newVal) => {
             content: ''
         };
         selectedTags.value = [];
+        attachments.value = [];
         error.value = '';
         selectedPrivacyLevelName.value = availablePostPrivacyLevels.value[0] || 'EVERYONE';
         selectedPrivacyLevelIndex.value = 0;
@@ -156,6 +187,7 @@ const handleSubmit = async () => {
             creatorUid: authStore.userId.value,
             tags: selectedTags.value.map(tag => tag.toUpperCase()),
             privacyLevel: selectedPrivacyLevelIndex.value,
+            attachmentIds: attachments.value.map(attachment => attachment.uid),
         };
 
         const result = await services.posts.createPost(postData);
@@ -206,7 +238,7 @@ onMounted(() => {
         v-if="show"
         class="modal fade show d-block"
         tabindex="-1"
-        style="background-color: rgba(0, 0, 0, 0.5);"
+        style="background-color: var(--modal-backdrop);"
         @click.self="handleClose"
     >
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
@@ -230,6 +262,8 @@ onMounted(() => {
                                 id="postTitle"
                                 v-model="formData.title"
                                 placeholder="Enter post title"
+                                spellcheck="true"
+                                lang="en"
                                 :disabled="loading"
                                 required
                             />
@@ -243,6 +277,8 @@ onMounted(() => {
                                 v-model="formData.description"
                                 placeholder="Brief description of the post"
                                 rows="2"
+                                spellcheck="true"
+                                lang="en"
                                 :disabled="loading"
                                 required
                             ></textarea>
@@ -250,12 +286,19 @@ onMounted(() => {
 
                         <div class="mb-3">
                             <label for="postContent" class="form-label">Content <span class="text-danger">*</span></label>
+                            <FormattingToolbar
+                                target-id="postContent"
+                                v-model="formData.content"
+                                :disabled="loading"
+                            />
                             <textarea
                                 class="form-control"
                                 id="postContent"
                                 v-model="formData.content"
                                 placeholder="Write your post content here..."
                                 rows="8"
+                                spellcheck="true"
+                                lang="en"
                                 :disabled="loading"
                                 required
                             ></textarea>
@@ -275,6 +318,15 @@ onMounted(() => {
                                     <i class="fas fa-question-circle me-1"></i>
                                     Help
                                 </button>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Attachments</label>
+                            <AttachmentPicker v-model="attachments" :disabled="loading" />
+                            <div class="form-text">
+                                <i class="fas fa-user-secret me-1"></i>
+                                Images can be redacted (faces/text blurred or blacked out) before they leave your device.
                             </div>
                         </div>
 
@@ -339,6 +391,35 @@ onMounted(() => {
                                 ({{ selectedTags.length }} selected)
                                 </span>
                             </div>
+
+                            <div class="mt-3">
+                                <label for="requestTagInput" class="form-label small text-muted">
+                                    Can't find a tag? Request a new one
+                                </label>
+                                <div class="input-group input-group-sm">
+                                    <input
+                                        type="text"
+                                        class="form-control"
+                                        id="requestTagInput"
+                                        v-model="newTagName"
+                                        placeholder="e.g. Climate Crisis"
+                                        :disabled="requestingTag"
+                                        @keyup.enter.prevent="requestNewTag"
+                                    />
+                                    <button
+                                        type="button"
+                                        class="btn btn-outline-primary"
+                                        @click="requestNewTag"
+                                        :disabled="requestingTag || !newTagName.trim()"
+                                    >
+                                        <span v-if="requestingTag" class="spinner-border spinner-border-sm me-1" role="status"></span>
+                                        Request tag
+                                    </button>
+                                </div>
+                                <div class="form-text">
+                                    New tags require admin approval before they can be used.
+                                </div>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -370,7 +451,7 @@ onMounted(() => {
         v-if="showFormattingHelp"
         class="modal fade show d-block" 
         tabindex="-1" 
-        style="background-color: rgba(0, 0, 0, 0.5); z-index: 1060;"
+        style="background-color: var(--modal-backdrop); z-index: 1060;"
         @click.self="showFormattingHelp = false"
     >
         <div class="modal-dialog modal-dialog-centered">
@@ -426,6 +507,20 @@ onMounted(() => {
                         </div>
                     </div>
                     
+                    <div class="mb-3">
+                        <h6 class="fw-bold">Colored Text</h6>
+                        <p class="mb-1">Wrap text with <code>[color=NAME]</code> and <code>[/color]</code>:</p>
+                        <p class="mb-2">
+                            <code>[color=red]your text[/color]</code>
+                            <i class="fas fa-arrow-right mx-2"></i>
+                            <span style="color: red">your text</span>
+                        </p>
+                        <p class="mb-0 small text-muted">
+                            Allowed colors: red, orange, yellow, green, teal, blue, purple, pink, gray,
+                            black, white, or a hex value like <code>[color=#247BA0]text[/color]</code>.
+                        </p>
+                    </div>
+
                     <div class="alert alert-info mb-0">
                         <i class="fas fa-lightbulb me-2"></i>
                         <small>You can combine formatting: <code>**bold and *italic***</code></small>
