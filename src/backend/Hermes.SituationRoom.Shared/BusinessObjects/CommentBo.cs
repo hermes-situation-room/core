@@ -7,5 +7,6 @@ public record CommentBo(Guid Uid,
     Guid PostUid,
     string? ProfileIcon,
     string? ProfileIconColor,
-    string Content
+    string Content,
+    Guid? ParentCommentUid = null
 );

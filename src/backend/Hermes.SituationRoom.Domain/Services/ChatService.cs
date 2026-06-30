@@ -10,18 +10,24 @@ public class ChatService(IChatRepository chatRepository, IUserChatReadStatusServ
 {
     public async Task<Guid> AddAsync(CreateChatRequestDto createChatDto)
     {
-        var chatId = await chatRepository.FindChatByUserPairAsync(createChatDto.User1Uid, createChatDto.User2Uid);
-        
-        if (chatId.HasValue)
+        var chatBo = mapper.Map<ChatBo>(createChatDto);
+
+        // 1:1 chats are unique per user pair: return the existing one instead of duplicating.
+        if (!chatBo.IsGroup && chatBo.MemberUids.Count == 2)
         {
-            return chatId.Value;
+            var existingChatId = await chatRepository.FindChatByUserPairAsync(chatBo.MemberUids[0], chatBo.MemberUids[1]);
+            if (existingChatId.HasValue)
+            {
+                return existingChatId.Value;
+            }
         }
 
-        var chatBo = mapper.Map<ChatBo>(createChatDto);
         var newChatId = await chatRepository.AddAsync(chatBo);
 
-        await userReadStatusService.CreateReadStatusAsync(createChatDto.User1Uid, newChatId);
-        await userReadStatusService.CreateReadStatusAsync(createChatDto.User2Uid, newChatId);
+        foreach (var memberUid in chatBo.MemberUids)
+        {
+            await userReadStatusService.CreateReadStatusAsync(memberUid, newChatId);
+        }
 
         return newChatId;
     }
@@ -51,9 +57,11 @@ public class ChatService(IChatRepository chatRepository, IUserChatReadStatusServ
         var newChatBo = new ChatBo(Guid.NewGuid(), user1Id, user2Id);
         var chatId = await chatRepository.AddAsync(newChatBo);
 
-        await userReadStatusService.CreateReadStatusAsync(newChatBo.User1Uid, chatId);
-        await userReadStatusService.CreateReadStatusAsync(newChatBo.User2Uid, chatId);
-        
+        foreach (var memberUid in newChatBo.MemberUids)
+        {
+            await userReadStatusService.CreateReadStatusAsync(memberUid, chatId);
+        }
+
         var chat = await chatRepository.GetChatAsync(chatId);
         return mapper.Map<ChatDto>(chat);
     }

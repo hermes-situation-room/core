@@ -1,17 +1,21 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { watch } from "vue";
-import MainPostsComponent from "../components/main-posts-component.vue";
-import JournalistPostsComponent from "../components/journalist-posts-component.vue";
-import ActivistPostsComponent from "../components/activist-posts-component.vue";
-import PostDetailComponent from "../components/post-detail-component.vue";
-import EditPostComponent from "../components/edit-post-component.vue";
-import LoginComponent from "../components/login-component.vue";
-import RegisterComponent from "../components/register-component.vue";
-import CreateChatComponent from "../components/create-chat-component.vue";
-import ProfileComponent from "../components/profile-component.vue";
-import EditProfileComponent from "../components/edit-profile-component.vue";
+import PostsPage from "../pages/PostsPage.vue";
+import JournalistPostsPage from "../pages/JournalistPostsPage.vue";
+import ActivistPostsPage from "../pages/ActivistPostsPage.vue";
+import PostDetailPage from "../pages/PostDetailPage.vue";
+import EditPostPage from "../pages/EditPostPage.vue";
+import LoginPage from "../pages/LoginPage.vue";
+import RegisterPage from "../pages/RegisterPage.vue";
+import CreateChatPage from "../pages/CreateChatPage.vue";
+import ProfilePage from "../pages/ProfilePage.vue";
+import EditProfilePage from "../pages/EditProfilePage.vue";
+import ChatsPage from "../pages/ChatsPage.vue";
+import UserSearchPage from "../pages/UserSearchPage.vue";
+import AdminTagRequestsPage from "../pages/AdminTagRequestsPage.vue";
+import AdminContentFilterPage from "../pages/AdminContentFilterPage.vue";
+import ModerationPage from "../pages/ModerationPage.vue";
 import { useAuthStore } from "../stores/auth-store";
-import ChatsComponent from "../components/chats-component.vue";
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -19,72 +23,95 @@ const router = createRouter({
         {
             path: "/",
             name: "Posts",
-            component: MainPostsComponent,
+            component: PostsPage,
             redirect: "/journalist",
             children: [
                 {
                     path: "journalist",
                     name: "Journalist Posts",
-                    component: JournalistPostsComponent,
+                    component: JournalistPostsPage,
                 },
                 {
                     path: "activist",
                     name: "Activist Posts",
-                    component: ActivistPostsComponent,
+                    component: ActivistPostsPage,
                 },
             ],
         },
         {
             path: "/post/:id",
             name: "Post Detail",
-            component: PostDetailComponent,
+            component: PostDetailPage,
         },
         {
             path: "/post/:id/edit",
             name: "Edit Post",
-            component: EditPostComponent,
+            component: EditPostPage,
             meta: { requiresAuth: true },
         },
         {
             path: "/login",
             name: "Login",
-            component: LoginComponent,
+            component: LoginPage,
             meta: { guestOnly: true },
         },
         {
             path: "/register",
             name: "Register",
-            component: RegisterComponent,
+            component: RegisterPage,
             meta: { guestOnly: true },
         },
         {
             path: "/chats",
             name: "Chats",
-            component: ChatsComponent,
+            component: ChatsPage,
             meta: { requiresAuth: true },
         },
         {
             path: "/chat/new",
             name: "Create Chat",
-            component: CreateChatComponent,
+            component: CreateChatPage,
             meta: { requiresAuth: true },
         },
         {
             path: "/chat/:id",
             name: "Chat Detail",
-            component: ChatsComponent,
+            component: ChatsPage,
             meta: { requiresAuth: true },
         },
         {
             path: "/profile",
             name: "Profile",
-            component: ProfileComponent,
+            component: ProfilePage,
         },
         {
             path: "/profile/edit",
             name: "EditProfile",
-            component: EditProfileComponent,
+            component: EditProfilePage,
             meta: { requiresAuth: true },
+        },
+        {
+            path: "/users/search",
+            name: "User Search",
+            component: UserSearchPage,
+        },
+        {
+            path: "/admin/tag-requests",
+            name: "Admin Tag Requests",
+            component: AdminTagRequestsPage,
+            meta: { requiresAuth: true, requiresAdmin: true },
+        },
+        {
+            path: "/admin/content-filter",
+            name: "Admin Content Filter",
+            component: AdminContentFilterPage,
+            meta: { requiresAuth: true, requiresAdmin: true },
+        },
+        {
+            path: "/admin/moderation",
+            name: "Moderation",
+            component: ModerationPage,
+            meta: { requiresAuth: true, requiresAdmin: true },
         },
     ],
 });
@@ -104,9 +131,12 @@ router.beforeEach(async (to, _, next) => {
     }
     
     const isAuthenticated = authStore.isAuthenticated.value;
+    const isAdmin = authStore.isAdmin.value;
 
     if (to.meta.requiresAuth && !isAuthenticated) {
         next({ name: "Login" });
+    } else if (to.meta.requiresAdmin && !isAdmin) {
+        next({ name: "Posts" });
     } else if (to.meta.guestOnly && isAuthenticated) {
         next({ name: "Posts" });
     } else {

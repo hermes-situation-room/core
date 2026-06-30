@@ -205,7 +205,8 @@ public sealed class ActivistRepository(IHermessituationRoomContext context, IUse
             activist.Username,
             activist.IsFirstNameVisible,
             activist.IsLastNameVisible,
-            activist.IsEmailVisible
+            activist.IsEmailVisible,
+            user.IsAdmin
         );
     }
 }

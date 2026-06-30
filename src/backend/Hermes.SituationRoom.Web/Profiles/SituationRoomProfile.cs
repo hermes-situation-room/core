@@ -25,7 +25,8 @@ public class SituationRoomProfile : Profile
                 src.UserName,
                 src.IsFirstNameVisible,
                 src.IsLastNameVisible,
-                src.IsEmailVisible
+                src.IsEmailVisible,
+                false
             ));
         CreateMap<UpdateActivistRequestDto, ActivistBo>()
             .ConstructUsing(src => new(
@@ -41,7 +42,8 @@ public class SituationRoomProfile : Profile
                 src.UserName,
                 src.IsFirstNameVisible,
                 src.IsLastNameVisible,
-                src.IsEmailVisible
+                src.IsEmailVisible,
+                false
             ));
 
         // Journalist mappings
@@ -58,7 +60,13 @@ public class SituationRoomProfile : Profile
                 src.EmailAddress,
                 src.ProfileIcon,
                 src.ProfileIconColor,
-                src.Employer
+                src.Employer,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
             ));
         CreateMap<UpdateJournalistRequestDto, JournalistBo>()
             .ConstructUsing(src => new(
@@ -71,7 +79,13 @@ public class SituationRoomProfile : Profile
                 src.EmailAddress,
                 src.ProfileIcon,
                 src.ProfileIconColor,
-                src.Employer
+                src.Employer,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
             ));
 
         // User mappings
@@ -87,7 +101,13 @@ public class SituationRoomProfile : Profile
                 src.LastName,
                 src.EmailAddress,
                 null,
-                null
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                false
             ));
         CreateMap<UpdateUserRequestDto, UserBo>()
             .ConstructUsing(src => new(
@@ -99,7 +119,13 @@ public class SituationRoomProfile : Profile
                 src.LastName,
                 src.EmailAddress,
                 src.ProfileIcon,
-                src.ProfileIconColor
+                src.ProfileIconColor,
+                null,
+                null,
+                null,
+                null,
+                null,
+                false
             ));
 
         // Post mappings
@@ -139,7 +165,8 @@ public class SituationRoomProfile : Profile
                 src.PostUid,
                 null,
                 null,
-                src.Content
+                src.Content,
+                src.ParentCommentUid
             ));
         CreateMap<UpdateCommentRequestDto, CommentBo>()
             .ConstructUsing(src => new(
@@ -149,7 +176,8 @@ public class SituationRoomProfile : Profile
                 Guid.Empty,
                 null,
                 null,
-                src.Content
+                src.Content,
+                null
             ));
 
         // Chat mappings
@@ -158,8 +186,13 @@ public class SituationRoomProfile : Profile
         CreateMap<CreateChatRequestDto, ChatBo>()
             .ConstructUsing(src => new(
                 Guid.NewGuid(),
-                src.User1Uid,
-                src.User2Uid
+                src.MemberUids != null && src.MemberUids.Count > 0 ? src.MemberUids[0] : src.User1Uid,
+                src.MemberUids != null && src.MemberUids.Count > 1 ? src.MemberUids[1] : src.User2Uid,
+                src.MemberUids != null && src.MemberUids.Count > 0
+                    ? src.MemberUids
+                    : new[] { src.User1Uid, src.User2Uid },
+                src.Name,
+                src.MemberUids != null && src.MemberUids.Count > 2
             ));
 
         // Message mappings
@@ -172,7 +205,13 @@ public class SituationRoomProfile : Profile
                 src.SenderUid,
                 src.ChatUid,
                 DateTime.UtcNow
-            ));
+            )
+            {
+                ExpiresAt = src.DisappearAfterSeconds.HasValue
+                    ? DateTime.UtcNow.AddSeconds(src.DisappearAfterSeconds.Value)
+                    : (DateTime?)null,
+                IsViewOnce = src.IsViewOnce
+            });
         CreateMap<UpdateMessageRequestDto, MessageBo>()
             .ConstructUsing(src => new(
                 src.Content,
@@ -214,5 +253,60 @@ public class SituationRoomProfile : Profile
         // Login mappings
         CreateMap<LoginActivistRequestDto, LoginActivistBo>();
         CreateMap<LoginJournalistRequestDto, LoginJournalistBo>();
+
+        // PostLike mappings
+        CreateMap<PostLikeBo, PostLikeDto>();
+        CreateMap<PostLikeDto, PostLikeBo>();
+        CreateMap<CreatePostLikeDto, PostLikeBo>()
+            .ConstructUsing(src => new(
+                Guid.NewGuid(),
+                src.PostUid,
+                src.UserUid,
+                DateTime.UtcNow
+            ));
+
+        // UserTag mappings
+        CreateMap<UserTagBo, UserTagDto>();
+        CreateMap<UserTagDto, UserTagBo>();
+        CreateMap<CreateUserTagDto, UserTagBo>()
+            .ConstructUsing(src => new(
+                Guid.NewGuid(),
+                src.OwnerUid,
+                src.TaggedUserUid,
+                src.TagName,
+                src.Notes,
+                DateTime.UtcNow
+            ));
+
+        // Report mappings
+        CreateMap<Data.Entities.Report, ReportBo>()
+            .ConstructUsing(src => new(
+                src.Uid,
+                src.ReporterUid,
+                src.TargetType,
+                src.TargetUid,
+                src.Reason,
+                src.Status,
+                src.Timestamp,
+                src.ReviewedByUid,
+                src.ReviewedAt,
+                src.AdminNotes
+            ));
+        CreateMap<ReportBo, Data.Entities.Report>()
+            .ForMember(dest => dest.ReporterU, opt => opt.Ignore())
+            .ForMember(dest => dest.ReviewedByU, opt => opt.Ignore());
+        CreateMap<ReportBo, ReportDto>();
+        CreateMap<ReportDto, ReportBo>();
+
+        // TagRequest mappings
+        CreateMap<TagRequestBo, TagRequestDto>();
+        CreateMap<TagRequestDto, TagRequestBo>();
+
+        // ContentFilterRule mappings
+        CreateMap<ContentFilterRuleBo, ContentFilterRuleDto>();
+        CreateMap<ContentFilterRuleDto, ContentFilterRuleBo>();
+
+        // Attachment mappings (DTO never exposes key material)
+        CreateMap<AttachmentBo, AttachmentDto>();
     }
 }

@@ -1,5 +1,5 @@
 ﻿import type {BaseResultBo} from "../models/bo/base-result-bo";
-import type {ChatBo, CreateChatDto} from "../../types/chat";
+import type {ChatBo, CreateChatDto, CreateGroupChatDto} from "../../types/chat";
 import ApiBaseClient from "./base/api-base-client";
 
 export default function chatsApi(apiBaseClient: ApiBaseClient) {
@@ -50,6 +50,22 @@ export default function chatsApi(apiBaseClient: ApiBaseClient) {
          */
         async createChat(chatData: CreateChatDto): Promise<BaseResultBo<string>> {
             return await apiBaseClient.post<CreateChatDto>('services/api/internal/chats', chatData);
+        },
+
+        /**
+         * Create a new group chat with an arbitrary number of members.
+         * Returns the new chat, fetched after creation.
+         */
+        async createGroupChat(memberUids: string[], name?: string): Promise<BaseResultBo<ChatBo>> {
+            const createGroupChatDto: CreateGroupChatDto = {
+                memberUids: memberUids,
+                name: name
+            };
+
+            const response = await apiBaseClient.post<CreateGroupChatDto>('services/api/internal/group-chats', createGroupChatDto);
+            const chatId = response.data;
+
+            return await apiBaseClient.get<ChatBo>(`services/api/internal/chats/${chatId}`);
         },
 
         /**

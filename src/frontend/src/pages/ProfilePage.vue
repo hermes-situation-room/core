@@ -1,0 +1,316 @@
+<script setup lang="ts">
+import { ref, onMounted, computed, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { services } from '../services/api';
+import type { UserProfileBo } from '../types/user.ts';
+import { useAuthStore } from '../stores/auth-store';
+import { useNotification } from '../composables/use-notification.ts';
+import ProfileUserPostListComponent from '../components/profile-user-post-list-component.vue';
+import ProfileIconDisplay from '../components/profile-icon-display.vue';
+import PrivacyLevelPersonalOverviewComponent from '../components/privacy-level-personal-overview-component.vue';
+import ReportReasonModal from '../components/report-reason-modal.vue';
+
+const route = useRoute();
+const router = useRouter();
+const authStore = useAuthStore();
+const notification = useNotification();
+
+const userProfile = ref<UserProfileBo | null>(null);
+const loading = ref(false);
+const currentUserUid = computed(() => authStore.userId.value || '');
+
+const isOwnProfile = computed(() => {
+    const userId = route.query.id as string;
+    const currentUserId = authStore.userId.value || '';
+    return userId === currentUserId;
+});
+
+const currentUserType = computed(() =>{
+    return authStore.userType.value
+})
+
+const isActivist = computed(() => {
+    return userProfile.value?.userName != null;
+});
+
+const isJournalist = computed(() => {
+    return userProfile.value?.employer != null;
+});
+
+const loadUser = async () => {
+    const userId = route.query.id as string;
+    const consumerId = authStore.userId.value || '';
+
+    if (!userId) {
+        notification.error('User ID not found');
+        return;
+    }
+
+    loading.value = true;
+    userProfile.value = null;
+    
+    try {
+        const result = await services.users.getUserProfile(userId, consumerId);
+        if (result.isSuccess && result.data) {
+            userProfile.value = result.data;
+        } else {
+            notification.error(result.responseMessage || 'Failed to load user profile');
+        }
+    } catch (err) {
+        notification.error('Error loading user profile');
+        console.error('Error loading user profile:', err);
+    } finally {
+        loading.value = false;
+    }
+};
+
+const showReportModal = ref(false);
+
+const openReportUser = () => {
+    if (!currentUserUid.value) {
+        notification.warning('Please log in to report users');
+        return;
+    }
+    if (!userProfile.value?.uid) {
+        notification.error('The user has not been properly loaded');
+        return;
+    }
+    showReportModal.value = true;
+};
+
+const goBack = () => {
+    router.back();
+};
+
+const sendDirectMessage = async () => {
+    if (!currentUserUid.value) {
+        notification.warning('Please log in to send messages');
+        return;
+    }
+
+    if (userProfile.value?.uid === currentUserUid.value) {
+        notification.warning('You can not send messages to yourself');
+        return;
+    }
+
+    if (!userProfile.value?.uid){
+        notification.error('The user has not been properly loaded');
+        return;
+    }
+
+    try {
+        const chatResult = await services.chats.getOrCreateChatByUserPair(
+            currentUserUid.value,
+            userProfile.value.uid
+        );
+
+        if (chatResult.isSuccess && chatResult.data) {
+            router.push(`/chat/${chatResult.data.uid}`);
+        } else {
+            notification.error(chatResult.responseMessage || 'Failed to open chat');
+        }
+    } catch (err) {
+        notification.error('An error occurred while opening the chat');
+    }
+};
+
+onMounted(() => {
+    loadUser();
+});
+
+watch(() => route.query.id, () => {
+    loadUser();
+});
+
+</script>
+
+<template>
+    <div class="container py-4">
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-8 col-xl-6">
+                <button @click="goBack" class="btn btn-outline-secondary mb-4">
+                    <i class="fas fa-arrow-left me-2"></i>
+                    Back
+                </button>
+
+                <div v-if="loading" class="d-flex justify-content-center align-items-center py-5">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <div class="text-muted">Loading profile...</div>
+                    </div>
+                </div>
+
+                <div v-else-if="userProfile" class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h4 class="mb-0">
+                                <i class="fas fa-user-circle me-2"></i>
+                                Profile
+                            </h4>
+                            <button 
+                                v-if="isOwnProfile"
+                                class="btn btn-light btn-sm"
+                                @click="router.push('/profile/edit')"
+                            >
+                                <i class="fas fa-edit me-1"></i>
+                                Edit Profile
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card-body p-4">
+                        <div class="text-center mb-4">
+                            <div class="mb-3 d-flex justify-content-center">
+                                <ProfileIconDisplay 
+                                    :icon="userProfile.profileIcon" 
+                                    :color="userProfile.profileIconColor" 
+                                    size="xl" 
+                                />
+                            </div>
+                            <span v-if="isActivist" class="badge border border-dark text-dark fs-6 px-3 py-2">
+                                <i class="fas fa-bullhorn me-2"></i>
+                                Activist
+                            </span>
+                            <span v-else-if="isJournalist" class="badge border border-dark text-dark fs-6 px-3 py-2">
+                                <i class="fas fa-newspaper me-2"></i>
+                                Journalist
+                            </span>
+                        </div>
+
+                        <div v-if="isActivist">
+                            <div class="mb-4">
+                                <label class="text-muted small mb-1">Username</label>
+                                <h5 class="mb-0">{{ userProfile.userName }}</h5>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="text-muted small mb-1">First Name</label>
+                                    <div class="fw-medium">{{ userProfile.firstName || '[REDACTED]' }}</div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="text-muted small mb-1">Last Name</label>
+                                    <div class="fw-medium">{{ userProfile.lastName || '[REDACTED]' }}</div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="text-muted small mb-1">Email</label>
+                                <div class="fw-medium">{{ userProfile.emailAddress || '[REDACTED]' }}</div>
+                            </div>
+
+                            <div v-if="isOwnProfile" class="alert alert-info mt-4">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <small>To manage privacy settings, use the Edit Profile page.</small>
+                            </div>
+
+                            <div v-if="!isOwnProfile && (userProfile.firstName === '[REDACTED]' || userProfile.lastName === '[REDACTED]' || userProfile.emailAddress === '[REDACTED]')" class="alert alert-warning mt-4">
+                                <i class="fas fa-shield-alt me-2"></i>
+                                <small>Some information is hidden because the user has disabled visibility for these fields.</small>
+                            </div>
+                        </div>
+
+                        <div v-else-if="isJournalist">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="text-muted small mb-1">First Name</label>
+                                    <h5 class="mb-0">{{ userProfile.firstName }}</h5>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="text-muted small mb-1">Last Name</label>
+                                    <h5 class="mb-0">{{ userProfile.lastName }}</h5>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="text-muted small mb-1">Email</label>
+                                <div class="fw-medium">{{ userProfile.emailAddress }}</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="text-muted small mb-1">Employer</label>
+                                <div class="fw-medium">{{ userProfile.employer }}</div>
+                            </div>
+                            
+                            <div v-if="userProfile.bio" class="mb-3">
+                                <label class="text-muted small mb-1">Bio</label>
+                                <div class="fw-medium">{{ userProfile.bio }}</div>
+                            </div>
+                            
+                            <div v-if="userProfile.publishedWorkLink || userProfile.linkedInUrl || userProfile.twitterUrl || userProfile.websiteUrl" class="mb-3">
+                                <label class="text-muted small mb-1">Links</label>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <a v-if="userProfile.publishedWorkLink" :href="userProfile.publishedWorkLink" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-secondary">
+                                        <i class="fas fa-file-alt me-1"></i>
+                                        Published Work
+                                    </a>
+                                    <a v-if="userProfile.linkedInUrl" :href="userProfile.linkedInUrl" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-secondary">
+                                        <i class="fab fa-linkedin me-1"></i>
+                                        LinkedIn
+                                    </a>
+                                    <a v-if="userProfile.twitterUrl" :href="userProfile.twitterUrl" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-secondary">
+                                        <i class="fab fa-twitter me-1"></i>
+                                        Twitter
+                                    </a>
+                                    <a v-if="userProfile.websiteUrl" :href="userProfile.websiteUrl" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-secondary">
+                                        <i class="fas fa-globe me-1"></i>
+                                        Website
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <div v-if="userProfile.specializations && userProfile.specializations.length > 0" class="mb-3">
+                                <label class="text-muted small mb-1">Specializations</label>
+                                <div class="d-flex flex-wrap gap-1">
+                                    <span v-for="spec in userProfile.specializations" :key="spec" class="badge bg-secondary">
+                                        {{ spec }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button
+                            v-if="userProfile.uid !== currentUserUid && currentUserUid"
+                            class="btn btn-primary btn-sm"
+                            @click="sendDirectMessage()"
+                        >
+                            <i class="fas fa-comment me-1"></i>
+                            Message
+                        </button>
+                        <button
+                            v-if="userProfile.uid !== currentUserUid && currentUserUid"
+                            class="btn btn-outline-danger btn-sm ms-2"
+                            @click="openReportUser()"
+                        >
+                            <i class="fas fa-flag me-1"></i>
+                            Report
+                        </button>
+                        <RouterLink 
+                            v-else-if="!currentUserUid"
+                            to="/login"
+                            class="btn btn-outline-primary btn-sm"
+                            @click.stop
+                        >
+                            <i class="fas fa-sign-in-alt me-1"></i>
+                            Login to Message
+                        </RouterLink>
+                        <PrivacyLevelPersonalOverviewComponent class="mt-5" v-if="currentUserType == 'activist' && !isOwnProfile" :userProfile="userProfile"></PrivacyLevelPersonalOverviewComponent>
+                        <ProfileUserPostListComponent :userProfile="userProfile"></ProfileUserPostListComponent>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <ReportReasonModal
+            v-if="userProfile"
+            :show="showReportModal"
+            target-type="User"
+            target-label="User"
+            :target-uid="userProfile.uid"
+            @close="showReportModal = false"
+        />
+    </div>
+</template>
+

@@ -1,0 +1,342 @@
+/* Theme CSS Variables */
+:root {
+  /* Light theme colors */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --bg-tertiary: #e9ecef;
+  --text-primary: #212529;
+  --text-secondary: #6c757d;
+  --text-muted: #868e96;
+  --border-color: #dee2e6;
+  --card-bg: #ffffff;
+  --card-header-bg: #f8f9fa;
+  --input-bg: #ffffff;
+  --input-border: #ced4da;
+  --dropdown-bg: #ffffff;
+  --dropdown-hover: #f8f9fa;
+  --navbar-bg: #ffffff;
+  --navbar-text: #212529;
+  --link-color: #247BA0;
+  --link-hover: #1a5c7a;
+  --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  --shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+  /* Modal backdrop scrim */
+  --modal-backdrop: rgba(0, 0, 0, 0.5);
+  /* Notification accent colors (semantic) */
+  --notification-message: #007bff;
+  --notification-comment: #28a745;
+  --notification-reply: #17a2b8;
+  --notification-like: #dc3545;
+  --notification-default: #6c757d;
+}
+
+[data-theme='dark'],
+.dark-theme {
+  /* Dark theme colors */
+  --bg-primary: #1a1a1a;
+  --bg-secondary: #2d2d2d;
+  --bg-tertiary: #3d3d3d;
+  --text-primary: #e9ecef;
+  --text-secondary: #adb5bd;
+  --text-muted: #6c757d;
+  --border-color: #495057;
+  --card-bg: #2d2d2d;
+  --card-header-bg: #212529;
+  --input-bg: #212529;
+  --input-border: #495057;
+  --dropdown-bg: #2d2d2d;
+  --dropdown-hover: #3d3d3d;
+  --navbar-bg: #212529;
+  --navbar-text: #e9ecef;
+  --link-color: #70C1B3;
+  --link-hover: #8dd4c7;
+  --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.5);
+  --shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 1rem 3rem rgba(0, 0, 0, 0.7);
+  /* Modal backdrop scrim */
+  --modal-backdrop: rgba(0, 0, 0, 0.7);
+  /* Notification accent colors (brighter for dark backgrounds) */
+  --notification-message: #4dabff;
+  --notification-comment: #4ade80;
+  --notification-reply: #3dd5c4;
+  --notification-like: #f87171;
+  --notification-default: #adb5bd;
+}
+
+/* Apply theme variables to Bootstrap components */
+body {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Cards */
+.card {
+  background-color: var(--card-bg);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.card-header {
+  background-color: var(--card-header-bg);
+  border-color: var(--border-color);
+}
+
+.card-footer {
+  background-color: var(--card-header-bg);
+  border-color: var(--border-color);
+}
+
+/* Forms */
+.form-control,
+.form-select {
+  background-color: var(--input-bg);
+  border-color: var(--input-border);
+  color: var(--text-primary);
+}
+
+.form-control:focus,
+.form-select:focus {
+  background-color: var(--input-bg);
+  border-color: #70C1B3;
+  color: var(--text-primary);
+}
+
+.form-control::placeholder {
+  color: var(--text-muted);
+}
+
+.form-control:disabled {
+  background-color: var(--bg-tertiary);
+  color: var(--text-muted);
+}
+
+/* Input groups */
+.input-group-text {
+  background-color: var(--bg-secondary);
+  border-color: var(--input-border);
+  color: var(--text-secondary);
+}
+
+/* Dropdowns */
+.dropdown-menu {
+  background-color: var(--dropdown-bg);
+  border-color: var(--border-color);
+}
+
+.dropdown-item {
+  color: var(--text-primary);
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus {
+  background-color: var(--dropdown-hover);
+  color: var(--text-primary);
+}
+
+.dropdown-divider {
+  border-color: var(--border-color);
+}
+
+/* Modals */
+.modal-content {
+  background-color: var(--card-bg);
+  border-color: var(--border-color);
+}
+
+.modal-header,
+.modal-footer {
+  border-color: var(--border-color);
+}
+
+/* Tables */
+.table {
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+.table-striped > tbody > tr:nth-of-type(odd) > * {
+  --bs-table-accent-bg: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+/* List groups */
+.list-group-item {
+  background-color: var(--card-bg);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.list-group-item:hover {
+  background-color: var(--dropdown-hover);
+}
+
+/* Alerts */
+.alert {
+  border-color: var(--border-color);
+}
+
+/* Badges */
+.badge {
+  border-color: var(--border-color);
+}
+
+/* Navbar customization */
+.navbar {
+  background-color: var(--navbar-bg) !important;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.navbar .nav-link {
+  color: var(--navbar-text) !important;
+}
+
+.navbar .nav-link:hover {
+  color: var(--link-hover) !important;
+}
+
+/* Links */
+a {
+  color: var(--link-color);
+}
+
+a:hover {
+  color: var(--link-hover);
+}
+
+/* Borders */
+.border,
+.border-top,
+.border-bottom,
+.border-start,
+.border-end {
+  border-color: var(--border-color) !important;
+}
+
+/* Text colors */
+.text-muted {
+  color: var(--text-muted) !important;
+}
+
+/* Background colors */
+.bg-light {
+  background-color: var(--bg-secondary) !important;
+}
+
+.bg-white {
+  background-color: var(--bg-primary) !important;
+}
+
+/* Shadows */
+.shadow-sm {
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.shadow {
+  box-shadow: var(--shadow) !important;
+}
+
+.shadow-lg {
+  box-shadow: var(--shadow-lg) !important;
+}
+
+/* Override Bootstrap's dark backgrounds to respect theme */
+[data-theme='dark'] .bg-dark,
+.dark-theme .bg-dark {
+  background-color: #212529 !important;
+}
+
+[data-theme='dark'] .bg-primary,
+.dark-theme .bg-primary {
+  background-color: #247BA0 !important;
+}
+
+/* Ensure proper text contrast on colored backgrounds */
+[data-theme='dark'] .card-header.bg-dark,
+.dark-theme .card-header.bg-dark,
+[data-theme='dark'] .card-header.bg-primary,
+.dark-theme .card-header.bg-primary {
+  color: #ffffff !important;
+}
+
+/* text-dark would be near-invisible on dark surfaces — track theme text color */
+[data-theme='dark'] .text-dark,
+.dark-theme .text-dark {
+  color: var(--text-primary) !important;
+}
+
+/* border-dark should follow the theme border in dark mode */
+[data-theme='dark'] .border-dark,
+.dark-theme .border-dark {
+  border-color: var(--border-color) !important;
+}
+
+/* Button adjustments for dark mode */
+[data-theme='dark'] .btn-outline-secondary,
+.dark-theme .btn-outline-secondary {
+  color: var(--text-secondary);
+  border-color: var(--border-color);
+}
+
+[data-theme='dark'] .btn-outline-secondary:hover,
+.dark-theme .btn-outline-secondary:hover {
+  background-color: var(--bg-tertiary);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+/* Solid dark buttons have no theme remap by default — keep them legible
+   against dark surfaces by using the themed dark surface + primary text. */
+[data-theme='dark'] .btn-dark,
+.dark-theme .btn-dark {
+  background-color: var(--bg-tertiary);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+[data-theme='dark'] .btn-dark:hover,
+.dark-theme .btn-dark:hover {
+  background-color: var(--border-color);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+[data-theme='dark'] .btn-outline-dark,
+.dark-theme .btn-outline-dark {
+  color: var(--text-primary);
+  border-color: var(--text-primary);
+}
+
+[data-theme='dark'] .btn-outline-dark:hover,
+.dark-theme .btn-outline-dark:hover {
+  background-color: var(--text-primary);
+  color: var(--bg-primary);
+}
+
+/* Close buttons */
+[data-theme='dark'] .btn-close,
+.dark-theme .btn-close {
+  filter: invert(1);
+}
+
+/* Spinners */
+[data-theme='dark'] .spinner-border,
+.dark-theme .spinner-border {
+  border-color: currentColor;
+  border-right-color: transparent;
+}
+
+/* Ensure smooth transitions */
+* {
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  transition: all 0.2s ease;
+}
+

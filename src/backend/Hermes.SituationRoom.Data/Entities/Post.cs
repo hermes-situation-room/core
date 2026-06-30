@@ -24,4 +24,6 @@ public partial class Post
     public virtual User CreatorU { get; set; }
 
     public virtual ICollection<PostTag> PostTags { get; set; } = new List<PostTag>();
+
+    public virtual ICollection<PostLike> PostLikes { get; set; } = new List<PostLike>();
 }

@@ -10,4 +10,6 @@ public partial class Journalist
     public string Employer { get; set; }
 
     public virtual User UserU { get; set; }
+
+    public virtual ICollection<JournalistSpecialization> JournalistSpecializations { get; set; } = new List<JournalistSpecialization>();
 }

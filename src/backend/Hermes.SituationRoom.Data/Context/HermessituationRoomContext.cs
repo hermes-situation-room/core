@@ -22,6 +22,8 @@ public partial class HermessituationRoomContext : DbContext
 
     public virtual DbSet<Message> Messages { get; set; }
 
+    public virtual DbSet<MessageView> MessageViews { get; set; }
+
     public virtual DbSet<Post> Posts { get; set; }
 
     public virtual DbSet<PostTag> PostTags { get; set; }
@@ -31,6 +33,28 @@ public partial class HermessituationRoomContext : DbContext
     public virtual DbSet<User> Users { get; set; }
 
     public virtual DbSet<UserChatReadStatus> UserChatReadStatuses { get; set; }
+
+    public virtual DbSet<PostLike> PostLikes { get; set; }
+
+    public virtual DbSet<ChatMember> ChatMembers { get; set; }
+
+    public virtual DbSet<SpecializationTag> SpecializationTags { get; set; }
+
+    public virtual DbSet<JournalistSpecialization> JournalistSpecializations { get; set; }
+
+    public virtual DbSet<Report> Reports { get; set; }
+
+    public virtual DbSet<UserTag> UserTags { get; set; }
+
+    public virtual DbSet<Notification> Notifications { get; set; }
+
+    public virtual DbSet<TagRequest> TagRequests { get; set; }
+
+    public virtual DbSet<Tag> Tags { get; set; }
+
+    public virtual DbSet<ContentFilterRule> ContentFilterRules { get; set; }
+
+    public virtual DbSet<Attachment> Attachments { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -69,6 +93,8 @@ public partial class HermessituationRoomContext : DbContext
                 .HasColumnName("UID");
             entity.Property(e => e.User1Uid).HasColumnName("User1UID");
             entity.Property(e => e.User2Uid).HasColumnName("User2UID");
+            entity.Property(e => e.Name).HasMaxLength(200);
+            entity.Property(e => e.IsGroup);
 
             entity.HasOne(d => d.User1U).WithMany(p => p.ChatUser1Us)
                 .HasForeignKey(d => d.User1Uid)
@@ -79,6 +105,33 @@ public partial class HermessituationRoomContext : DbContext
                 .HasForeignKey(d => d.User2Uid)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Chat_User2");
+        });
+
+        modelBuilder.Entity<ChatMember>(entity =>
+        {
+            entity.HasKey(e => e.Uid).HasName("PK__ChatMember__C5B19602");
+
+            entity.ToTable("ChatMember");
+
+            entity.HasIndex(e => e.ChatUid, "IX_ChatMember_Chat");
+            entity.HasIndex(e => e.UserUid, "IX_ChatMember_User");
+            entity.HasIndex(e => new { e.ChatUid, e.UserUid }, "UQ_ChatMember_Chat_User").IsUnique();
+
+            entity.Property(e => e.Uid)
+                .ValueGeneratedNever()
+                .HasColumnName("UID");
+            entity.Property(e => e.ChatUid).HasColumnName("ChatUID");
+            entity.Property(e => e.UserUid).HasColumnName("UserUID");
+            entity.Property(e => e.JoinedAt).HasColumnType("datetime");
+
+            entity.HasOne(d => d.ChatU).WithMany(p => p.Members)
+                .HasForeignKey(d => d.ChatUid)
+                .HasConstraintName("FK_ChatMember_Chat");
+
+            entity.HasOne(d => d.UserU).WithMany()
+                .HasForeignKey(d => d.UserUid)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ChatMember_User");
         });
 
         modelBuilder.Entity<Comment>(entity =>
@@ -95,6 +148,7 @@ public partial class HermessituationRoomContext : DbContext
             entity.Property(e => e.Content).IsRequired();
             entity.Property(e => e.CreatorUid).HasColumnName("CreatorUID");
             entity.Property(e => e.PostUid).HasColumnName("PostUID");
+            entity.Property(e => e.ParentCommentUid).HasColumnName("ParentCommentUID");
             entity.Property(e => e.Timestamp).HasColumnType("datetime");
 
             entity.HasOne(d => d.CreatorU).WithMany(p => p.Comments)
@@ -105,6 +159,11 @@ public partial class HermessituationRoomContext : DbContext
             entity.HasOne(d => d.PostU).WithMany(p => p.Comments)
                 .HasForeignKey(d => d.PostUid)
                 .HasConstraintName("FK_Comment_Post");
+
+            entity.HasOne(d => d.ParentCommentU).WithMany(p => p.Replies)
+                .HasForeignKey(d => d.ParentCommentUid)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Comment_ParentComment");
         });
 
         modelBuilder.Entity<Journalist>(entity =>
@@ -142,6 +201,8 @@ public partial class HermessituationRoomContext : DbContext
             entity.Property(e => e.Content).IsRequired();
             entity.Property(e => e.SenderUid).HasColumnName("SenderUID");
             entity.Property(e => e.Timestamp).HasColumnType("datetime");
+            entity.Property(e => e.ExpiresAt).HasColumnType("datetime");
+            entity.Property(e => e.IsViewOnce).HasDefaultValue(false);
 
             entity.HasOne(d => d.ChatU).WithMany(p => p.Messages)
                 .HasForeignKey(d => d.ChatUid)
@@ -151,6 +212,33 @@ public partial class HermessituationRoomContext : DbContext
                 .HasForeignKey(d => d.SenderUid)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Message_User");
+        });
+
+        modelBuilder.Entity<MessageView>(entity =>
+        {
+            entity.HasKey(e => e.Uid).HasName("PK__MessageView__C5B19602");
+
+            entity.ToTable("MessageView");
+
+            entity.HasIndex(e => e.MessageUid, "IX_MessageView_Message");
+            entity.HasIndex(e => e.UserUid, "IX_MessageView_User");
+            entity.HasIndex(e => new { e.MessageUid, e.UserUid }, "UQ_MessageView_Message_User").IsUnique();
+
+            entity.Property(e => e.Uid)
+                .ValueGeneratedNever()
+                .HasColumnName("UID");
+            entity.Property(e => e.MessageUid).HasColumnName("MessageUID");
+            entity.Property(e => e.UserUid).HasColumnName("UserUID");
+            entity.Property(e => e.ViewedAt).HasColumnType("datetime");
+
+            entity.HasOne(d => d.MessageU).WithMany(p => p.MessageViews)
+                .HasForeignKey(d => d.MessageUid)
+                .HasConstraintName("FK_MessageView_Message");
+
+            entity.HasOne(d => d.UserU).WithMany()
+                .HasForeignKey(d => d.UserUid)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_MessageView_User");
         });
 
         modelBuilder.Entity<Post>(entity =>
@@ -253,6 +341,14 @@ public partial class HermessituationRoomContext : DbContext
                 .IsRequired()
                 .HasMaxLength(50)
                 .HasDefaultValue("#3b82f6");
+            entity.Property(e => e.Bio).HasMaxLength(1000);
+            entity.Property(e => e.PublishedWorkLink).HasMaxLength(500);
+            entity.Property(e => e.LinkedInUrl).HasMaxLength(500);
+            entity.Property(e => e.TwitterUrl).HasMaxLength(500);
+            entity.Property(e => e.WebsiteUrl).HasMaxLength(500);
+            entity.Property(e => e.IsAdmin)
+                .HasColumnName("IsAdmin")
+                .HasDefaultValue(false);
         });
 
         modelBuilder.Entity<UserChatReadStatus>(entity =>
@@ -280,6 +376,295 @@ public partial class HermessituationRoomContext : DbContext
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_UserChatReadStatus_User");
+        });
+
+        modelBuilder.Entity<PostLike>(entity =>
+        {
+            entity.HasKey(e => e.Uid).HasName("PK__PostLike__C5B19602");
+
+            entity.ToTable("PostLike");
+
+            entity.HasIndex(e => e.PostUid, "IX_PostLike_Post");
+            entity.HasIndex(e => e.UserUid, "IX_PostLike_User");
+            entity.HasIndex(e => e.Timestamp, "IX_PostLike_Timestamp");
+            entity.HasIndex(e => new { e.PostUid, e.UserUid }, "UQ_PostLike_User_Post").IsUnique();
+
+            entity.Property(e => e.Uid)
+                .ValueGeneratedNever()
+                .HasColumnName("UID");
+            entity.Property(e => e.PostUid).HasColumnName("PostUID");
+            entity.Property(e => e.UserUid).HasColumnName("UserUID");
+            entity.Property(e => e.Timestamp).HasColumnType("datetime");
+
+            entity.HasOne(d => d.PostU).WithMany(p => p.PostLikes)
+                .HasForeignKey(d => d.PostUid)
+                .HasConstraintName("FK_PostLike_Post");
+
+            entity.HasOne(d => d.UserU).WithMany(p => p.PostLikes)
+                .HasForeignKey(d => d.UserUid)
+                .HasConstraintName("FK_PostLike_User");
+        });
+
+        modelBuilder.Entity<SpecializationTag>(entity =>
+        {
+            entity.HasKey(e => e.Uid).HasName("PK__SpecializationTag__C5B19602");
+
+            entity.ToTable("SpecializationTag");
+
+            entity.HasIndex(e => e.Name, "UQ__SpecializationTag__Name").IsUnique();
+
+            entity.Property(e => e.Uid)
+                .ValueGeneratedNever()
+                .HasColumnName("UID");
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(100);
+            entity.Property(e => e.CreatedAt).HasColumnType("datetime");
+        });
+
+        modelBuilder.Entity<JournalistSpecialization>(entity =>
+        {
+            entity.HasKey(e => new { e.JournalistUid, e.SpecializationTagUid })
+                .HasName("PK__JournalistSpecialization");
+
+            entity.ToTable("JournalistSpecialization");
+
+            entity.HasIndex(e => e.JournalistUid, "IX_JournalistSpec_Journalist");
+            entity.HasIndex(e => e.SpecializationTagUid, "IX_JournalistSpec_Tag");
+
+            entity.Property(e => e.JournalistUid).HasColumnName("JournalistUID");
+            entity.Property(e => e.SpecializationTagUid).HasColumnName("SpecializationTagUID");
+
+            entity.HasOne(d => d.JournalistU).WithMany(p => p.JournalistSpecializations)
+                .HasForeignKey(d => d.JournalistUid)
+                .HasConstraintName("FK_JournalistSpec_Journalist");
+
+            entity.HasOne(d => d.SpecializationTagU).WithMany(p => p.JournalistSpecializations)
+                .HasForeignKey(d => d.SpecializationTagUid)
+                .HasConstraintName("FK_JournalistSpec_Tag");
+        });
+
+        modelBuilder.Entity<Report>(entity =>
+        {
+            entity.HasKey(e => e.Uid).HasName("PK__Report__C5B19602");
+
+            entity.ToTable("Report");
+
+            entity.HasIndex(e => e.Status, "IX_Report_Status");
+            entity.HasIndex(e => new { e.TargetType, e.TargetUid }, "IX_Report_TargetType");
+            entity.HasIndex(e => e.ReporterUid, "IX_Report_Reporter");
+            entity.HasIndex(e => e.Timestamp, "IX_Report_Timestamp");
+
+            entity.Property(e => e.Uid)
+                .ValueGeneratedNever()
+                .HasColumnName("UID");
+            entity.Property(e => e.ReporterUid).HasColumnName("ReporterUID");
+            entity.Property(e => e.TargetType)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.TargetUid).HasColumnName("TargetUID");
+            entity.Property(e => e.Reason).IsRequired();
+            entity.Property(e => e.Status)
+                .IsRequired()
+                .HasMaxLength(50)
+                .HasDefaultValue("PENDING");
+            entity.Property(e => e.Timestamp).HasColumnType("datetime");
+            entity.Property(e => e.ReviewedByUid).HasColumnName("ReviewedByUID");
+            entity.Property(e => e.ReviewedAt).HasColumnType("datetime");
+
+            entity.HasOne(d => d.ReporterU).WithMany(p => p.ReportsSubmitted)
+                .HasForeignKey(d => d.ReporterUid)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Report_Reporter");
+
+            entity.HasOne(d => d.ReviewedByU).WithMany(p => p.ReportsReviewed)
+                .HasForeignKey(d => d.ReviewedByUid)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Report_Reviewer");
+        });
+
+        modelBuilder.Entity<UserTag>(entity =>
+        {
+            entity.HasKey(e => e.Uid).HasName("PK__UserTag__C5B19602");
+
+            entity.ToTable("UserTag");
+
+            entity.HasIndex(e => e.OwnerUid, "IX_UserTag_Owner");
+            entity.HasIndex(e => e.TaggedUserUid, "IX_UserTag_Tagged");
+            entity.HasIndex(e => new { e.OwnerUid, e.TagName }, "IX_UserTag_TagName");
+            entity.HasIndex(e => new { e.OwnerUid, e.TaggedUserUid, e.TagName }, "UQ_UserTag_Owner_Tagged_Name").IsUnique();
+
+            entity.Property(e => e.Uid)
+                .ValueGeneratedNever()
+                .HasColumnName("UID");
+            entity.Property(e => e.OwnerUid).HasColumnName("OwnerUID");
+            entity.Property(e => e.TaggedUserUid).HasColumnName("TaggedUserUID");
+            entity.Property(e => e.TagName)
+                .IsRequired()
+                .HasMaxLength(100);
+            entity.Property(e => e.Notes).HasMaxLength(500);
+            entity.Property(e => e.CreatedAt).HasColumnType("datetime");
+
+            entity.HasOne(d => d.OwnerU).WithMany(p => p.UserTagsOwned)
+                .HasForeignKey(d => d.OwnerUid)
+                .HasConstraintName("FK_UserTag_Owner");
+
+            entity.HasOne(d => d.TaggedUserU).WithMany(p => p.UserTagsTagged)
+                .HasForeignKey(d => d.TaggedUserUid)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_UserTag_Tagged");
+        });
+
+        modelBuilder.Entity<Notification>(entity =>
+        {
+            entity.HasKey(e => e.Uid).HasName("PK__Notification__C5B19602");
+
+            entity.ToTable("Notification");
+
+            entity.HasIndex(e => new { e.UserUid, e.IsRead }, "IX_Notification_User_Read");
+            entity.HasIndex(e => e.CreatedAt, "IX_Notification_Created");
+            entity.HasIndex(e => e.Type, "IX_Notification_Type");
+
+            entity.Property(e => e.Uid)
+                .ValueGeneratedNever()
+                .HasColumnName("UID");
+            entity.Property(e => e.UserUid).HasColumnName("UserUID");
+            entity.Property(e => e.Title)
+                .IsRequired()
+                .HasMaxLength(200);
+            entity.Property(e => e.Message)
+                .IsRequired()
+                .HasMaxLength(500);
+            entity.Property(e => e.Type)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.CreatedAt).HasColumnType("datetime");
+            entity.Property(e => e.RelatedEntityUid).HasColumnName("RelatedEntityUID");
+            entity.Property(e => e.RelatedEntityType).HasMaxLength(50);
+
+            entity.HasOne(d => d.UserU).WithMany(p => p.Notifications)
+                .HasForeignKey(d => d.UserUid)
+                .HasConstraintName("FK_Notification_User");
+        });
+
+        modelBuilder.Entity<TagRequest>(entity =>
+        {
+            entity.HasKey(e => e.Uid).HasName("PK__TagRequest__C5B19602");
+
+            entity.ToTable("TagRequest");
+
+            entity.HasIndex(e => e.Status, "IX_TagRequest_Status");
+            entity.HasIndex(e => e.RequestedByUid, "IX_TagRequest_RequestedBy");
+            entity.HasIndex(e => e.CreatedAt, "IX_TagRequest_CreatedAt");
+            entity.HasIndex(e => e.Name, "UQ_TagRequest_Name").IsUnique();
+
+            entity.Property(e => e.Uid)
+                .ValueGeneratedNever()
+                .HasColumnName("UID");
+            entity.Property(e => e.RequestedByUid).HasColumnName("RequestedByUID");
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(64);
+            entity.Property(e => e.Status)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.ReviewedByUid).HasColumnName("ReviewedByUID");
+            entity.Property(e => e.ReviewedAt).HasColumnType("datetime");
+            entity.Property(e => e.CreatedAt).HasColumnType("datetime");
+
+            entity.HasOne(d => d.RequestedByU).WithMany(p => p.TagRequestsSubmitted)
+                .HasForeignKey(d => d.RequestedByUid)
+                .HasConstraintName("FK_TagRequest_RequestedBy");
+
+            entity.HasOne(d => d.ReviewedByU).WithMany(p => p.TagRequestsReviewed)
+                .HasForeignKey(d => d.ReviewedByUid)
+                .HasConstraintName("FK_TagRequest_ReviewedBy");
+        });
+
+        modelBuilder.Entity<Tag>(entity =>
+        {
+            entity.HasKey(e => e.Uid).HasName("PK__Tag__C5B19602");
+
+            entity.ToTable("Tag");
+
+            entity.HasIndex(e => e.Name, "UQ_Tag_Name").IsUnique();
+
+            entity.Property(e => e.Uid)
+                .ValueGeneratedNever()
+                .HasColumnName("UID");
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(64);
+            entity.Property(e => e.CreatedAt).HasColumnType("datetime");
+        });
+
+        modelBuilder.Entity<ContentFilterRule>(entity =>
+        {
+            entity.HasKey(e => e.Uid).HasName("PK__ContentFilterRule__C5B19602");
+
+            entity.ToTable("ContentFilterRule");
+
+            entity.HasIndex(e => e.Enabled, "IX_ContentFilterRule_Enabled");
+            entity.HasIndex(e => e.CreatedAt, "IX_ContentFilterRule_CreatedAt");
+            entity.HasIndex(e => e.Pattern, "UQ_ContentFilterRule_Pattern").IsUnique();
+
+            entity.Property(e => e.Uid)
+                .ValueGeneratedNever()
+                .HasColumnName("UID");
+            entity.Property(e => e.Pattern)
+                .IsRequired()
+                .HasMaxLength(256);
+            entity.Property(e => e.Action)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.CreatedAt).HasColumnType("datetime");
+        });
+
+        modelBuilder.Entity<Attachment>(entity =>
+        {
+            entity.HasKey(e => e.Uid).HasName("PK__Attachment__C5B19602");
+
+            entity.ToTable("Attachment");
+
+            entity.HasIndex(e => e.OwnerUid, "IX_Attachment_Owner");
+            entity.HasIndex(e => e.PostUid, "IX_Attachment_Post");
+            entity.HasIndex(e => e.MessageUid, "IX_Attachment_Message");
+            entity.HasIndex(e => e.CreatedAt, "IX_Attachment_Created");
+
+            entity.Property(e => e.Uid)
+                .ValueGeneratedNever()
+                .HasColumnName("UID");
+            entity.Property(e => e.OwnerUid).HasColumnName("OwnerUID");
+            entity.Property(e => e.FileName)
+                .IsRequired()
+                .HasMaxLength(255);
+            entity.Property(e => e.ContentType)
+                .IsRequired()
+                .HasMaxLength(150);
+            entity.Property(e => e.StorageKey)
+                .IsRequired()
+                .HasMaxLength(400);
+            entity.Property(e => e.EncryptionIv).IsRequired();
+            entity.Property(e => e.EncryptionTag).IsRequired();
+            entity.Property(e => e.WrappedKey).IsRequired();
+            entity.Property(e => e.ContentHash).IsRequired();
+            entity.Property(e => e.PostUid).HasColumnName("PostUID");
+            entity.Property(e => e.MessageUid).HasColumnName("MessageUID");
+            entity.Property(e => e.CreatedAt).HasColumnType("datetime");
+
+            entity.HasOne(d => d.OwnerU).WithMany()
+                .HasForeignKey(d => d.OwnerUid)
+                .HasConstraintName("FK_Attachment_Owner");
+
+            entity.HasOne(d => d.PostU).WithMany()
+                .HasForeignKey(d => d.PostUid)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Attachment_Post");
+
+            entity.HasOne(d => d.MessageU).WithMany()
+                .HasForeignKey(d => d.MessageUid)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Attachment_Message");
         });
 
         OnModelCreatingPartial(modelBuilder);

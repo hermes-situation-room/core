@@ -6,12 +6,14 @@ import type {ChatBo} from '../types/chat';
 import type {UserProfileBo} from '../types/user';
 import {useAuthStore} from '../stores/auth-store';
 import {useNotification} from '../composables/use-notification.ts';
+import {useConfirm} from '../composables/use-confirm.ts';
 import {useContextMenu} from '../composables/use-context-menu';
 import ProfileIconDisplay from './profile-icon-display.vue';
 
 const router = useRouter();
 const authStore = useAuthStore();
 const notification = useNotification();
+const {confirm} = useConfirm();
 const {
     contextMenuItemId: contextMenuChatId,
     contextMenuPosition,
@@ -36,6 +38,7 @@ const displayNames = ref<Map<string, string>>(new Map());
 const userProfiles = ref<Map<string, UserProfileBo>>(new Map());
 const searchQuery = ref<string>('');
 const debouncedSearchQuery = ref<string>('');
+const searchMode = ref<'title' | 'messages'>('title');
 
 let searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -54,7 +57,10 @@ const loadChats = async () => {
         if (result.isSuccess && result.data) {
             chats.value = result.data;
 
-            const otherUserUids = [...new Set(chats.value.map(chat => getOtherUserUid(chat)))];
+            // Prefetch profiles for every other member across all chats (1:1 and groups).
+            const otherUserUids = [...new Set(
+                chats.value.flatMap(chat => getMemberUids(chat).filter(uid => uid !== currentUserUid.value))
+            )];
             for (const userUid of otherUserUids) {
                 if (userUid) {
                     const userProfileResult = await services.users.getUserProfile(userUid, currentUserUid.value);
@@ -92,8 +98,14 @@ const filteredChats = computed(() => {
     const query = debouncedSearchQuery.value.toLowerCase().trim();
     return chatsWithLastMessage.value.filter(chat => {
         const displayName = getDisplayName(chat).toLowerCase();
-        const lastMessage = (chat.lastMessage || '').toLowerCase();
         
+        // Search mode: title only
+        if (searchMode.value === 'title') {
+            return displayName.includes(query);
+        }
+        
+        // Search mode: messages (searches last message content)
+        const lastMessage = (chat.lastMessage || '').toLowerCase();
         const hasRealTimestamp = chat.lastMessageTime && chat.lastMessageTime !== chat.uid;
         
         return displayName.includes(query) || (hasRealTimestamp && lastMessage.includes(query));
@@ -189,13 +201,40 @@ const viewChat = (chatId: string) => {
     router.replace(`/chat/${chatId}`);
 };
 
-const getOtherUserUid = (chat: ChatBo) => {
-    return chat.user1Uid === currentUserUid.value ? chat.user2Uid : chat.user1Uid;
+const getMemberUids = (chat: ChatBo): string[] => {
+    if (chat.memberUids && chat.memberUids.length > 0) {
+        return chat.memberUids;
+    }
+    // Fallback for legacy 1:1 chats served without an explicit member list.
+    return [chat.user1Uid, chat.user2Uid];
+};
+
+const getOtherMemberUids = (chat: ChatBo): string[] => {
+    return getMemberUids(chat).filter(uid => uid && uid !== currentUserUid.value);
+};
+
+// For 1:1 chats this is the single other participant; undefined for groups.
+const getOtherUserUid = (chat: ChatBo): string | undefined => {
+    if (chat.isGroup) {
+        return undefined;
+    }
+    const others = getOtherMemberUids(chat);
+    return others[0] ?? (chat.user1Uid === currentUserUid.value ? chat.user2Uid : chat.user1Uid);
 };
 
 const getDisplayName = (chat: ChatBo): string => {
+    if (chat.isGroup) {
+        if (chat.name && chat.name.trim()) {
+            return chat.name;
+        }
+        const names = getOtherMemberUids(chat)
+            .map(uid => displayNames.value.get(uid) || uid.substring(0, 8) + '...');
+        return names.length > 0 ? names.join(', ') : 'Group chat';
+    }
     const otherUserUid = getOtherUserUid(chat);
-    return displayNames.value.get(otherUserUid) || otherUserUid.substring(0, 8) + '...';
+    return otherUserUid
+        ? (displayNames.value.get(otherUserUid) || otherUserUid.substring(0, 8) + '...')
+        : 'Chat';
 };
 
 const markChatAsRead = async (chatId: string, event?: Event) => {
@@ -232,7 +271,9 @@ const viewProfile = (chatId: string, event?: Event) => {
     const chat = chatsWithLastMessage.value.find(c => c.uid === chatId);
     if (chat) {
         const otherUserUid = getOtherUserUid(chat);
-        router.push({path: '/profile', query: {id: otherUserUid}});
+        if (otherUserUid) {
+            router.push({path: '/profile', query: {id: otherUserUid}});
+        }
     }
 };
 
@@ -243,7 +284,12 @@ const deleteChat = async (chatId: string, event?: Event) => {
 
     closeAllMenus();
 
-    if (!confirm('Are you sure you want to delete this chat?')) {
+    if (!(await confirm({
+        title: 'Delete chat',
+        message: 'Are you sure you want to delete this chat?',
+        confirmLabel: 'Delete',
+        danger: true,
+    }))) {
         return;
     }
 
@@ -304,6 +350,19 @@ const handleUnreadMessageUpdate = (chatId: string, count: number) => {
     unreadCounts.value[normalizedChatId] = count;
 };
 
+let chatListReloadTimer: ReturnType<typeof setTimeout> | null = null;
+
+// A message in any of the user's chats changed the list (new last message / ordering / unread).
+// Debounce the reload so a burst of events triggers a single refresh.
+const handleChatListUpdated = (_chatId?: string) => {
+    if (chatListReloadTimer) {
+        clearTimeout(chatListReloadTimer);
+    }
+    chatListReloadTimer = setTimeout(() => {
+        loadChats();
+    }, 300);
+};
+
 const isSocketConnected = ref(false);
 
 onMounted(async () => {
@@ -311,6 +370,7 @@ onMounted(async () => {
     try {
         await sockets.hub.initialize();
         await sockets.hub.registerToEvent('NewUnreadChatMessage', handleUnreadMessageUpdate);
+        await sockets.hub.registerToEvent('ChatListUpdated', handleChatListUpdated);
         await sockets.hub.joinMessaging();
         isSocketConnected.value = true;
     } catch (error) {
@@ -319,9 +379,18 @@ onMounted(async () => {
     }
 });
 
-onBeforeUnmount(() => {
+onBeforeUnmount(async () => {
     if (searchDebounceTimer) {
         clearTimeout(searchDebounceTimer);
+    }
+    if (chatListReloadTimer) {
+        clearTimeout(chatListReloadTimer);
+    }
+    try {
+        await sockets.hub.unregisterFromEvent('NewUnreadChatMessage', handleUnreadMessageUpdate);
+        await sockets.hub.unregisterFromEvent('ChatListUpdated', handleChatListUpdated);
+    } catch (error) {
+        console.warn('Error leaving chat-list updates:', error);
     }
 });
 </script>
@@ -337,9 +406,17 @@ onBeforeUnmount(() => {
                     <input
                         v-model="searchQuery"
                         type="text"
-                        class="form-control border-start-0"
-                        placeholder="Search chats..."
+                        class="form-control border-start-0 border-end-0"
+                        :placeholder="searchMode === 'title' ? 'Search by name...' : 'Search in messages...'"
                     />
+                    <button
+                        class="btn btn-outline-secondary border-start-0"
+                        type="button"
+                        @click="searchMode = searchMode === 'title' ? 'messages' : 'title'"
+                        :title="searchMode === 'title' ? 'Switch to message search' : 'Switch to name search'"
+                    >
+                        <i :class="searchMode === 'title' ? 'fas fa-user' : 'fas fa-comment'"></i>
+                    </button>
                 </div>
             </div>
             <div class="flex-shrink-0">
@@ -374,29 +451,40 @@ onBeforeUnmount(() => {
                             <div class="card-body p-2">
                                 <div class="d-flex align-items-center gap-3">
                                     <a
+                                        v-if="!chat.isGroup"
                                         href="#"
                                         class="text-primary text-decoration-none"
                                         @click.prevent.stop="router.push({ path: '/profile', query: { id: getOtherUserUid(chat) } })"
                                     >
-                                        <ProfileIconDisplay 
-                                            :icon="userProfiles.get(getOtherUserUid(chat))?.profileIcon" 
-                                            :color="userProfiles.get(getOtherUserUid(chat))?.profileIconColor" 
+                                        <ProfileIconDisplay
+                                            :icon="userProfiles.get(getOtherUserUid(chat) ?? '')?.profileIcon"
+                                            :color="userProfiles.get(getOtherUserUid(chat) ?? '')?.profileIconColor"
                                             size="xl"
                                             class="bg-white"
                                         />
                                     </a>
+                                    <span
+                                        v-else
+                                        class="d-inline-flex align-items-center justify-content-center rounded-circle bg-secondary text-white"
+                                        style="width: 48px; height: 48px;"
+                                        :title="getDisplayName(chat)"
+                                    >
+                                        <i class="fas fa-users"></i>
+                                    </span>
                                     <div class="flex-grow-1">
                                         <div class="d-flex justify-content-between align-items-start mb-1">
                                             <div>
                                                 <h5 class="card-title mb-1"
                                                     style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                                                     <a
+                                                        v-if="!chat.isGroup"
                                                         href="#"
                                                         class="text-primary text-decoration-none"
                                                         @click.prevent.stop="router.push({ path: '/profile', query: { id: getOtherUserUid(chat) } })"
                                                     >
                                                         {{ getDisplayName(chat) }}
                                                     </a>
+                                                    <span v-else>{{ getDisplayName(chat) }}</span>
                                                 </h5>
                                                 <p class="card-text text-muted small mb-0"
                                                    style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">

@@ -18,6 +18,8 @@ public interface IHermessituationRoomContext : ICurrentDbContext
 
     DbSet<Message> Messages { get; set; }
 
+    DbSet<MessageView> MessageViews { get; set; }
+
     DbSet<Post> Posts { get; set; }
 
     DbSet<PostTag> PostTags { get; set; }
@@ -27,6 +29,28 @@ public interface IHermessituationRoomContext : ICurrentDbContext
     DbSet<User> Users { get; set; }
     
     DbSet<UserChatReadStatus> UserChatReadStatuses { get; set; }
+
+    DbSet<PostLike> PostLikes { get; set; }
+
+    DbSet<ChatMember> ChatMembers { get; set; }
+
+    DbSet<SpecializationTag> SpecializationTags { get; set; }
+
+    DbSet<JournalistSpecialization> JournalistSpecializations { get; set; }
+
+    DbSet<Report> Reports { get; set; }
+
+    DbSet<UserTag> UserTags { get; set; }
+
+    DbSet<Notification> Notifications { get; set; }
+
+    DbSet<TagRequest> TagRequests { get; set; }
+
+    DbSet<Tag> Tags { get; set; }
+
+    DbSet<ContentFilterRule> ContentFilterRules { get; set; }
+
+    DbSet<Attachment> Attachments { get; set; }
 
     /// <summary>
     /// We use this method and interface to wrap the DbSet.Local property. Local is based on the EF Core internal type

@@ -1,18 +1,19 @@
-﻿namespace Hermes.SituationRoom.Domain.Interfaces;
+namespace Hermes.SituationRoom.Domain.Interfaces;
 
 using Shared.BusinessObjects;
 using Shared.DataTransferObjects;
-using Shared.Enums;
 
 public interface ITagService
 {
     Task CreatePostTagAsync(CreateTagDto tagBo);
 
-    Task<IReadOnlyList<Tag>> GetAllTagsFromPostAsync(Guid postUid);
-    
-    Task<Dictionary<Guid, IReadOnlyList<Tag>>> GetAllTagsFromPostsAsync(IEnumerable<Guid> postUids);
-    
-    IReadOnlyList<string> GetAllTags();
+    Task<IReadOnlyList<string>> GetAllTagsFromPostAsync(Guid postUid);
+
+    Task<Dictionary<Guid, IReadOnlyList<string>>> GetAllTagsFromPostsAsync(IEnumerable<Guid> postUids);
+
+    Task<IReadOnlyList<string>> GetAllTags();
+
+    Task<string> ValidateTagNameAsync(string tag);
 
     Task DeletePostTagAsync(TagBo tagBo);
 }

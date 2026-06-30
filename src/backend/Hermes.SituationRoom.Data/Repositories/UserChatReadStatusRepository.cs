@@ -63,14 +63,14 @@ public class UserChatReadStatusRepository(IHermessituationRoomContext context) :
 
     public async Task<int> GetUnreadMessagesCountAsync(Guid userId)
     {
-        return await context.Chats
-            .Where(chat => chat.User1Uid == userId || chat.User2Uid == userId)
-            .Select(chat =>
+        return await context.ChatMembers
+            .Where(member => member.UserUid == userId)
+            .Select(member =>
                 context.Messages.Count(message =>
-                        message.ChatUid == chat.Uid &&
+                        message.ChatUid == member.ChatUid &&
                         message.SenderUid != userId &&
                         message.Timestamp > (context.UserChatReadStatuses
-                            .Where(rs => rs.UserId == userId && rs.ChatId == chat.Uid)
+                            .Where(rs => rs.UserId == userId && rs.ChatId == member.ChatUid)
                             .Select(rs => rs.ReadTime)
                             .FirstOrDefault())
                 )

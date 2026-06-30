@@ -33,7 +33,7 @@ public class ChatHub(IChatService chatService, IUserChatReadStatusService userCh
         try
         {
             var chatBo = await chatService.GetChatAsync(chatId);
-            if (chatBo.User1Uid != userId && chatBo.User2Uid != userId)
+            if (!chatBo.MemberUids.Contains(userId))
             {
                 throw new HubException($"User: {userId} is not part of Chat: {chatId}.");
             }
@@ -58,6 +58,40 @@ public class ChatHub(IChatService chatService, IUserChatReadStatusService userCh
     {
         var userId = GetUserIdFromContext();
         await userChatStatusSearvice.UpdateReadStatusAsync(userId, chatId);
+    }
+
+    /// <summary>
+    /// Joins the shared "posts" feed group so the caller receives live post create/update/delete events.
+    /// The posts board itself is public, but this hub requires authentication, so only logged-in clients
+    /// receive live post updates. Anonymous viewers still see new posts on the next page reload.
+    /// </summary>
+    public async Task JoinPosts()
+    {
+        await Groups.AddToGroupAsync(Context.ConnectionId, "posts");
+    }
+
+    public async Task LeavePosts()
+    {
+        await Groups.RemoveFromGroupAsync(Context.ConnectionId, "posts");
+    }
+
+    /// <summary>
+    /// Joins the per-post comment group "post-comments-{postId}" so the caller receives live
+    /// comment create/update/delete/reply events for that post.
+    /// </summary>
+    public async Task JoinPostComments(Guid postId)
+    {
+        if (postId == Guid.Empty)
+        {
+            throw new HubException("No Guid provided.");
+        }
+
+        await Groups.AddToGroupAsync(Context.ConnectionId, $"post-comments-{postId}");
+    }
+
+    public async Task LeavePostComments(Guid postId)
+    {
+        await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"post-comments-{postId}");
     }
 
     private Guid GetUserIdFromContext()

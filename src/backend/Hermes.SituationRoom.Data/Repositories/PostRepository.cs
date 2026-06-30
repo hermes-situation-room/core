@@ -42,9 +42,9 @@ public sealed class PostRepository(IHermessituationRoomContext context) : IPostR
         );
     }
 
-    public async Task<IReadOnlyList<PostWithTagsBo>> GetActivistPostsByTagsAsync(IReadOnlyList<Tag> tags, int privacyLevel, Guid userUid, int limit, int offset, string? query = null, string? sortBy = null)
+    public async Task<IReadOnlyList<PostWithTagsBo>> GetActivistPostsByTagsAsync(IReadOnlyList<string> tags, int privacyLevel, Guid userUid, int limit, int offset, string? query = null, string? sortBy = null)
     {
-        var tagSet = tags.Distinct().Select(t => t.ToString()).ToList();
+        var tagSet = tags.Distinct().ToList();
 
         var queryable = context.Posts
             .AsNoTracking()
@@ -72,9 +72,9 @@ public sealed class PostRepository(IHermessituationRoomContext context) : IPostR
         return posts.Select(MapToBoWithTags).ToList();
     }
 
-    public async Task<IReadOnlyList<PostWithTagsBo>> GetJournalistPostsByTagsAsync(IReadOnlyList<Tag> tags, int limit, int offset, string? query = null, string? sortBy = null)
+    public async Task<IReadOnlyList<PostWithTagsBo>> GetJournalistPostsByTagsAsync(IReadOnlyList<string> tags, int limit, int offset, string? query = null, string? sortBy = null)
     {
-        var tagSet = tags.Distinct().Select(t => t.ToString()).ToList();
+        var tagSet = tags.Distinct().ToList();
 
         var queryable = context.Posts
             .AsNoTracking()

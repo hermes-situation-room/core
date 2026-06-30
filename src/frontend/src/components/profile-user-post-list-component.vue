@@ -5,6 +5,7 @@ import {services} from '../services/api';
 import type {PostBo} from '../types/post.ts'
 import { useAuthStore } from '../stores/auth-store.ts';
 import { useNotification } from '../composables/use-notification.ts';
+import { useConfirm } from '../composables/use-confirm.ts';
 import type { UserProfileBo } from '../types/user.ts';
 import { useContextMenu } from '../composables/use-context-menu.ts';
 
@@ -13,6 +14,7 @@ const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
 const notification = useNotification();
+const { confirm } = useConfirm();
 const {
     contextMenuItemId: contextMenuPostId,
     contextMenuPosition,
@@ -98,7 +100,12 @@ const deletePost = async (postId: string, event?: Event) => {
         return;
     }
     
-    if (!confirm('Are you sure you want to delete this post?')) {
+    if (!(await confirm({
+        title: 'Delete post',
+        message: 'Are you sure you want to delete this post?',
+        confirmLabel: 'Delete',
+        danger: true,
+    }))) {
         return;
     }
     try {

@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { computed, watch, onMounted, ref } from "vue";
 import { useAuthStore } from "../stores/auth-store";
+import { useTheme } from "../composables/use-theme";
 import NavbarComponent from "./navbar-component.vue";
 import { services, sockets } from "../services/api";
 import ToastContainer from "./toast-container.vue";
+import ConfirmDialog from "../components/shared/confirm-dialog.vue";
 
 const authStore = useAuthStore();
+useTheme(); // Initialize theme on app load
 
 const totalUnreadMessages = ref(0);
 const isSocketConnected = ref(false);
@@ -80,6 +83,7 @@ window.addEventListener("beforeunload", cleanupSocket);
     <div id="app">
         <navbarComponent :total-unread-messages="totalUnreadMessages" />
         <ToastContainer/>
+        <ConfirmDialog/>
         <main>
             <router-view />
         </main>

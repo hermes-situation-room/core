@@ -1,9 +1,13 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue'
+import { onMounted, ref, watch, computed } from 'vue'
 import faviconUrl from '../assets/logo_situation_room_URL.png'
 import logoUrl from '../assets/logo_situation_room.png'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth-store'
+import { useTheme } from '../composables/use-theme'
+import NotificationBell from '../components/notification-bell.vue'
+import { sockets } from '../services/api'
+
 const props = defineProps({
     totalUnreadMessages: {
         type: Number,
@@ -14,9 +18,11 @@ const props = defineProps({
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
+const { theme, toggleTheme } = useTheme()
 
 const pageTitle = ref('Posts')
 const showMobileMenu = ref(false)
+const isDarkMode = computed(() => theme.value === 'dark')
 
 watch(() => route.name, (newRouteName) => {
     pageTitle.value = newRouteName as string || 'Posts'
@@ -26,13 +32,29 @@ watch(() => route.path, () => {
     showMobileMenu.value = false
 })
 
-onMounted(() => {
+onMounted(async () => {
     const existing = document.querySelector<HTMLLinkElement>('link[rel="icon"]')
     const link = existing ?? document.createElement('link')
     link.rel = 'icon'
     link.type = 'image/png'
     link.href = faviconUrl
     if (!existing) document.head.appendChild(link)
+
+    // Initialize SignalR for real-time notifications
+    if (authStore.isAuthenticated.value) {
+        try {
+            await sockets.hub.initialize()
+            await sockets.hub.joinMessaging()
+            
+            // Listen for real-time notifications
+            await sockets.hub.registerToEvent('ReceiveNotification', (notification: any) => {
+                // Emit event to notification bell component
+                window.dispatchEvent(new CustomEvent('new-notification', { detail: notification }))
+            })
+        } catch (error) {
+            console.error('Failed to initialize SignalR for notifications:', error)
+        }
+    }
 })
 
 const toggleMobileMenu = () => {
@@ -64,8 +86,8 @@ const handleLogout = async () => {
 </script>
 
 <template>
-    <div class="sticky-top" style="background-color: #F5F5F5; z-index: 1030;">
-        <nav class="navbar py-2 px-3" style="background-color: #F5F5F5;">
+    <div class="sticky-top" style="background-color: var(--navbar-bg); z-index: 1030;">
+        <nav class="navbar py-2 px-3">
             <div class="container-fluid">
                 <div class="d-flex align-items-center justify-content-between w-100">
                     <div class="logo-wrapper">
@@ -90,6 +112,24 @@ const handleLogout = async () => {
                     </div>
 
                     <div class="d-none d-md-flex align-items-center gap-1 gap-lg-2">
+                        <button 
+                            @click="toggleTheme"
+                            class="btn btn-outline-secondary btn-sm d-flex align-items-center"
+                            :title="isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
+                        >
+                            <i :class="isDarkMode ? 'fas fa-sun' : 'fas fa-moon'"></i>
+                            <span class="d-none d-xl-inline ms-1">{{ isDarkMode ? 'Light' : 'Dark' }}</span>
+                        </button>
+                        <RouterLink 
+                            to="/users/search"
+                            class="btn btn-outline-secondary btn-sm d-flex align-items-center"
+                        >
+                            <i class="fas fa-search"></i>
+                            <span class="d-none d-xl-inline ms-1">Search</span>
+                        </RouterLink>
+                        <template v-if="authStore.isAuthenticated.value">
+                            <NotificationBell />
+                        </template>
                         <template v-if="authStore.isAuthenticated.value">
                             <button 
                                 @click="goToPosts"
@@ -110,14 +150,38 @@ const handleLogout = async () => {
                                     {{ props.totalUnreadMessages }}
                                 </span>
                             </div>
-                            <button 
+                            <button
                                 @click="viewUser"
                                 class="btn btn-outline-secondary btn-sm d-flex align-items-center"
                             >
                                 <i class="fas fa-user"></i>
                                 <span class="d-none d-xl-inline ms-1">Profile</span>
                             </button>
-                            <button 
+                            <RouterLink
+                                v-if="authStore.isAdmin.value"
+                                to="/admin/tag-requests"
+                                class="btn btn-outline-secondary btn-sm d-flex align-items-center"
+                            >
+                                <i class="fas fa-tags"></i>
+                                <span class="d-none d-xl-inline ms-1">Tag Requests</span>
+                            </RouterLink>
+                            <RouterLink
+                                v-if="authStore.isAdmin.value"
+                                to="/admin/content-filter"
+                                class="btn btn-outline-secondary btn-sm d-flex align-items-center"
+                            >
+                                <i class="fas fa-filter"></i>
+                                <span class="d-none d-xl-inline ms-1">Content Filter</span>
+                            </RouterLink>
+                            <RouterLink
+                                v-if="authStore.isAdmin.value"
+                                to="/admin/moderation"
+                                class="btn btn-outline-secondary btn-sm d-flex align-items-center"
+                            >
+                                <i class="fas fa-flag"></i>
+                                <span class="d-none d-xl-inline ms-1">Moderation</span>
+                            </RouterLink>
+                            <button
                                 @click="handleLogout"
                                 class="btn btn-outline-danger btn-sm d-flex align-items-center"
                             >
@@ -160,7 +224,7 @@ const handleLogout = async () => {
                 </div>
             </div>
         </nav>
-        <hr style="border: none; height: 1px; background-color: #000; margin: 0;" />
+        <hr style="border: none; height: 1px; background-color: var(--border-color); margin: 0;" />
 
         <div 
             :class="['offcanvas', 'offcanvas-end', { 'show': showMobileMenu }]"
@@ -177,6 +241,21 @@ const handleLogout = async () => {
             </div>
             <div class="offcanvas-body">
                 <div class="list-group list-group-flush">
+                    <button 
+                        @click="toggleTheme"
+                        class="list-group-item list-group-item-action d-flex align-items-center mobile-menu-item"
+                    >
+                        <i :class="[isDarkMode ? 'fas fa-sun' : 'fas fa-moon', 'fs-5', 'mobile-menu-icon']"></i>
+                        <span class="mobile-menu-text">{{ isDarkMode ? 'Light Mode' : 'Dark Mode' }}</span>
+                    </button>
+                    <RouterLink 
+                        to="/users/search" 
+                        class="list-group-item list-group-item-action d-flex align-items-center mobile-menu-item"
+                        @click="closeMobileMenu"
+                    >
+                        <i class="fas fa-search fs-5 mobile-menu-icon"></i>
+                        <span class="mobile-menu-text">Search Users</span>
+                    </RouterLink>
                     <template v-if="authStore.isAuthenticated.value">
                         <div class="list-group-item bg-light">
                             <div class="d-flex align-items-center justify-content-between">

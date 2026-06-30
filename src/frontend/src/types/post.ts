@@ -16,6 +16,8 @@ export interface CreatePostDto {
     creatorUid: string;
     tags: string[];
     privacyLevel: number;
+    // Ids of attachments already uploaded by this user, to link to the new post.
+    attachmentIds?: string[];
 }
 
 export interface UpdatePostDto {

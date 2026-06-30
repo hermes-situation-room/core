@@ -3,5 +3,8 @@ namespace Hermes.SituationRoom.Shared.DataTransferObjects;
 
 public record ChatDto(Guid Uid,
     Guid User1Uid,
-    Guid User2Uid
+    Guid User2Uid,
+    IReadOnlyList<Guid> MemberUids,
+    string? Name,
+    bool IsGroup
 );

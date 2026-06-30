@@ -22,6 +22,18 @@ public class ChatController(IControllerInfrastructure controllerInfrastructure, 
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<Guid>> AddAsync([FromBody] CreateChatRequestDto createChatDto) => Ok(await chatService.AddAsync(createChatDto));
 
+    [HttpPost("internal/group-chats")]
+    [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_CHAT])]
+    [ProducesResponseType(typeof(Guid), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<Guid>> AddGroupAsync([FromBody] CreateGroupChatRequestDto createGroupChatDto) =>
+        Ok(await chatService.AddAsync(new CreateChatRequestDto(
+            Guid.Empty,
+            Guid.Empty,
+            createGroupChatDto.MemberUids,
+            createGroupChatDto.Name
+        )));
+
     [HttpGet("internal/chats/{chatId:guid}")]
     [SwaggerOperation(Tags = [SwaggerTagDescriptions.ENDPOINT_TAG_INTERNAL_CHAT])]
     [ProducesResponseType(typeof(ChatDto), StatusCodes.Status200OK)]

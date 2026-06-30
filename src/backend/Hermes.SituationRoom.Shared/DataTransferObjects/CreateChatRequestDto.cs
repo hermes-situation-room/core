@@ -1,5 +1,8 @@
+#nullable enable
 namespace Hermes.SituationRoom.Shared.DataTransferObjects;
 
 public record CreateChatRequestDto(Guid User1Uid,
-    Guid User2Uid
+    Guid User2Uid,
+    IReadOnlyList<Guid>? MemberUids = null,
+    string? Name = null
 );

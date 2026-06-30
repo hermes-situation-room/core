@@ -4,9 +4,10 @@ using AutoMapper;
 using Hermes.SituationRoom.Data.Interface;
 using Hermes.SituationRoom.Shared.BusinessObjects;
 using Hermes.SituationRoom.Shared.DataTransferObjects;
+using Hermes.SituationRoom.Shared.Exceptions;
 using Interfaces;
 
-public class JournalistService(IJournalistRepository journalistRepository, IEncryptionService encryptionService, IMapper mapper) : IJournalistService
+public class JournalistService(IJournalistRepository journalistRepository, IEncryptionService encryptionService, IBreachedPasswordService breachedPasswordService, IMapper mapper) : IJournalistService
 {
     public async Task<JournalistDto> GetJournalistAsync(Guid journalistUid)
     {
@@ -22,12 +23,15 @@ public class JournalistService(IJournalistRepository journalistRepository, IEncr
         return mapper.Map<IReadOnlyList<JournalistDto>>(journalistsWithoutSensitiveData);
     }
 
-    public Task<Guid> CreateJournalistAsync(CreateJournalistRequestDto createJournalistDto) 
+    public async Task<Guid> CreateJournalistAsync(CreateJournalistRequestDto createJournalistDto)
     {
+        if (await breachedPasswordService.IsBreachedAsync(createJournalistDto.Password))
+            throw new ValidationBusinessException("Password", "This password has appeared in a known data breach. Please choose a different password.");
+
         var journalistBo = mapper.Map<JournalistBo>(createJournalistDto);
         (byte[] hash, byte[] salt) = encryptionService.EncryptPassword(createJournalistDto.Password);
         journalistBo = journalistBo with { PasswordHash = hash, PasswordSalt = salt };
-        return journalistRepository.AddAsync(journalistBo);
+        return await journalistRepository.AddAsync(journalistBo);
     }
 
     public async Task<JournalistDto> UpdateJournalistAsync(UpdateJournalistRequestDto updateJournalistDto) 

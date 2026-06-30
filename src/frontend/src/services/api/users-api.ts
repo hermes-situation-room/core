@@ -42,6 +42,12 @@ export default function usersApi(apiBaseClient: ApiBaseClient) {
          */
         async updateJournalist(uid: string, journalistData: JournalistBo): Promise<BaseResultBo<string>> {
             return await apiBaseClient.put<JournalistBo>(`services/api/internal/journalist/${uid}`, journalistData);
+        },
+        /**
+         * Delete user account permanently
+         */
+        async deleteUser(uid: string): Promise<BaseResultBo<undefined>> {
+            return await apiBaseClient.delete(`services/api/internal/user/${uid}`);
         }
     };
 }

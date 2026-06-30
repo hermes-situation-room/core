@@ -15,7 +15,13 @@ public partial class Message
 
     public Guid ChatUid { get; set; }
 
+    public DateTime? ExpiresAt { get; set; }
+
+    public bool IsViewOnce { get; set; }
+
     public virtual Chat ChatU { get; set; }
 
     public virtual User SenderU { get; set; }
+
+    public virtual ICollection<MessageView> MessageViews { get; set; } = new List<MessageView>();
 }
